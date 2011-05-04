@@ -1,0 +1,14 @@
+
+cgbIO - Cancer Genome Browser Input/Output tools
+
+
+This python module is designed to do tasks associated with data preperation
+associated with Genome/Clinical files to be added to the Cancer Genome Browser
+http://genome-cancer.ucsc.edu
+
+
+
+
+Tools:
+
+extractClinical.py - Extract data stored in 
