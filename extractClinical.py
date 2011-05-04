@@ -6,8 +6,12 @@ import sys
 import json
 import csv
 import re
+import os
 
 serverList = json.loads( open( sys.argv[1] ).read() )
+
+if not os.path.exists( "data/clinical" ):
+	os.makedirs("data/clinical")
 
 
 reCommaEnd = re.compile(r',$')

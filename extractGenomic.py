@@ -6,10 +6,13 @@ import sys
 import json
 import csv
 import re
-
+import os
 serverList = json.loads( open( sys.argv[1] ).read() )
 
 reCommaEnd = re.compile(r',$')
+
+if not os.path.exists( "data/genomic" ):
+	os.makedirs("data/genomic")
 
 for server in serverList:
 	info = serverList[server]
@@ -27,7 +30,7 @@ for server in serverList:
 				'platform': row[3],
 				'probeSpace' : row[4]
 			}
-			oHandle = open( "genomic/%s.json" % (name), "w" )
+			oHandle = open( "data/genomic/%s.json" % (name), "w" )
 			oHandle.write( json.dumps( gData ) )
 			oHandle.close()
 			
@@ -42,7 +45,7 @@ for server in serverList:
 				ids   = reCommaEnd.sub("", row2[0]).split(',')
 				names = reCommaEnd.sub("", row2[1]).split(',')
 
-				oHandle = open( "genomic/%s" % (name), "w" )
+				oHandle = open( "data/genomic/%s" % (name), "w" )
 				writer = csv.writer( oHandle, delimiter="\t" )
 
 				row = ["NA"] * len(ids)
