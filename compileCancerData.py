@@ -320,6 +320,7 @@ for field in setMap:
 		setHash[ field ][ type ] = {}
 
 for dir in sys.argv[1:]:
+	sys.stderr.write("DIR: %s\n" % (dir) )
 	for path in glob( os.path.join( dir, "*.json" ) ):
 		handle = open( path )
 		data = json.loads( handle.read() )

@@ -24,6 +24,7 @@ for server in serverList:
 			name = row[0]
 			print name
 			gData = {
+				'type': 'genomic',
 				'name' : row[0],
 				'author' : row[1],
 				'sampleSpace' : row[2],

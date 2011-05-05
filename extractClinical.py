@@ -25,6 +25,7 @@ for server in serverList:
 		for row in cur.fetchall():
 			name = row[0]
 			cData = {
+				'type' : 'feature',
 				'name' : row[0],
 				'author' : row[1],
 				'sampleSpace' : row[2],
