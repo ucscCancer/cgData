@@ -18,11 +18,19 @@ mapper = cgbIO.map.ProbeMapper( handle )
 handle.close()
 handle = open( args[1] )
 read = csv.reader( handle, delimiter="\t" )
+line=1
+
 for row in read:
-	#this example column input is in the bed12 column order
-	out = mapper.findOverlap( row[0], row[5], int(row[1]), int(row[2]), hitFunc )
-	if len(out):
-		o = []
-		for e in out:
-			o.append( str(e) )
-		print "%s\t%s" % ("\t".join(row), ",".join(o) )
+	try:
+		if len(row) == 12:
+			out = mapper.findOverlap( row[0], row[5], int(row[1]), int(row[2]), hitFunc )
+			o = []
+			for e in out:
+				o.append( str(e) )
+			print "%s\t%s" % ("\t".join(row), ",".join(o) )
+		else:
+			sys.stderr.write("WARNING BADLINE: %d = %s\n" % (line,str(row)))
+		
+	except Exception, e:
+		sys.stderr.write("WARNING LINE: %d = %s\n" % (line,str(e)))
+	line += 1
