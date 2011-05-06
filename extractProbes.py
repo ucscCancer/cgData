@@ -13,9 +13,9 @@ reCommaEnd = re.compile(r',$')
 
 
 for server in serverList:
-	outDir = "data/%s/genomic" % (server)
+	outDir = "data/%s/probes" % (server)
 	if not os.path.exists( outDir ):
-		os.makedirs(outDir)
+		os.makedirs( outDir )
 
 	info = serverList[server]
 	try:
@@ -24,56 +24,48 @@ for server in serverList:
 		cur.execute("select name, wrangler, patDb, platform, aliasTable, profile from raDb")	
 		for row in cur.fetchall():
 			name = row[0]
+			aliasTable = row[4]
 			print name
 			gData = {
-				'type': 'genomic',
+				'type': 'probeMap',
 				'name' : row[0],
 				'author' : row[1],
-				'sampleSpace' : row[2],
-				'platform': row[3],
 				'probeSpace' : row[4]
 			}
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
 			oHandle.write( json.dumps( gData ) )
-			oHandle.close()
-			
+			oHandle.close()			
 		
 			profile = row[5]
-
-			if serverList.has_key( profile ):
-				
-				cur2 = db.cursor()
-				cur2.execute( "select expIds, names from maDb where name='%s'" % ( name ) )
-				row2 = cur2.fetchone()
-				ids   = reCommaEnd.sub("", row2[0]).split(',')
-				names = reCommaEnd.sub("", row2[1]).split(',')
-
+			if serverList.has_key( profile ):				
 				oHandle = open( "%s/%s" % (outDir, name), "w" )
-				writer = csv.writer( oHandle, delimiter="\t" )
-
-				row = ["NA"] * len(ids)
-				for i in range( len(ids) ):
-					row[ int(ids[i]) ] = names[i]
-				cur2.close()
-				row.insert(0, "probe")
-				writer.writerow( row )
-			
 				pHost = serverList[ profile ]
 				try:
 					db2 = MySQLdb.connect(host=pHost['host'],db=pHost['db'], passwd=pHost['passwd'], user=pHost['user'])
-					cur2 = db2.cursor()
-					cur2.execute( "select name, expIds, expScores from %s" % ( name ) )
+					cur2 = db2.cursor()				
+					cur2.execute( "select name, chrom, chromStart, chromEnd, strand from %s" % ( name ) )
+					cur3 = db2.cursor()					
 					for row2 in cur2.fetchall():
-						ids = reCommaEnd.sub("",row2[1]).split(',')
-						scores = row2[2].split(',')
-						row = ["NA"] * len(ids)
-						#print len(ids)
-						#print len(scores)
-						for i in range(len(ids)):
-							row[ int(ids[i]) ] = scores[i]
-						row.insert(0, row2[0])
-						writer.writerow( row )
+						probeName = row2[0]
+						chrom = row2[1]
+						chromStart = row2[2]
+						chromEnd = row2[3]
+						strand = row2[4]							
+						aliases = []
+						if aliasTable is not None:
+							try:
+								aliasSQL =  "select alias from %s where name='%s'" % ( aliasTable, probeName ) 
+								#print aliasSQL
+								cur3.execute( aliasSQL )
+								for row3 in cur3.fetchall():
+									aliases.append( row3[0] )
+							except _mysql_exceptions.ProgrammingError, e:
+								print "ERROR:", e					
+					
+						oHandle.write("%s\t%s\t%s\t%s\t%s\t%s\n" % ( probeName, chrom, chromStart, chromEnd, strand, ",".join( aliases ) ) )
+					
 					cur2.close()
+					cur3.close()
 					db2.close()
 				except _mysql_exceptions.ProgrammingError, e:
 					print "ERROR:", e

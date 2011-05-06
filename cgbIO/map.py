@@ -97,7 +97,15 @@ def geneOverlap( start, end, strand, gene ):
 	if gene.strand == gene.strand and gene.end > start and gene.start < end:
 		return True
 	return False
-
+	
+def exonOverlap( start, end, strand, gene ):
+	if gene.strand != gene.strand:
+		return False
+	for i in range( gene.exCount ):
+		if gene.exEnd[i] > start and gene.exStart[i] < end:
+			return True
+	return False
+	
 def geneSimpleMethOverlap( start, end, strand, gene ):
 	if gene.end > start and gene.start < end:
 		return True
@@ -112,7 +120,9 @@ def geneSimpleMethOverlap( start, end, strand, gene ):
 ###for example '-m' maps to geneSimpleMethOverlap
 
 optionMap = {
-	"m" : geneSimpleMethOverlap
+	"g" : geneOverlap,
+	"m" : geneSimpleMethOverlap,
+	"e" : exonOverlap
 }
 
 

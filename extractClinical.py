@@ -10,14 +10,15 @@ import os
 
 serverList = json.loads( open( sys.argv[1] ).read() )
 
-if not os.path.exists( "data/clinical" ):
-	os.makedirs("data/clinical")
-
-
 reCommaEnd = re.compile(r',$')
 
 for server in serverList:
 	info = serverList[server]
+
+	outDir = "data/%s/feature" % ( server )
+	if not os.path.exists( outDir ):
+		os.makedirs( outDir )
+
 	try:
 		db=MySQLdb.connect(host=info['host'],db=info['db'], passwd=info['passwd'], user=info['user'])
 		cur = db.cursor()	
@@ -33,7 +34,7 @@ for server in serverList:
 				'probeSpace' : row[4]
 			}
 			#print cData
-			oHandle = open( "data/clinical/%s.json" % (name), "w" )
+			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
 			oHandle.write( json.dumps( cData ) )
 			oHandle.close()
 					
@@ -94,7 +95,7 @@ for server in serverList:
 						except _mysql_exceptions.OperationalError:
 							pass
 					
-					oHandle = open( "data/clinical/%s" % (name), "w" )
+					oHandle = open( "%s/%s" % (outDir, name), "w" )
 			
 					head = sorted( fMap.keys() )
 					oHandle.write( "Probe\t%s\n" % ( "\t".join(head) ) )
