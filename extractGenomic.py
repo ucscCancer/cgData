@@ -25,13 +25,15 @@ for server in serverList:
 		for row in cur.fetchall():
 			name = row[0]
 			print name
+			#if name.endswith( '201103' ):
+			#	continue
 			gData = {
 				'type': 'genomic',
 				'name' : row[0],
 				'author' : row[1],
-				'sampleSpace' : row[2],
+				'sampleMap' : row[2],
 				'platform': row[3],
-				'probeSpace' : row[4]
+				'probeMap' : row[4]
 			}
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
 			oHandle.write( json.dumps( gData ) )
@@ -63,16 +65,21 @@ for server in serverList:
 					db2 = MySQLdb.connect(host=pHost['host'],db=pHost['db'], passwd=pHost['passwd'], user=pHost['user'])
 					cur2 = db2.cursor()
 					cur2.execute( "select name, expIds, expScores from %s" % ( name ) )
-					for row2 in cur2.fetchall():
-						ids = reCommaEnd.sub("",row2[1]).split(',')
-						scores = row2[2].split(',')
-						row = ["NA"] * len(ids)
-						#print len(ids)
-						#print len(scores)
-						for i in range(len(ids)):
-							row[ int(ids[i]) ] = scores[i]
-						row.insert(0, row2[0])
-						writer.writerow( row )
+					reading = True
+					while reading:
+						row2 = cur2.fetchone()
+						if row2 is None:
+							reading = False
+						else:
+							ids = reCommaEnd.sub("",row2[1]).split(',')
+							scores = row2[2].split(',')
+							row = ["NA"] * len(ids)
+							#print len(ids)
+							#print len(scores)
+							for i in range(len(ids)):
+								row[ int(ids[i]) ] = scores[i]
+							row.insert(0, row2[0])
+							writer.writerow( row )
 					cur2.close()
 					db2.close()
 				except _mysql_exceptions.ProgrammingError, e:

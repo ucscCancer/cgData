@@ -15,23 +15,23 @@ reCommaEnd = re.compile(r',$')
 for server in serverList:
 	info = serverList[server]
 
-	outDir = "data/%s/feature" % ( server )
+	outDir = "data/%s/clinical" % ( server )
 	if not os.path.exists( outDir ):
 		os.makedirs( outDir )
 
 	try:
 		db=MySQLdb.connect(host=info['host'],db=info['db'], passwd=info['passwd'], user=info['user'])
 		cur = db.cursor()	
-		cur.execute("select name, wrangler, patDb, platform, aliasTable, profile from raDb")	
+		cur.execute("select patDb, wrangler, patDb, platform, aliasTable, profile from raDb")	
 		for row in cur.fetchall():
 			name = row[0]
 			cData = {
 				'type' : 'feature',
 				'name' : row[0],
 				'author' : row[1],
-				'sampleSpace' : row[2],
+				'sampleMap' : row[2],
 				'platform': row[3],
-				'probeSpace' : row[4]
+				'probeMap' : row[4]
 			}
 			#print cData
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
@@ -57,10 +57,10 @@ for server in serverList:
 				fMap[ row2[0] ] = fData
 			cur2.close()
 						
-			if serverList.has_key( profile ) and cData['sampleSpace'] is not None:		
+			if serverList.has_key( profile ) and cData['sampleMap'] is not None:		
 				try:
 					cHost = serverList[ profile ]
-					db2=MySQLdb.connect(host=cHost['host'],db=cData['sampleSpace'], passwd=cHost['passwd'], user=cHost['user'])		
+					db2=MySQLdb.connect(host=cHost['host'],db=cData['sampleMap'], passwd=cHost['passwd'], user=cHost['user'])		
 					cur2 = db2.cursor()
 					
 					fEnum = {}
@@ -70,7 +70,7 @@ for server in serverList:
 							fEnum[ row2[0] ] = {}
 						if not fEnum[ row2[0] ].has_key( row2[1] ):
 							fEnum[ row2[0] ][ row2[1] ] = {}
-							fEnum[ row2[0] ][ row2[1] ][ row2[2] ] = row2[3]
+						fEnum[ row2[0] ][ row2[1] ][ row2[2] ] = row2[3]
 						
 					fVals = {}
 					for fName in fMap:

@@ -25,20 +25,24 @@ for server in serverList:
 		for row in cur.fetchall():
 			name = row[0]
 			aliasTable = row[4]
-			print name
+			#if name.endswith( '201103' ):
+			#	continue
+			print name			
 			gData = {
 				'type': 'probeMap',
-				'name' : row[0],
+				'name' : aliasTable,
 				'author' : row[1],
-				'probeSpace' : row[4]
 			}
-			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
+			
+			if os.path.exists( "%s/%s" % (outDir, aliasTable) ):
+				continue
+			oHandle = open( "%s/%s.json" % (outDir, aliasTable), "w" )
 			oHandle.write( json.dumps( gData ) )
 			oHandle.close()			
 		
 			profile = row[5]
 			if serverList.has_key( profile ):				
-				oHandle = open( "%s/%s" % (outDir, name), "w" )
+				oHandle = open( "%s/%s" % (outDir, aliasTable), "w" )
 				pHost = serverList[ profile ]
 				try:
 					db2 = MySQLdb.connect(host=pHost['host'],db=pHost['db'], passwd=pHost['passwd'], user=pHost['user'])
