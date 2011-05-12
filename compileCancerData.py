@@ -15,12 +15,28 @@ TYPE_FIELD = "type"
 TYPE_GENOMIC = "genomic"
 TYPE_FEATURE = "feature"
 
-SAMPLE_FIELD = "sampleSpace"
-PROBE_FIELD = "probeSpace"
+SAMPLE_FIELD = "sampleMap"
+PROBE_FIELD = "probeMap"
+
+DATABASE_NAME = "hg18"
+
+errorLogHandle = None
+def error(eStr):
+	sys.stderr.write("ERROR: %s\n" % (eStr) )
+	errorLogHandle.write( "ERROR: %s\n" % (eStr) )
+
+def warn(eStr):
+	sys.stderr.write("WARNING: %s\n" % (eStr) )
+	errorLogHandle.write( "WARNING: %s\n" % (eStr) )
+
+def log(eStr):
+	sys.stderr.write("LOG: %s\n" % (eStr) )
+	errorLogHandle.write( "LOG: %s\n" % (eStr) )
 
 
 includeList = None
 
+raDbHandle = None
 
 CREATE_raDb = """
 CREATE TABLE raDb (
@@ -92,35 +108,57 @@ CREATE TABLE maDb (
 );
 """
 
-def genomicMatrix( path, info ):
-	#create bed15 files to be loaded 
-	print "Create Genomic Matrix", path
 
-def featureMatrix(path, info):
-	print "Create Feature Matrix", path
-	
-	if info[ SAMPLE_FIELD ] is None:
+CREATE_BED = """
+CREATE TABLE %s (
+    bin smallint unsigned not null,
+    chrom varchar(255) not null,
+    chromStart int unsigned not null,
+    chromEnd int unsigned not null,
+    name varchar(255) not null,
+    score int not null,
+    strand char(1) not null,
+    thickStart int unsigned not null,
+    thickEnd int unsigned not null,
+    reserved int unsigned  not null,
+    blockCount int unsigned not null,
+    blockSizes longblob not null,
+    chromStarts longblob not null,
+    expCount int unsigned not null,
+    expIds longblob not null,
+    expScores longblob not null,
+    INDEX(name(16)),
+    INDEX(chrom(4),chromStart),
+    INDEX(chrom(4),bin)
+);
+"""
+
+
+def colFix( name ):
+	out = name.replace( '-', '_' )
+	while (len(out) > 64):
+		out = re.sub( r'[aeiou]([^aioeu]*)$', r'\1', out)
+	return out
+
+def sqlFix( name ):
+	return name.replace("'", "\\'")
+
+def genomicClinicalMapping( sampleMap, genomicPath, genomeInfo, featurePath, featureInfo ):
+	#create raDB entries 
+	if genomeInfo[ SAMPLE_FIELD ] != featureInfo[ SAMPLE_FIELD ]:
 		return
+	
+	if featureInfo[ SAMPLE_FIELD ] is None:
+		return
+
+	print "feature mapping", genomicPath, "  ", featurePath
 		
-	basename = os.path.join( OUT_DIR, info[ SAMPLE_FIELD ] )
+	basename = os.path.join( OUT_DIR, "%s_clinical_%s" % ( DATABASE_NAME, featureInfo[ SAMPLE_FIELD ] ) )
 	print basename
-	inPath = reJson.sub( "", path )
+	inPath = reJson.sub( "", featurePath )
 	if not os.path.exists( inPath ):
 		return
-	handle = open( inPath )
-	
-	oHandle = open( "%s.columnDb_clinical.ra" % (basename), "w" )
-	sHandle = open( "%s.codes.sql" % (basename), "w")
-	sHandle.write("""
-drop table if exists codes ;
-CREATE TABLE codes	(
-	tableName varchar(255) default NULL,
-	colName varchar(255) default NULL,
-	code int(11) default NULL,
-	val varchar(255) default NULL
-) ;
-""")
-	
+	handle = open( inPath )		
 	read = csv.reader( handle, delimiter="\t" )
 	
 	colName = None
@@ -133,9 +171,11 @@ CREATE TABLE codes	(
 				colHash[ name ] = {}
 		else:
 			for i in range( 1, len(row) ):
-				colHash[ colName[i] ][ row[0] ] = row[i]
+				colHash[ colName[i] ][ row[0].rstrip() ] = row[i]
 			targetSet.append( row[0].rstrip() )
 	handle.close()
+	
+	#print colHash
 	
 	floatMap = {}
 	enumMap = {}
@@ -167,86 +207,30 @@ CREATE TABLE codes	(
 	idNum = 0
 	prior = 1
 	colOrder = []
-	origOrder = []
-	
-	showList = None	
-	if os.path.exists( "important.list" ):
-		handle = open( "important.list" )
-		showList = {}
-		for line in handle:
-			tmp = line.rstrip().split(' ')
-			showList[ tmp[0] ] = tmp[1]
-	
-	def colFix( name ):
-		out = name.replace( '-', '_' )
-		while (len(out) > 64):
-			out = re.sub( r'[aeiou]([^aioeu]*)$', r'\1', out)
-		return out
-		
+	origOrder = []	
+
 	for name in floatMap:
 		idMap[ name ] = idNum
 		idNum += 1	
-		#colName = "clinicalData_%d" % ( int(idNum) )
 		colName = colFix( name )
 		colOrder.append( colName )
 		origOrder.append( name )
-		oHandle.write("name %s\n" % (colName) )
-		oHandle.write("shortLabel %s\n" % (name) )
-		oHandle.write("longLabel %s\n" % (name) )
-		if showList is None or not showList.has_key( name ):
-			oHandle.write("priority %d\n" % (prior) )
-			prior += 1
-		else:
-			oHandle.write("priority %s\n" % ( showList[name] ) )
-	
-		if ( showList is None or showList.has_key( name ) ):
-			oHandle.write("visibility on\n")
-		else:
-			oHandle.write("visibility off\n")
-	
 		
-		oHandle.write("type lookup clinicalFeatures patientId %s\n" % (colName) )
-		oHandle.write("filterType minMax\n\n")
-	
-	for name in enumMap:
+	for name in enumMap:		
 		idMap[ name ] = idNum
 		idNum += 1	
-		#colName = "clinicalData_%d" % ( int(idNum) )
 		colName = colFix( name )
 		colOrder.append( colName )
-		origOrder.append( name )
-		oHandle.write("name %s\n" % (colName) )
-		oHandle.write("shortLabel %s\n" % (name) )
-		oHandle.write("longLabel %s\n" % (name) )
-		if showList is None or not showList.has_key( name ):
-			oHandle.write("priority %d\n" % (prior) )
-			prior += 1
-		else:
-			oHandle.write("priority %s\n" % ( showList[name] ) )
+		origOrder.append( name )		
 	
-		if ( showList is None or showList.has_key( name ) ):
-			oHandle.write("visibility on\n")
-		else:
-			oHandle.write("visibility off\n")
-		
-		oHandle.write("type lookup clinicalFeatures patientId %s\n" % (colName) )
-	
-		oHandle.write("filterType coded\n\n")
-		for enum in enumMap[ name ]:
-			sHandle.write( "INSERT INTO codes VALUES( '%s','%s',%d,'%s' );\n" % 
-				( "clinicalFeatures", colName,  enumMap[name][enum], enum.replace("'", "\\'")  ) )
-	
-	sHandle.close()
-	oHandle.close()	
-	
-	dHandle = open( "%s.data.sql" % (basename), "w")
+	dHandle = open( "%s.sql" % (basename), "w")
+	dHandle.write("drop table if exists clinical_%s;" % ( featureInfo[ 'name' ] ) )
 	dHandle.write("""
-drop table if exists clinicalFeatures ;
-CREATE TABLE clinicalFeatures (
-patientID varchar(255) default NULL""")
+CREATE TABLE clinical_%s (
+\tsampleID int""" % ( featureInfo[ 'name' ] ))
 	for col in colOrder:
-		if ( colHash.has_key( col ) ):
-			dHandle.write(",\n\t%s INTEGER default NULL" % (col) )
+		if ( enumMap.has_key( col ) ):
+			dHandle.write(",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join(enumMap[ col ].keys() ) ) )
 		else:
 			dHandle.write(",\n\t%s FLOAT default NULL" % (col) )		
 	dHandle.write("""
@@ -260,67 +244,23 @@ patientID varchar(255) default NULL""")
 			#print target, col, val
 			if val is None or val == "null" or len(val) == 0 :
 				a.append("\N")
-			else:
-				if enumMap.has_key( col ):
-					val = enumMap[col][ val ]
+			else:				
 				a.append( "'" + str(val) + "'" )
-		dHandle.write(" INSERT INTO clinicalFeatures VALUES ( '%s', %s );\n" % ( target, ",".join(a) ) )
+		dHandle.write(" INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( featureInfo[ 'name' ], sampleMap[ target ], ",".join(a) ) )
 	dHandle.close()
 		
-	lHandle = open( "%s.labTrack.sql" % (basename), "w")
-	lHandle.write("""
-drop table if exists labTrack ;
-CREATE TABLE labTrack (
-	patientId varchar(255),
-	trackId   varchar(255)
-);
-""")
 	
-	for target in targetSet:
-		lHandle.write( "INSERT INTO labTrack VALUES( '%s', '%s' );\n" % (target, target) )
-	lHandle.close()
+		
 
-
-
-CREATE_BED = """
-CREATE TABLE %s (
-    bin smallint unsigned not null,
-    chrom varchar(255) not null,
-    chromStart int unsigned not null,
-    chromEnd int unsigned not null,
-    name varchar(255) not null,
-    score int not null,
-    strand char(1) not null,
-    thickStart int unsigned not null,
-    thickEnd int unsigned not null,
-    reserved int unsigned  not null,
-    blockCount int unsigned not null,
-    blockSizes longblob not null,
-    chromStarts longblob not null,
-    expCount int unsigned not null,
-    expIds longblob not null,
-    expScores longblob not null,
-    INDEX(name(16)),
-    INDEX(chrom(4),chromStart),
-    INDEX(chrom(4),bin)
-);
-"""
-
-def genomicFeatureMapping( leftPath, leftInfo, rightPath, rightInfo ):
-	#create raDB entries 
-	if leftInfo[ SAMPLE_FIELD ] == rightInfo[ SAMPLE_FIELD ]:
-		print "feature mapping", leftInfo, "  ", rightInfo
-
-def genomicProbeMapping( leftPath, leftInfo, rightPath, rightInfo ):
-	if leftInfo[ PROBE_FIELD ] == rightInfo[ PROBE_FIELD ]:
-		if includeList is not None and not includeList.has_key( leftInfo[ 'name' ] ):
+def genomicProbeMapping( sampleMap, genomicPath, genomeInfo, probePath, probeInfo ):
+	if genomeInfo[ PROBE_FIELD ] == probeInfo[ 'name' ] and sampleMap is not None:
+		if includeList is not None and not includeList.has_key( genomeInfo[ 'name' ] ):
 			return 
-		print "probe mapping", leftPath, "  ", rightPath
-		basename = os.path.join( OUT_DIR, leftInfo[ 'name' ] )
+		print "probe mapping", genomicPath, "  ", probePath
+		basename = os.path.join( OUT_DIR, "%s_genomic_%s" % ( DATABASE_NAME, genomeInfo[ 'name' ] ) )
 		print basename
-		print leftPath, rightPath
-		rPath = reJson.sub( "", rightPath )
-		lPath = reJson.sub( "", leftPath )
+		rPath = reJson.sub( "", probePath )
+		lPath = reJson.sub( "", genomicPath )
 		if not os.path.exists( rPath ) or not os.path.exists( lPath ):
 			return
 		rHandle = open( rPath )
@@ -332,8 +272,9 @@ def genomicProbeMapping( leftPath, leftInfo, rightPath, rightInfo ):
 		
 		lHandle = open( lPath )
 		read = csv.reader( lHandle, delimiter="\t")
-		oHandle = open( "%s.bed15.sql" % (basename), "w" )
-		oHandle.write( CREATE_BED % ( leftInfo[ 'name' ]  ) )
+		oHandle = open( "%s.sql" % (basename), "w" )
+		oHandle.write("drop table if exists genomic_%s;" % ( genomeInfo[ 'name' ] ) )
+		oHandle.write( CREATE_BED % ( "genomic_" + genomeInfo[ 'name' ]  ) )
 		
 		head = None
 		for line in read:
@@ -341,53 +282,84 @@ def genomicProbeMapping( leftPath, leftInfo, rightPath, rightInfo ):
 				head = line
 			else:
 				probe = line[0]
-				expIDs = ','.join( str(a) for a in range(1,len(line)))
-				exps = ','.join( str(a) for a in line[1:])
-
-				iStr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-					( leftInfo[ 'name' ], probeHash[probe]['chrom'], probeHash[probe]['start'], probeHash[probe]['end'], probeHash[probe]['strand'], probe, len(line), expIDs, exps )
-				
-				oHandle.write( iStr )
+				sampleIDs = []
+				for a in head[1:]:
+					try:
+						sampleIDs.append( str(sampleMap[a]) )
+					except KeyError:
+						error( "UNKNOWN SAMPLE: %s" % (a) )
+						sampleIDs = None
+						break
+					
+				if sampleIDs is not None:
+					expIDs = ','.join( sampleIDs )
+					exps = ','.join( str(a) for a in line[1:])
+					try:
+						iStr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
+						( "genomic_%s" % (genomeInfo[ 'name' ]), probeHash[probe]['chrom'], probeHash[probe]['start'], probeHash[probe]['end'], probeHash[probe]['strand'], probe, len(line), expIDs, exps )
+						oHandle.write( iStr )
+					except KeyError:
+						error( "MISSING PROBE: %s" % ( probe ) )
 		oHandle.close()
-		
-		#run matrix2bed code
-
-def probeMatrix(path, info):	
-	if info[ PROBE_FIELD ] is not None:
-		basename = os.path.join( OUT_DIR, info[ PROBE_FIELD ] )
-		print basename
-		if os.path.exists( basename ):
-			handle = open( reJson.sub( "", path ) )
-			read = csv.reader( handle, delimiter="\t" )
-			
-			oHandle = open( "%s.alias.sql" % (basename), "w" )
-			
-			for row in read:
-				oHandle.write("INSERT into test values( '%s', %s, %s, '%s' );\n" % (row[0], row[1], row[2], row[3] ) )
-			handle.close()
-			oHandle.close()
 	
-setMap = { 
-	"type" : { 
-		"genomic" : genomicMatrix, 
-		"feature" : featureMatrix, 
-		"probeMap" : probeMatrix 
-	} 
-}
+		handle = open( rPath )
+		read = csv.reader( handle, delimiter="\t" )
+		
+		oHandle = open( "%s_alias.sql" % (basename), "w" )
+		oHandle.write("drop table if exists genomic_%s_alias;" % ( genomeInfo[ 'name' ] ) )
+		oHandle.write("""
+CREATE TABLE genomic_%s_alias (
+\tname varchar(255) default NULL,
+\talias varchar(255) default NULL
+);
+""" % ( genomeInfo[ 'name' ] ) )
+		for row in read:
+			for alias in row[5].rstrip().split(','):
+				if len(alias):
+					oHandle.write("INSERT into genomic_%s_alias values ( '%s', '%s' );\n" % (genomeInfo[ 'name' ], sqlFix(row[0]), sqlFix(alias) ) ) 
+		handle.close()
+		oHandle.close()
 
-setHash = {}
 
-setCombine = {
-	"type" : { 
-		"genomic" : { "feature" : genomicFeatureMapping, "probeMap" : genomicProbeMapping }
-	}
-}
+
+
+def genomicSampleMapping( genomicPath, genomeInfo, samplePath, sampleInfo ):	
+	basename = os.path.join( OUT_DIR, "%s_sample_%s" % ( DATABASE_NAME, sampleInfo[ 'name' ] ) )
+
+	lPath = reJson.sub( "", samplePath )
+	if not os.path.exists( lPath ):
+		return
+	rHandle = open( lPath )
+	read = csv.reader( rHandle, delimiter="\t" )
+	targetHash = {}
+	for target in read:
+		targetHash[ target[0] ] = target[1]
+		targetHash[ target[1] ] = None
+	
+	keySet = targetHash.keys()
+	keySet.sort()
+	
+	lHandle = open( "%s.sql" % (basename), "w")
+	lHandle.write("drop table if exists sample_%s;" % ( sampleInfo[ 'name' ] ) )
+
+	lHandle.write("""
+CREATE TABLE sample_%s (
+	id           int,
+	sampleName   varchar(255)
+);
+""" % ( sampleInfo[ 'name' ] ) )
+	
+	sampleHash = {}
+	for i in range( len( keySet ) ):
+		lHandle.write( "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( sampleInfo[ 'name' ], i, keySet[i] ) )
+		sampleHash[  keySet[i] ] = i
+	lHandle.close()
+	return sampleHash
+	
 
 
 if __name__ == "__main__":
-
-	opts, args = getopt( sys.argv[1:], "l:" )
-		
+	opts, args = getopt( sys.argv[1:], "d:l:" )
 	for a,o in opts:
 		if a == "-l":
 			handle = open( o )
@@ -395,41 +367,69 @@ if __name__ == "__main__":
 			for line in handle:
 				includeList[ line.rstrip() ] = True
 			handle.close()
-		
+		if a == "-d":
+			DATABASE_NAME = o
 
-	for field in setMap:
-		setHash[field] = {}
-		for type in setMap[ field ]:
-			setHash[ field ][ type ] = {}
+
+	errorLogHandle = open( "error.log", "w" )
+
+	#raDbHandle = open( os.path.join( OUT_DIR, "%s_raDb.sql" % (DATABASE_NAME) ), "w" )
+	#raDbHandle.write( CREATE_raDb  )
+
+	setHash = {  'genomic' : {}, "clinical" : {}, "probeMap" : {}, "sampleMap" : {} }
+	pathHash = {  'genomic' : {}, "clinical" : {}, "probeMap" : {}, "sampleMap" : {} }
 
 	for dir in args:
-		sys.stderr.write("DIR: %s\n" % (dir) )
+		log("SCANNING DIR: %s" % (dir) )
 		for path in glob( os.path.join( dir, "*.json" ) ):
 			handle = open( path )
 			data = json.loads( handle.read() )
-			for field in setMap:
-				if data.has_key( field ) and setMap[ field ].has_key( data[field] ):
-					setHash[field][data[field]][ path ] = data
+			if data.has_key( 'name' ) and data.has_key( 'type' ) and setHash.has_key( data['type'] ) :
+				if setHash[ data['type'] ].has_key( data['name'] ):
+					error( "Duplicate %s file %s" % ( data['type'], data['name'] ) )
+				setHash[data['type'] ][ data['name'] ] = data
+				pathHash[data['type'] ][ data['name'] ] = path				
+			else:
+				warn( "Unknown file type: %s" % ( path ) )
 			handle.close()
+			
+	#print setHash
 
-	print setHash
+	for genomicName in setHash[ 'genomic' ]:
+		genomicData = setHash[ 'genomic' ][ genomicName ]
+		if setHash[ 'probeMap' ].has_key( genomicData[ 'probeMap' ] ):
+			probeData = setHash[ 'probeMap' ][ genomicData[ 'probeMap' ] ]
+			probeName = genomicData[ 'probeMap' ]
+		else:
+			error( "%s Missing Probe Data: %s" % ( genomicName, genomicData[ 'probeMap' ] ) )
+				
+		if setHash[ 'sampleMap' ].has_key( genomicData[ 'sampleMap' ] ):
+			sampleData = setHash[ 'sampleMap' ][ genomicData[ 'sampleMap' ] ]
+			sampleName = genomicData[ 'sampleMap' ]
+		else:
+			error( "%s Missing Sample Data: %s" % ( genomicName, genomicData[ 'sampleMap' ] ) )	
 
-	for field in setHash:
-		for type in setHash[ field ]:
-			for path in setHash[ field ][ type ]:
-				try:
-					setMap[ field ][type]( path, setHash[ field ][type][path] )
-				except KeyError:
-					pass
 
-					
-	for field in setCombine:
-		for lType in setHash[ field ]:
-			for lPath in setHash[ field ][ lType ]:
-				for rType in setHash[ field ]:
-					for rPath in setHash[ field ][ rType ]:
-						try:
-							setCombine[ field ][ lType ][ rType ]( lPath, setHash[ field ][ lType ][ lPath ], rPath, setHash[ field ][ rType ][ rPath ] )
-						except KeyError:
-							pass
+		clinicalList = []
+		clinicalNames = []
+		for clinSet in setHash[ 'clinical' ]:
+			if setHash[ 'clinical' ][ clinSet ][ 'name' ] == sampleData[ 'name' ]:
+				clinicalList.append( setHash[ 'clinical' ][ clinSet ] )
+				clinicalNames.append( clinSet )
+		
+		print genomicName, genomicData, probeData, sampleData
+		print clinicalList		
+		
+		sampleMap = genomicSampleMapping( pathHash[ 'genomic' ][ genomicName ], genomicData, 
+			pathHash[ 'sampleMap' ][ sampleName ], sampleData )
+			
+		print sampleMap
+		genomicClinicalMapping( sampleMap, pathHash[ 'genomic' ][ genomicName ], genomicData, 
+			pathHash[ 'clinical' ][ clinicalNames[0] ], clinicalList[0] )
 
+		genomicProbeMapping( sampleMap, pathHash[ 'genomic' ][ genomicName ], genomicData, 
+			pathHash[ 'probeMap' ][ probeName ], probeData )
+		
+		
+	errorLogHandle.close()
+	#raDbHandle.close()
