@@ -38,73 +38,20 @@ includeList = None
 
 raDbHandle = None
 
-CREATE_raDb = """
-CREATE TABLE raDb (
-    id int unsigned,	# Unique id
-    name varchar(255),	# Table name for genomic data
-    accessTable varchar(255),	# Down-sampled table
-    shortLabel varchar(255),	# Short label
-    longLabel varchar(255),	# Long label
-    expCount int unsigned,	# Number of samples
-    height int unsigned,	# Image Height (only for bed 4)
-    groupName varchar(255),	# Group name
-    raFile varchar(255),	# RA file containing clinical info
-    patDb varchar(255),	# Clinical info db
-    microscope varchar(255),	# hgMicroscope on/off flag
-    sampleField varchar(255),	# Sample field
-    patTable varchar(255),	# Patient to sample mapping
-    patField varchar(255),	# Patient field
-    aliasTable varchar(255),	# Probe to gene mapping
-    displayNameTable varchar(255),	# Display names for aliases
-    dataType varchar(255),	# data type (bed 15)
-    platform varchar(255),	# Expression, SNP, etc.
-    gain float,	# Gain
-    type varchar(255),	# Unknown
-    visibility varchar(255),	# Default visibility
-    priority float,	# Priority for sorting
-    url varchar(255),	# Pubmed URL
-    security varchar(255),	# Security setting (public, private)
-    profile varchar(255),	# Database profile
-    wrangler varchar(255),	# Wrangler
-    citation varchar(255),	# Citation
-    article_title longblob,	# Title of publication
-    author_list longblob,	# Author list
-    wrangling_procedure longblob,	# Wrangling
-              #Indices
-    PRIMARY KEY(id)
-);
-"""
-
 CREATE_colDb = """
-#columnDb info
-CREATE TABLE colDb (
-    id int unsigned,	# Unique id
-    dataset varchar(255),	# Dataset table name - matching 'name' in raDb
-    name varchar(255),	# Column name
-    shortLabel varchar(255),	# Short label
-    longLabel varchar(255),	# Long label
-    sampleField varchar(255),	# Sample field name
-    valField varchar(255),	# Val field name
-    colTable varchar(255),	# Table of clinical data
-    priority float,	# Priority
-    filterType varchar(255),	# Filter Type - minMax or coded
-    visibility varchar(255),	# Visibility
-    groupName varchar(255),	# Group Name
-              #Indices
-    PRIMARY KEY(id)
-);
-"""
-
-CREATE_maDb = """
-#maDb info
-CREATE TABLE maDb (
-    id int unsigned,	# Unique id
-    name varchar(255),	# Microarray group name
-    size int unsigned,	# Number of samples
-    expIds longblob,	# Sample indices into bed15 table
-    names longblob,	# Sample names
-              #Indices
-    PRIMARY KEY(id)
+CREATE TABLE `%s` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) default NULL,
+  `shortLabel` varchar(255) default NULL,
+  `longLabel` varchar(255) default NULL,
+  `valField` varchar(255) default NULL,
+  `tableName` varchar(255) default NULL,
+  `priority` float default NULL,
+  `filterType` varchar(255) default NULL,
+  `visibility` varchar(255) default NULL,
+  `groupName` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `name` (`name`)
 );
 """
 
@@ -246,8 +193,30 @@ CREATE TABLE clinical_%s (
 				a.append("\N")
 			else:				
 				a.append( "'" + str(val) + "'" )
-		dHandle.write(" INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( featureInfo[ 'name' ], sampleMap[ target ], ",".join(a) ) )
+		dHandle.write("INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( featureInfo[ 'name' ], sampleMap[ target ], ",".join(a) ) )
 	dHandle.close()
+
+	cHandle = open( "%s_colDb.sql" % (basename), "w" )
+	cHandle.write("drop table if exists clinical_%s_colDb;" % ( featureInfo[ 'name' ] ) )
+	cHandle.write( CREATE_colDb % ( "clinical_" + featureInfo[ 'name' ] + "_colDb" ) )
+	"""
+`id` int(10) unsigned NOT NULL default '0',
+  `name` varchar(255) default NULL,
+  `shortLabel` varchar(255) default NULL,
+  `longLabel` varchar(255) default NULL,
+  `valField` varchar(255) default NULL,
+  `tableName` varchar(255) default NULL,
+  `priority` float default NULL,
+  `filterType` varchar(255) default NULL,
+  `visibility` varchar(255) default NULL,
+  `groupName` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `name` (`name`)
+	"""
+	for name in colOrder:
+		cHandle.write("INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
+			( featureInfo[ 'name' ], name, name, name, name, "clinical_" + featureInfo[ 'name' ] ) )
+	cHandle.close()
 		
 	
 		
@@ -373,7 +342,7 @@ if __name__ == "__main__":
 
 	errorLogHandle = open( "error.log", "w" )
 
-	#raDbHandle = open( os.path.join( OUT_DIR, "%s_raDb.sql" % (DATABASE_NAME) ), "w" )
+	raDbHandle = open( os.path.join( OUT_DIR, "%s_raDb.sql" % (DATABASE_NAME) ), "w" )
 	#raDbHandle.write( CREATE_raDb  )
 
 	setHash = {  'genomic' : {}, "clinical" : {}, "probeMap" : {}, "sampleMap" : {} }
@@ -397,6 +366,14 @@ if __name__ == "__main__":
 
 	for genomicName in setHash[ 'genomic' ]:
 		genomicData = setHash[ 'genomic' ][ genomicName ]
+		if genomicData[ 'probeMap' ] is None:
+			error("%s lacks probeMap" % ( genomicName ) )
+			continue
+
+		if genomicData[ 'sampleMap' ] is None:
+			error("%s lacks sampleMap" % ( genomicName ) )
+			continue
+
 		if setHash[ 'probeMap' ].has_key( genomicData[ 'probeMap' ] ):
 			probeData = setHash[ 'probeMap' ][ genomicData[ 'probeMap' ] ]
 			probeName = genomicData[ 'probeMap' ]
@@ -429,7 +406,26 @@ if __name__ == "__main__":
 
 		genomicProbeMapping( sampleMap, pathHash[ 'genomic' ][ genomicName ], genomicData, 
 			pathHash[ 'probeMap' ][ probeName ], probeData )
-		
+		"""
+		`name` varchar(255) default NULL,
+		`downSampleTable` varchar(255) default NULL,
+		`sampleTable` varchar(255) default NULL,
+		`clinicalTable` varchar(255) default NULL,
+		`columnTable` varchar(255) default NULL,
+		`shortLabel` varchar(255) default NULL,
+		`longLabel` varchar(255) default NULL,
+		`expCount` int(10) unsigned default NULL,
+		`groupName` varchar(255) default NULL,
+		`microscope` varchar(255) default NULL,
+		`aliasTable` varchar(255) default NULL,
+		`dataType` varchar(255) default NULL,
+		`platform` varchar(255) default NULL,
+		`security` varchar(255) default NULL,
+		`profile` varchar(255) default NULL,
+		"""
+		raDbHandle.write( "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s');\n" % \
+			( "genomic_" + genomicName, "sample_" + sampleName, "clinical_" + clinicalNames[0], "clinical_" + clinicalNames[0] + "_colDb", "genomic_" + genomicName + "_alias", genomicName ))
+		raDbHandle.flush()
 		
 	errorLogHandle.close()
-	#raDbHandle.close()
+	raDbHandle.close()
