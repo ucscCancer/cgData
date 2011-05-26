@@ -7,6 +7,17 @@
 #include <sstream>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+#include <Python.h>
+
+
+#ifdef __cplusplus
+}
+#endif
 using namespace std;
 
 #define MISSING_VAL -99
@@ -183,3 +194,36 @@ int main(int argc, char** argv) {
 	
 	return 0;
 }
+
+
+
+static PyObject *
+segToMatrix(PyObject *self, PyObject *args, PyObject *keywds)
+{
+	
+	Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyMethodDef seg2matrix_methods[] = {
+    /* The cast of the function is necessary since PyCFunction values
+     * only take two PyObject* parameters, and keywdarg_parrot() takes
+     * three.
+     */
+    {"segToMatrix", (PyCFunction)segToMatrix, METH_VARARGS | METH_KEYWORDS,
+     "Turn Segment matrix into expression matrix"},
+    {NULL, NULL, 0, NULL}   /* sentinel */
+};
+
+
+PyMODINIT_FUNC
+initsegToMatrix(void)
+{
+    PyObject *m;
+
+    m = Py_InitModule("segToMatrix", seg2matrix_methods);
+    if (m == NULL)
+        return;
+   
+}
+
