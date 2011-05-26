@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
 import sys
-import cgbIO.map
+import cgData.map
 from getopt import getopt
 import csv
 
-opts, args = getopt( sys.argv[1:], "".join(cgbIO.map.optionMap.keys()) )
+opts, args = getopt( sys.argv[1:], "".join(cgData.map.optionMap.keys()) )
 
 
 #hitFunc is the function that will be used to do the overlap comparision
-hitFunc = cgbIO.map.geneOverlap
+hitFunc = cgData.map.geneOverlap
 for a, o in opts:
-	hitFunc = cgbIO.map.optionMap[ a[1:] ]
+	hitFunc = cgData.map.optionMap[ a[1:] ]
 
 handle = open( args[0] )
-mapper = cgbIO.map.ProbeMapper( handle )
+mapper = cgData.map.ProbeMapper( handle )
 handle.close()
 handle = open( args[1] )
 read = csv.reader( handle, delimiter="\t" )

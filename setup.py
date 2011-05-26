@@ -11,19 +11,19 @@ from distutils.extension import Extension
 
 
 PACKAGES = [
-	'cgbIO'
+	'cgData'
 ]
 
 EXTENSIONS = [
-    Extension('cgbIO.segToMatrix',
-              ['cgbIO/segToMatrix.cc']
+    Extension('cgData.segToMatrix',
+              ['cgData/segToMatrix.cc']
               )
 ]
 
 __version__="undefined"
 
 setup(
-    name='cgbIO',
+    name='cgData',
     version=__version__,
     author='Kyle Ellrott',
     author_email='kellrott@soe.ucsc.edu',

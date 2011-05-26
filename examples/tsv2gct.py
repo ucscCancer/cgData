@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from cgbIO.matrix import GeneMatrix
+from cgData.matrix import GeneMatrix
 import sys
 
 
