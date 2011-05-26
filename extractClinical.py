@@ -26,12 +26,10 @@ for server in serverList:
 		for row in cur.fetchall():
 			name = row[0]
 			cData = {
-				'type' : 'feature',
+				'type' : 'clinical',
 				'name' : row[0],
 				'author' : row[1],
 				'sampleMap' : row[2],
-				'platform': row[3],
-				'probeMap' : row[4]
 			}
 			#print cData
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
@@ -98,7 +96,7 @@ for server in serverList:
 					oHandle = open( "%s/%s" % (outDir, name), "w" )
 			
 					head = sorted( fMap.keys() )
-					oHandle.write( "Probe\t%s\n" % ( "\t".join(head) ) )
+					oHandle.write( "Sample\t%s\n" % ( "\t".join(head) ) )
 					for sample in fVals:
 						out = []
 						for col in head:
