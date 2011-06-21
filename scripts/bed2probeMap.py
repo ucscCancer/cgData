@@ -27,7 +27,7 @@ for row in read:
 			o = []
 			for e in out:
 				o.append( str(e) )
-			print "%s\t%s\t%s\t%s\t%s\t%s" % (row[3], row[0], row[1], row[2], row[5], ",".join(o) )
+			print "%s\t%s\t%s\t%s\t%s\t%s" % (row[3], ",".join(o), row[0], row[1], row[2], row[5] )
 		else:
 			sys.stderr.write("WARNING BADLINE: %d = %s\n" % (line,str(row)))
 		
