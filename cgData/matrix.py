@@ -1,12 +1,12 @@
-
-
 import csv
 
 class GeneMatrix:
 	def __init__(self):
-		pass
+		self.sampleList = []
+		self.probeHash = {}
+		self.attrs = {}
 	
-	def readTSV(self, handle ):
+	def readTSV(self, handle, skipVals=False ):
 		self.probeHash = {}
 		posHash = None
 		for row in csv.reader( handle, delimiter="\t" ):
@@ -23,13 +23,21 @@ class GeneMatrix:
 					pos += 1
 			else:
 				self.probeHash[ row[0] ] = {}
-				for sample in posHash:
-					i = posHash[ sample ]
-					if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
-						self.probeHash[ row[0] ][ sample ] = float(row[i])
+				if not skipVals:
+					for sample in posHash:
+						i = posHash[ sample ]
+						if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
+							self.probeHash[ row[0] ][ sample ] = float(row[i])
 		
 		self.sampleList = posHash.keys()
 		self.sampleList.sort( lambda x,y: posHash[x] - posHash[y] )
+	
+	def getProbeList(self):
+		return self.probeHash.keys()
+
+	def getSampleList(self):
+		return self.sampleList
+		
 	
 	def writeGCT(self, handle, missing=''):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
@@ -38,6 +46,16 @@ class GeneMatrix:
 		write.writerow( [ "NAME", "Description" ] + self.sampleList )
 		for probe in self.probeHash:
 			out = [ probe, probe ]
+			for sample in self.sampleList:
+				out.append( self.probeHash[ probe ].get( sample, missing ) )
+			write.writerow( out )
+
+
+	def writeTSV(self, handle, missing=''):
+		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
+		write.writerow( [ "probe" ] + self.sampleList )
+		for probe in self.probeHash:
+			out = [ probe ]
 			for sample in self.sampleList:
 				out.append( self.probeHash[ probe ].get( sample, missing ) )
 			write.writerow( out )
