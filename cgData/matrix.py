@@ -4,10 +4,9 @@ import csv
 
 class GeneMatrix:
 	def __init__(self):
-		pass
-	
+		self.probeHash = {}	
+		self.sampleList = []
 	def readTSV(self, handle ):
-		self.probeHash = {}
 		posHash = None
 		for row in csv.reader( handle, delimiter="\t" ):
 			if posHash is None:
@@ -31,6 +30,15 @@ class GeneMatrix:
 		self.sampleList = posHash.keys()
 		self.sampleList.sort( lambda x,y: posHash[x] - posHash[y] )
 	
+	def writeTSV(self, handle, missing='NA'):
+		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
+		write.writerow( [ "probe" ] + self.sampleList )
+		for probe in self.probeHash:
+			out = [ probe ]
+			for sample in self.sampleList:
+				out.append( self.probeHash[ probe ].get( sample, missing ) )
+			write.writerow( out )
+
 	def writeGCT(self, handle, missing=''):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
 		write.writerow( ["#1.2"] )
@@ -41,3 +49,11 @@ class GeneMatrix:
 			for sample in self.sampleList:
 				out.append( self.probeHash[ probe ].get( sample, missing ) )
 			write.writerow( out )
+
+	def add( self, probe, sample, value ):
+		if not self.probeHash.has_key( probe ):
+			self.probeHash[ probe ] = {}
+		if not sample in self.sampleList:
+			self.sampleList.append( sample )
+		self.probeHash[ probe ][ sample ] = value
+
