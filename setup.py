@@ -15,8 +15,8 @@ PACKAGES = [
 ]
 
 EXTENSIONS = [
-    Extension('cgData.segToMatrix',
-              ['cgData/segToMatrix.cc']
+    Extension('cgData.CsegToMatrix',
+              ['cgData/CsegToMatrix.cc']
               )
 ]
 
