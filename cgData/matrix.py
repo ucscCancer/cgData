@@ -3,11 +3,11 @@ import csv
 class GeneMatrix:
 	def __init__(self):
 		self.probeHash = {}	
-		self.sampleList = []
+		self.sampleList = {}
 		self.attrs = {}
 
 	def readTSV(self, handle ):
-		self.sampleList = []
+		self.sampleList = {}
 		self.probeHash = {}	
 		posHash = None
 		for row in csv.reader( handle, delimiter="\t" ):
@@ -29,16 +29,18 @@ class GeneMatrix:
 						i = posHash[ sample ]
 						if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
 							self.probeHash[ row[0] ][ sample ] = float(row[i])
-		
-		self.sampleList = posHash.keys()
-		self.sampleList.sort( lambda x,y: posHash[x] - posHash[y] )
+		self.sampleList = {}
+		for sample in posHash:
+			self.sampleList[ sample ] = True
 	
 	def writeTSV(self, handle, missing='NA'):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
+		sampleList = self.getSampleList()
+		sampleList.sort( )
 		write.writerow( [ "probe" ] + self.sampleList )
 		for probe in self.probeHash:
 			out = [ probe ]
-			for sample in self.sampleList:
+			for sample in sampleList:
 				out.append( self.probeHash[ probe ].get( sample, missing ) )
 			write.writerow( out )
 
@@ -46,24 +48,25 @@ class GeneMatrix:
 		return self.probeHash.keys()
 
 	def getSampleList(self):
-		return self.sampleList
-		
+		return self.sampleList.keys()		
 	
 	def writeGCT(self, handle, missing=''):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
+		sampleList = self.getSampleList()
+		sampleList.sort( )
 		write.writerow( ["#1.2"] )
-		write.writerow( [ len(self.probeHash), len(self.sampleList) ] )
-		write.writerow( [ "NAME", "Description" ] + self.sampleList )
+		write.writerow( [ len(self.probeHash), len(sampleList) ] )
+		write.writerow( [ "NAME", "Description" ] + sampleList )
 		for probe in self.probeHash:
 			out = [ probe, probe ]
-			for sample in self.sampleList:
+			for sample in sampleList:
 				out.append( self.probeHash[ probe ].get( sample, missing ) )
 			write.writerow( out )
 
 	def add( self, probe, sample, value ):
-		if not self.probeHash.has_key( probe ):
+		if not probe in self.probeHash:
 			self.probeHash[ probe ] = {}
 		if not sample in self.sampleList:
-			self.sampleList.append( sample )
+			self.sampleList[ sample ] = True
 		self.probeHash[ probe ][ sample ] = value
 
