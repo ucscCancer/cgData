@@ -31,13 +31,13 @@ class GeneMatrix:
 							self.probeHash[ row[0] ][ sample ] = float(row[i])
 		self.sampleList = {}
 		for sample in posHash:
-			self.sampleList[ sample ] = True
+			self.sampleList[ sample ] = posHash[ sample ]
 	
 	def writeTSV(self, handle, missing='NA'):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
 		sampleList = self.getSampleList()
-		sampleList.sort( )
-		write.writerow( [ "probe" ] + self.sampleList )
+		sampleList.sort( lambda x,y: self.sampleList[ x ] - self.sampleList[ y ] )
+		write.writerow( [ "probe" ] + sampleList )
 		for probe in self.probeHash:
 			out = [ probe ]
 			for sample in sampleList:
@@ -53,7 +53,7 @@ class GeneMatrix:
 	def writeGCT(self, handle, missing=''):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
 		sampleList = self.getSampleList()
-		sampleList.sort( )
+		sampleList.sort( lambda x,y: self.sampleList[ x ] - self.sampleList[ y ] )
 		write.writerow( ["#1.2"] )
 		write.writerow( [ len(self.probeHash), len(sampleList) ] )
 		write.writerow( [ "NAME", "Description" ] + sampleList )
@@ -67,6 +67,6 @@ class GeneMatrix:
 		if not probe in self.probeHash:
 			self.probeHash[ probe ] = {}
 		if not sample in self.sampleList:
-			self.sampleList[ sample ] = True
+			self.sampleList[ sample ] = len( self.sampleList ) + 1
 		self.probeHash[ probe ][ sample ] = value
 
