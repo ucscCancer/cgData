@@ -6,7 +6,7 @@ class GeneMatrix:
 		self.sampleList = {}
 		self.attrs = {}
 
-	def readTSV(self, handle ):
+	def readTSV(self, handle, skipVals=False ):
 		self.sampleList = {}
 		self.probeHash = {}	
 		posHash = None
@@ -23,12 +23,12 @@ class GeneMatrix:
 					posHash[ name ] = pos
 					pos += 1
 			else:
-				self.probeHash[ row[0] ] = {}
+				self.probeHash[ row[0] ] = [None] * (len(posHash) + 1)
 				if not skipVals:
 					for sample in posHash:
 						i = posHash[ sample ]
 						if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
-							self.probeHash[ row[0] ][ sample ] = float(row[i])
+							self.probeHash[ row[0] ][ i ] = float(row[i])
 		self.sampleList = {}
 		for sample in posHash:
 			self.sampleList[ sample ] = posHash[ sample ]
@@ -41,7 +41,10 @@ class GeneMatrix:
 		for probe in self.probeHash:
 			out = [ probe ]
 			for sample in sampleList:
-				out.append( self.probeHash[ probe ].get( sample, missing ) )
+				val = self.probeHash[ probe ][ self.sampleList[ sample ] ]
+				if val is None:
+					val = missing
+				out.append( val )
 			write.writerow( out )
 
 	def getProbeList(self):
@@ -49,6 +52,11 @@ class GeneMatrix:
 
 	def getSampleList(self):
 		return self.sampleList.keys()		
+	
+	def sampleRename(self, oldSample, newSample):
+		if oldSample in self.sampleList:
+			self.sampleList[ newSample ] = self.sampleList[ oldSample ]
+			del self.sampleList[ oldSample ]
 	
 	def writeGCT(self, handle, missing=''):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
@@ -60,13 +68,20 @@ class GeneMatrix:
 		for probe in self.probeHash:
 			out = [ probe, probe ]
 			for sample in sampleList:
-				out.append( self.probeHash[ probe ].get( sample, missing ) )
+				val = self.probeHash[ probe ][ self.sampleList[ sample ] ]
+				if val is None:
+					val = missing
+				out.append( val )
 			write.writerow( out )
 
 	def add( self, probe, sample, value ):
-		if not probe in self.probeHash:
-			self.probeHash[ probe ] = {}
 		if not sample in self.sampleList:
 			self.sampleList[ sample ] = len( self.sampleList ) + 1
+			for probe in self.probeHash:
+				self.probeHash[ probe ].append( None ) 
+
+		if not probe in self.probeHash:
+			self.probeHash[ probe ] = [None] * len( self.sampleList )
+
 		self.probeHash[ probe ][ sample ] = value
 
