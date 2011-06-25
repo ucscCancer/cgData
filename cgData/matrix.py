@@ -13,7 +13,7 @@ class GeneMatrix:
 		for row in csv.reader( handle, delimiter="\t" ):
 			if posHash is None:
 				posHash = {}
-				pos = 1
+				pos = 0
 				for name in row[1:]:
 					i = 1
 					origName = name
@@ -23,12 +23,12 @@ class GeneMatrix:
 					posHash[ name ] = pos
 					pos += 1
 			else:
-				self.probeHash[ row[0] ] = [None] * (len(posHash) + 1)
+				self.probeHash[ row[0] ] = [None] * (len(posHash) )
 				if not skipVals:
 					for sample in posHash:
-						i = posHash[ sample ]
+						i = posHash[ sample ] + 1
 						if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
-							self.probeHash[ row[0] ][ i ] = float(row[i])
+							self.probeHash[ row[0] ][ i-1 ] = float(row[i])
 		self.sampleList = {}
 		for sample in posHash:
 			self.sampleList[ sample ] = posHash[ sample ]
@@ -76,12 +76,12 @@ class GeneMatrix:
 
 	def add( self, probe, sample, value ):
 		if not sample in self.sampleList:
-			self.sampleList[ sample ] = len( self.sampleList ) + 1
+			self.sampleList[ sample ] = len( self.sampleList ) 
 			for probe in self.probeHash:
 				self.probeHash[ probe ].append( None ) 
 
 		if not probe in self.probeHash:
-			self.probeHash[ probe ] = [None] * len( self.sampleList )
+			self.probeHash[ probe ] = [None] * ( len( self.sampleList )  )
 
-		self.probeHash[ probe ][ sample ] = value
+		self.probeHash[ probe ][ self.sampleList[ sample ] ] = value
 
