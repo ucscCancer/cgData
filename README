@@ -7,8 +7,20 @@ associated with Genome/Clinical files to be added to the Cancer Genome Browser
 http://genome-cancer.ucsc.edu
 
 
-
+===Most of these tools are still in developement===
 
 Tools:
 
-extractClinical.py - Extract data stored in 
+compileCancerData.py - Take collection of data and produce SQL for cancer genome browser
+compileScan.py - Do checks on avalible data (doesn't produce actual SQL)
+
+bed2probeMap.py	- Convert bed12 probe file to probeMap format	
+	
+	
+getRefGene_hg18.sh - Download refgene program from Genome Browser database
+
+extractFeatures.py, extractProbes.py, extractGenomic.py, extractSamples.py, extractClinical.py - 
+	Extract data stored in previous mySQL schema ( to help with transition to cgData 1.0 )
+
+
+tcgaAliquotSampleMap.sh - Produce sample map from TCGA sample report
