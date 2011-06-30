@@ -2,10 +2,10 @@
 import cgData
 
 class Segment:
-	def __init__(self, chrome, start, end, strand, value ):
-		self.chrome = chrome.lower()
-		if not self.chrome.startswith('chr'):
-			self.chrome = 'chr' + self.chrome
+	def __init__(self, chrom, start, end, strand, value ):
+		self.chrom = chrom.lower()
+		if not self.chrom.startswith('chr'):
+			self.chrom = 'chr' + self.chrom
 		self.start = start
 		self.end = end
 		self.strand = strand

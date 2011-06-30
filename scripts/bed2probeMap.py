@@ -2,6 +2,10 @@
 
 import sys
 import cgData.geneMap
+import cgData.refGene
+import cgData.bed
+import cgData.probeMap
+
 from getopt import getopt
 import csv
 
@@ -14,23 +18,26 @@ for a, o in opts:
 	hitFunc = cgData.geneMap.optionMap[ a[1:] ]
 
 handle = open( args[0] )
-mapper = cgData.geneMap.ProbeMapper( handle )
+refGene = cgData.refGene.refGene( )
+refGene.read( handle )
+
 handle.close()
 handle = open( args[1] )
-read = csv.reader( handle, delimiter="\t" )
-line=1
+bedFile = cgData.bed.bed( )
+bedFile.read( handle )
 
-for row in read:
-	try:
-		if len(row) == 12:
-			out = mapper.findOverlap( row[0], row[5], int(row[1]), int(row[2]), hitFunc )
-			o = []
-			for e in out:
-				o.append( str(e) )
-			print "%s\t%s\t%s\t%s\t%s\t%s" % (row[3], ",".join(o), row[0], row[1], row[2], row[5] )
-		else:
-			sys.stderr.write("WARNING BADLINE: %d = %s\n" % (line,str(row)))
-		
-	except Exception, e:
-		sys.stderr.write("WARNING LINE: %d = %s\n" % (line,str(e)))
-	line += 1
+mapper = cgData.geneMap.ProbeMapper( )
+
+pm = cgData.probeMap.probeMap()
+
+for bed in bedFile:
+	out = mapper.findOverlap( bed, refGene, hitFunc )
+	o = []
+	
+	bed.aliases = []
+	for e in out:
+		bed.aliases.append( e.name )
+
+	pm.append( bed )
+
+pm.write( sys.stdout )

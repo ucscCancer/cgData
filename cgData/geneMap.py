@@ -21,13 +21,13 @@ class ProbeMapper:
 		"""
 		if cmpFunc is None:
 			cmpFunc = self.cmpFunc
-		if not refGene.hasChrome( segment.chrome ):
+		if not refGene.hasChrom( segment.chrom ):
 			return []
-		chromeList = refGene.getChrome( segment.chrome )
+		chromList = refGene.getChrom( segment.chrom )
 	
 		out = []
-		for gene in chromeList:
-			if cmpFunc( segment.start, segment.end, segment.strand, gene ):
+		for gene in chromList:
+			if cmpFunc( segment.chromStart, segment.chromEnd, segment.strand, gene ):
 				out.append( gene )
 		return out
 
@@ -36,12 +36,12 @@ class ProbeMapper:
 # The set of functions that can be used to do comparisons
 #
 def geneOverlap( start, end, strand, gene ):
-	if gene.strand == gene.strand and gene.end > start and gene.start < end:
+	if gene.strand == gene.strand and gene.chromEnd > start and gene.chromStart < end:
 		return True
 	return False
 
 def blockOverlap( start, end, strand, gene ):
-	if gene.end > start and gene.start < end:
+	if gene.chromEnd > start and gene.chromStart < end:
 		return True
 	return False
 	
@@ -54,7 +54,7 @@ def exonOverlap( start, end, strand, gene ):
 	return False
 	
 def geneSimpleMethOverlap( start, end, strand, gene ):
-	if gene.end > start and gene.start < end:
+	if gene.chromEnd > start and gene.chromStart < end:
 		return True
 	return False
 
