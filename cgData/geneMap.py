@@ -73,24 +73,3 @@ optionMap = {
 	"e" : exonOverlap
 }
 
-
-if __name__ == '__main__':
-	from getopt import getopt
-	
-	opts, args = getopt( sys.argv[1:], "".join(optionMap.keys()) )
-	
-	#hitFunc is the function that will be used to do the overlap comparision
-	hitFunc = geneOverlap
-	for a, o in opts:
-		hitFunc = optionMap[ a[1:] ]
-	
-	handle = open( args[0] )
-	mapper = ProbeMapper( handle )
-	handle.close()
-	handle = open( args[1] )
-	read = csv.reader( handle, delimiter="\t" )
-	for row in read:
-		#this example column input is in the bed12 column order
-		out = mapper.findOverlap( row[0], row[5], int(row[1]), int(row[2]), hitFunc )
-		if len(out):
-			print row[3], out
