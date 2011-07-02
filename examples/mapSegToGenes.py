@@ -2,19 +2,19 @@
 
 import sys
 
-import cgData.segList
+import cgData.genomicSegment
 import cgData.geneMap
 import cgData.refGene
 import cgData.geneMap 
 import cgData.matrix
 
 handle = open( sys.argv[1] )
-sg = cgData.segList.SegList()
+sg = cgData.genomicSegment.genomicSegment()
 sg.read( handle )
 handle.close()
 
 handle = open( sys.argv[2] )
-rg = cgData.refGene.RefGene()
+rg = cgData.refGene.refGene()
 rg.read( handle )
 handle.close()
 
@@ -28,4 +28,4 @@ for sample in sg:
 		for hit in pm.findOverlap( seg, rg ):
 			out.add( probe=hit, sample=sample, value=seg.value )
 
-out.writeTSV( sys.stdout )		
+out.write( sys.stdout )		

@@ -38,7 +38,7 @@ class geneInfo:
 
 	def __repr__(self):
 		#return "%s_%s_%d_%d" % (self.hugo, self.chrom,  self.start, self.end )
-		return self.hugo
+		return self.name
 		
 		
 class refGene:

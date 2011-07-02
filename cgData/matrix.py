@@ -6,7 +6,7 @@ class GeneMatrix:
 		self.sampleList = {}
 		self.attrs = {}
 
-	def readTSV(self, handle, skipVals=False ):
+	def read(self, handle, skipVals=False ):
 		self.sampleList = {}
 		self.probeHash = {}	
 		posHash = None
@@ -33,7 +33,7 @@ class GeneMatrix:
 		for sample in posHash:
 			self.sampleList[ sample ] = posHash[ sample ]
 	
-	def writeTSV(self, handle, missing='NA'):
+	def write(self, handle, missing='NA'):
 		write = csv.writer( handle, delimiter="\t", lineterminator='\n' )
 		sampleList = self.getSampleList()
 		sampleList.sort( lambda x,y: self.sampleList[ x ] - self.sampleList[ y ] )
@@ -85,3 +85,14 @@ class GeneMatrix:
 
 		self.probeHash[ probe ][ self.sampleList[ sample ] ] = value
 
+	def join( self, matrix ):
+		for sample in matrix.sampleList:
+			if not sample in self.sampleList:
+				self.sampleList[ sample ] = len( self.sampleList ) 
+				for probe in self.probeHash:
+					self.probeHash[ probe ].append( None )
+			for probe in matrix.probeHash:
+				if not probe in self.probeHash : 
+					self.probeHash[ probe ] = [ None ] * ( len( self.sampleList )  )
+				self.probeHash[ probe ][ self.sampleList[ sample ] ] = matrix.probeHash[ probe ][ matrix.sampleList[sample] ]
+			

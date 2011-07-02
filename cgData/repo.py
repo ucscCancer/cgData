@@ -165,6 +165,13 @@ class repo:
 			out[ type ] = a
 		handle.write( json.dumps( out ) )
 	
+	def store(self):
+		if not self.isLocal:
+			raise RepoError( "Can't store to non-local repo")
+		out = open( os.path.join( self.basePath, "cgManifest"), "w" ) 
+		self.write( out )
+		out.close()
+		
 	
 	def writeDigest(self):
 		if not self.isLocal:

@@ -13,4 +13,5 @@ repo.writeDigest()
 
 print repo.checkDigest()
 
+repo.store()
 #repo.write( sys.stdout )
