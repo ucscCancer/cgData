@@ -22,6 +22,24 @@ EXTENSIONS = [
 
 __version__="undefined"
 
+class test_cgData(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+        
+    def finalize_options(self):
+        pass
+
+
+    def run(self):
+        os.chdir("tests")
+        sys.path.insert(0, '')
+        import runTests 
+        runTests.main([])
+
+
+
 setup(
     name='cgData',
     version=__version__,
@@ -30,12 +48,9 @@ setup(
     url='http://genome-cancer.ucsc.edu/',
     description='Tools for preparing Cancer Genome Browser Data.',
     download_url='http://genome-cancer.ucsc.edu/',
-    #cmdclass={
-    #    "install" : install_biopython,
-    #    "build_py" : build_py_biopython,
-    #    "build_ext" : build_ext_biopython,
-    #    "test" : test_biopython,
-    #    },
+    cmdclass={
+            "test" : test_cgData
+    },
     packages=PACKAGES,
     ext_modules=EXTENSIONS
 )
