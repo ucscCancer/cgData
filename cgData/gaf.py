@@ -26,7 +26,7 @@ class gafLine:
         compositeType, compositeDBSource, compositeDBVersion, compositeDBDate,
         alignmentType, featureCoordinates, compositeCoordinates, gene,
         geneLocus, featureAliases, featureInfo):
-        
+
         self.entryNumber = entryNumber
         self.featureID = featureID
         self.featureType = featureType
@@ -52,7 +52,7 @@ class gaf(cgData.baseObject):
     def __init__(self):
         cgData.baseObject.__init__(self)
         self.gafData = []
-    
+
     def read(self, handle):
         assert(handle.readline()[:-1].split("\t") == gafHeaders)
         for line in handle:
@@ -64,4 +64,3 @@ class gaf(cgData.baseObject):
     def __iter__(self):
         for i in self.gafData:
             yield i
-
