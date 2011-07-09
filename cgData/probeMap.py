@@ -1,9 +1,12 @@
 
 import csv
 import json
-
+import cgData
 
 class probe:
+    
+    coreAttr = [ 'name', 'chrom', 'chromStart', 'chromEnd', 'strand' ] 
+    
     def __init__(self, name, chrom, chromStart, chromEnd, strand):
         self.name = name
         self.chrom = chrom
@@ -12,9 +15,12 @@ class probe:
         self.strand = strand
 
 
-class probeMap:
-
+class probeMap(cgData.baseObject):
+    
+    childType = probe
+        
     def __init__(self):
+        cgData.baseObject( )
         self.geneMap = {}
         self.chromeMap = {}
 
@@ -30,6 +36,10 @@ class probeMap:
             )
 
     def append(self, probe):
+        for attr in self.childType.coreAttr:
+            if not hasattr( probe, attr ):
+                raise cgData.formatException( "Missing %s" % (attr) )
+                
         if not probe.chrom in self.chromeMap:
             self.chromeMap[probe.chrom] = {}
         self.chromeMap[probe.chrom][probe.name] = probe

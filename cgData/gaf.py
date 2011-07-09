@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import cgData
+import re
 
 gafHeaders = [
     "Entry Number", "FeatureID", "FeatureType", "FeatureDBSource",
@@ -18,7 +19,7 @@ gafCols = [
     "compositeCoordinates", "gene", "geneLocus", "featureAliases",
     "featureInfo"]
 
-
+reComposite = re.compile( r'chr(\w+):(\w+)-(\w+):(.)' )
 class gafLine:
     def __init__(
         self, entryNumber, featureID, featureType, featureDBSource,
@@ -26,7 +27,8 @@ class gafLine:
         compositeType, compositeDBSource, compositeDBVersion, compositeDBDate,
         alignmentType, featureCoordinates, compositeCoordinates, gene,
         geneLocus, featureAliases, featureInfo):
-
+        
+        self.name = featureID
         self.entryNumber = entryNumber
         self.featureID = featureID
         self.featureType = featureType
@@ -46,6 +48,19 @@ class gafLine:
         self.geneLocus = geneLocus
         self.featureAliases = featureAliases
         self.featureInfo = featureInfo
+        
+        self.aliases = [ gene.split('|')[0] ]
+        res = reComposite.search( compositeCoordinates )
+        if res:
+            tmp = res.groups()
+            self.chrom = 'chr' + tmp[0]
+            self.chromStart = int( tmp[1] )
+            self.chromEnd = int( tmp[2] )
+            self.strand = tmp[3]
+        
+    
+    def __str__(self):
+        return self.featureID
 
 
 class gaf(cgData.baseObject):
@@ -53,13 +68,14 @@ class gaf(cgData.baseObject):
         cgData.baseObject.__init__(self)
         self.gafData = []
 
-    def read(self, handle):
-        assert(handle.readline()[:-1].split("\t") == gafHeaders)
+    def read(self, handle, strict=True):
+        if strict:
+            assert(handle.readline()[:-1].split("\t") == gafHeaders)
         for line in handle:
             line = line.rstrip("\n")
             splitLine = line.split("\t")
             assert(len(splitLine) == len(gafCols))
-            gafData.append(gafLine(**dict(zip(gafCols, splitLine))))
+            self.gafData.append(gafLine(**dict(zip(gafCols, splitLine))))
 
     def __iter__(self):
         for i in self.gafData:

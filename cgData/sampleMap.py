@@ -1,7 +1,9 @@
 
+import cgData
 
-class SampleMap:
+class sampleMap(cgData.baseObject):
     def __init__(self):
+		cgData.baseObject.__init__(self)
         self.sampleHash = {}
 
     def read(self, handle):

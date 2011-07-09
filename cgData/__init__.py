@@ -20,6 +20,10 @@ objectMap = {
 }
 
 
+class formatException(Exception):
+	def __init__(self, str):
+		Exception.__init__(self, str)
+
 class baseObject:
 
     def __init__(self):
