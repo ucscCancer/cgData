@@ -1,9 +1,10 @@
 
 import csv
+import cgData
 
-
-class GeneMatrix:
+class genomicMatrix(cgData.baseObject):
     def __init__(self):
+        cgData.baseObject.__init__(self)
         self.probeHash = {}
         self.sampleList = {}
         self.attrs = {}
@@ -59,6 +60,37 @@ class GeneMatrix:
         if oldSample in self.sampleList:
             self.sampleList[newSample] = self.sampleList[oldSample]
             del self.sampleList[oldSample]
+    
+    def probeRemap(self, oldProbe, newProbe):
+        self.probeHash[ newProbe ] = self.probeHash[ oldProbe ]
+        del self.probeHash[ oldProbe ]
+    
+    def remap(self, altMap, skipMissing=False):
+        validMap = {}
+        for alt in altMap:
+            validMap[ alt.aliases[0] ] = True
+            if not skipMissing or alt.name in self.probeHash:
+                self.probeRemap( alt.name, alt.aliases[0] )
+        if skipMissing:
+            removeList = []
+            for name in self.probeHash:
+                if not name in validMap:
+                    removeList.append( name )
+            for name in removeList:
+                del self.probeHash[ name ]
+
+    def removeNullProbes(self, threshold=0.0):
+        removeList = []
+        for probe in self.probeHash:
+            nullCount = 0.0
+            for val in self.probeHash[probe]:
+                if val is None:
+                    nullCount += 1.0
+            nullPrec = nullCount / float(len( self.probeHash[probe] ) )
+            if 1.0 - nullPrec <= threshold:
+                removeList.append( probe )
+        for name in removeList:
+            del self.probeHash[ name ]
 
     def writeGCT(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
@@ -96,5 +128,5 @@ class GeneMatrix:
             for probe in matrix.probeHash:
                 if not probe in self.probeHash:
                     self.probeHash[probe] = [None] * (len(self.sampleList))
-                self.probeHash[probe][self.sampleList[sample]] =
+                self.probeHash[probe][self.sampleList[sample]] = \
                 matrix.probeHash[probe][matrix.sampleList[sample]]

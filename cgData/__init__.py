@@ -16,7 +16,9 @@ function which will parse the contents of a file from a passed file handle.
 
 
 objectMap = {
-    'genomicSegment': 'genomicSegment'
+    'genomicSegment': 'genomicSegment',
+    'genomicMatrix': 'genomicMatrix',
+    'probeMap': 'probeMap'
 }
 
 
@@ -49,8 +51,11 @@ def load(path):
 
     dataPath = re.sub(r'.json$', '', path)
 
-    handle = open(path)
-    meta = json.loads(handle.read())
+    try:
+        handle = open(path)
+        meta = json.loads(handle.read())
+    except IOError:
+        raise formatException("Meta-info (%s) file not found" % (path) )
 
     if meta['type'] in objectMap:
         module = __import__("cgData." + meta['type'])
@@ -59,3 +64,5 @@ def load(path):
         out = cls()
         out.load(dataPath)
         return out
+    else:
+        raise formatException( "%s class not found" % ( meta['type'] ) )

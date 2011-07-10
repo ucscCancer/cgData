@@ -7,12 +7,13 @@ class probe:
     
     coreAttr = [ 'name', 'chrom', 'chromStart', 'chromEnd', 'strand' ] 
     
-    def __init__(self, name, chrom, chromStart, chromEnd, strand):
+    def __init__(self, name, chrom, chromStart, chromEnd, strand, aliases):
         self.name = name
         self.chrom = chrom
         self.chromStart = chromStart
         self.chromEnd = chromEnd
         self.strand = strand
+        self.aliases = aliases
 
 
 class probeMap(cgData.baseObject):
@@ -32,7 +33,7 @@ class probeMap(cgData.baseObject):
         for line in read:
             self.geneMap[line[0]] = line[1].split(',')
             self.append(
-            probe(line[0], line[2], int(line[3]), int(line[4]), line[5])
+            probe(line[0], line[2], int(line[3]), int(line[4]), line[5], self.geneMap[line[0]])
             )
 
     def append(self, probe):
@@ -55,3 +56,8 @@ class probeMap(cgData.baseObject):
                     str(self.chromeMap[chrom][probe].chromEnd),
                     self.chromeMap[chrom][probe].strand
                     ])))
+
+    def __iter__(self):
+        for chrome in self.chromeMap:
+            for probe in self.chromeMap[ chrome ]:
+                yield self.chromeMap[ chrome ][ probe ]
