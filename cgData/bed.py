@@ -4,6 +4,7 @@ import cgData
 
 
 class bedLine:
+
     def __init__(self, chrom, chromStart, chromEnd, name,
         score=None, strand=None, thickStart=None, thickEnd=None,
         itemRgb=None, blockCount=None, blockSizes=None, blockStarts=None):
@@ -37,16 +38,18 @@ bedColNames = [
 "itemRgb",
 "blockCount",
 "blockSizes",
-"blockStarts"
+"blockStarts",
 ]
 
 
 class bedFormatError(Exception):
+
     def __init__(self, text):
         Exception.__init__(self, text)
 
 
 class bed(cgData.baseObject):
+
     def __init__(self):
         cgData.baseObject.__init__(self)
         self.bedSize = None

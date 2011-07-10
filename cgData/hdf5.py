@@ -13,9 +13,8 @@ def writeProbeMap(h5, probeMap):
             ('chrome', 'S'),
             ('start', 'i'),
             ('stop', 'i'),
-            ('strand', 'S')
-        ]
-    )
+            ('strand', 'S'),
+        ])
     hProbeType = h5py.new_vlen(probeType)
     print probeType
     probes = probeMap.geneMap.keys()
@@ -23,8 +22,7 @@ def writeProbeMap(h5, probeMap):
     pmCount = len(probes)
 
     ds = h5.create_dataset(
-    "/probeMap/%s" % (probeMap.attrs['name']), [pmCount], dtype=hProbeType
-    )
+    "/probeMap/%s" % (probeMap.attrs['name']), [pmCount], dtype=hProbeType)
 
     i = 0
     val = numpy.zeros(1, dtype=probeType)

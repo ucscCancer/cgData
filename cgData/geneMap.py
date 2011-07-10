@@ -9,6 +9,7 @@ class ProbeMapper:
     """
     Class to map the probes. Expects handle to the refGene_hg18.table file
     """
+
     def __init__(self, mode='g'):
         self.cmpFunc = optionMap[mode]
 
@@ -36,6 +37,8 @@ class ProbeMapper:
 #
 # The set of functions that can be used to do comparisons
 #
+
+
 def geneOverlap(start, end, strand, gene):
     if gene.strand == gene.strand
     and gene.chromEnd > start
@@ -76,5 +79,5 @@ optionMap = {
     "g": geneOverlap,
     "b": blockOverlap,
     "m": geneSimpleMethOverlap,
-    "e": exonOverlap
+    "e": exonOverlap,
 }

@@ -23,9 +23,9 @@ class geneInfo:
     """
     Class to hold information about gene, including exon start/stops
     """
+
     def __init__(self,
-    chrom, strand, start, end, exCount, exStart, exEnd, hugo
-    ):
+    chrom, strand, start, end, exCount, exStart, exEnd, hugo):
         self.chrom = chrom
         self.strand = strand
         self.chromStart = int(start)
@@ -45,6 +45,7 @@ class geneInfo:
 
 
 class refGene:
+
     def __init__(self):
         self.hugoMap = {}
 
@@ -61,8 +62,7 @@ class refGene:
                 row[COL_EXCOUNT],
                 row[COL_EXSTART],
                 row[COL_EXEND],
-                row[COL_HUGO]
-            )
+                row[COL_HUGO])
             self.hugoMap[row[COL_HUGO]] = gene
 
         self.chromMap = {}
@@ -73,8 +73,7 @@ class refGene:
 
         for chrom in self.chromMap:
             self.chromMap[chrom].sort(
-            lambda x, y: x.chromStart - y.chromStart
-            )
+            lambda x, y: x.chromStart - y.chromStart)
 
     def hasChrom(self, chrom):
         return chrom in self.chromMap

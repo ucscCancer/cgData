@@ -2,7 +2,9 @@
 import csv
 import cgData
 
+
 class genomicMatrix(cgData.baseObject):
+
     def __init__(self):
         cgData.baseObject.__init__(self)
         self.probeHash = {}
@@ -60,24 +62,24 @@ class genomicMatrix(cgData.baseObject):
         if oldSample in self.sampleList:
             self.sampleList[newSample] = self.sampleList[oldSample]
             del self.sampleList[oldSample]
-    
+
     def probeRemap(self, oldProbe, newProbe):
-        self.probeHash[ newProbe ] = self.probeHash[ oldProbe ]
-        del self.probeHash[ oldProbe ]
-    
+        self.probeHash[newProbe] = self.probeHash[oldProbe]
+        del self.probeHash[oldProbe]
+
     def remap(self, altMap, skipMissing=False):
         validMap = {}
         for alt in altMap:
-            validMap[ alt.aliases[0] ] = True
+            validMap[alt.aliases[0]] = True
             if not skipMissing or alt.name in self.probeHash:
-                self.probeRemap( alt.name, alt.aliases[0] )
+                self.probeRemap(alt.name, alt.aliases[0])
         if skipMissing:
             removeList = []
             for name in self.probeHash:
                 if not name in validMap:
-                    removeList.append( name )
+                    removeList.append(name)
             for name in removeList:
-                del self.probeHash[ name ]
+                del self.probeHash[name]
 
     def removeNullProbes(self, threshold=0.0):
         removeList = []
@@ -86,11 +88,11 @@ class genomicMatrix(cgData.baseObject):
             for val in self.probeHash[probe]:
                 if val is None:
                     nullCount += 1.0
-            nullPrec = nullCount / float(len( self.probeHash[probe] ) )
+            nullPrec = nullCount / float(len(self.probeHash[probe]))
             if 1.0 - nullPrec <= threshold:
-                removeList.append( probe )
+                removeList.append(probe)
         for name in removeList:
-            del self.probeHash[ name ]
+            del self.probeHash[name]
 
     def writeGCT(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

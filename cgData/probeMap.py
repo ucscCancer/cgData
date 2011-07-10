@@ -3,10 +3,11 @@ import csv
 import json
 import cgData
 
+
 class probe:
-    
-    coreAttr = [ 'name', 'chrom', 'chromStart', 'chromEnd', 'strand' ] 
-    
+
+    coreAttr = ['name', 'chrom', 'chromStart', 'chromEnd', 'strand']
+
     def __init__(self, name, chrom, chromStart, chromEnd, strand, aliases):
         self.name = name
         self.chrom = chrom
@@ -17,11 +18,11 @@ class probe:
 
 
 class probeMap(cgData.baseObject):
-    
+
     childType = probe
-        
+
     def __init__(self):
-        cgData.baseObject( )
+        cgData.baseObject()
         self.geneMap = {}
         self.chromeMap = {}
 
@@ -33,14 +34,14 @@ class probeMap(cgData.baseObject):
         for line in read:
             self.geneMap[line[0]] = line[1].split(',')
             self.append(
-            probe(line[0], line[2], int(line[3]), int(line[4]), line[5], self.geneMap[line[0]])
-            )
+            probe(line[0], line[2], int(line[3]),
+                int(line[4]), line[5], self.geneMap[line[0]]))
 
     def append(self, probe):
         for attr in self.childType.coreAttr:
-            if not hasattr( probe, attr ):
-                raise cgData.formatException( "Missing %s" % (attr) )
-                
+            if not hasattr(probe, attr):
+                raise cgData.formatException("Missing %s" % (attr))
+
         if not probe.chrom in self.chromeMap:
             self.chromeMap[probe.chrom] = {}
         self.chromeMap[probe.chrom][probe.name] = probe
@@ -54,10 +55,9 @@ class probeMap(cgData.baseObject):
                     self.chromeMap[chrom][probe].chrom,
                     str(self.chromeMap[chrom][probe].chromStart),
                     str(self.chromeMap[chrom][probe].chromEnd),
-                    self.chromeMap[chrom][probe].strand
-                    ])))
+                    self.chromeMap[chrom][probe].strand])))
 
     def __iter__(self):
         for chrome in self.chromeMap:
-            for probe in self.chromeMap[ chrome ]:
-                yield self.chromeMap[ chrome ][ probe ]
+            for probe in self.chromeMap[chrome]:
+                yield self.chromeMap[chrome][probe]

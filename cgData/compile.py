@@ -23,18 +23,19 @@ def error(eStr):
 
 
 class BrowserCompile:
+
     def __init__(self):
         self.setHash = {
             'genomic': {},
             "clinical": {},
             "probeMap": {},
-            "sampleMap": {}
+            "sampleMap": {},
         }
         self.pathHash = {
             'genomic': {},
             "clinical": {},
             "probeMap": {},
-            "sampleMap": {}
+            "sampleMap": {},
         }
 
     def scanDirs(self, dirs):

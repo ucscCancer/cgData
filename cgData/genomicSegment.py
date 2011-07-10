@@ -3,6 +3,7 @@ import cgData
 
 
 class Segment:
+
     def __init__(self, chrom, start, end, strand, value):
         self.chrom = chrom.lower()
         if not self.chrom.startswith('chr'):
@@ -14,6 +15,7 @@ class Segment:
 
 
 class genomicSegment(cgData.baseObject):
+
     def __init__(self):
         self.sampleHash = {}
 
@@ -24,8 +26,7 @@ class genomicSegment(cgData.baseObject):
             if not tmp[0] in self.sampleHash:
                 self.sampleHash[tmp[0]] = []
             self.sampleHash[tmp[0]].append(
-            Segment(tmp[1], int(tmp[2]), int(tmp[3]), tmp[4], float(tmp[5])
-            ))
+            Segment(tmp[1], int(tmp[2]), int(tmp[3]), tmp[4], float(tmp[5])))
 
     def __iter__(self):
         for key in self.sampleHash:

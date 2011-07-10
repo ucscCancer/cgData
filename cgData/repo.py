@@ -9,16 +9,18 @@ import re
 import hashlib
 
 sites = [
-    "http://hgwdev.cse.ucsc.edu/~kellrott/cgRepo"
+    "http://hgwdev.cse.ucsc.edu/~kellrott/cgRepo",
 ]
 
 
 class RepoError(Exception):
+
     def __init__(self, text):
         Exception.__init__(self, text)
 
 
 class repoElemFile:
+
     def __init__(self, base, path):
         self.base = base
         self.path = path
@@ -94,6 +96,7 @@ class repoElemFile:
 
 
 class repoType:
+
     def __init__(self, typeName):
         self.typeName = typeName
         self.elems = {}
@@ -122,6 +125,7 @@ class repoType:
 
 
 class repo:
+
     def __init__(self):
         self.metaHash = {}
         self.basePath = None

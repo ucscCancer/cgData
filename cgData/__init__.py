@@ -18,13 +18,15 @@ function which will parse the contents of a file from a passed file handle.
 objectMap = {
     'genomicSegment': 'genomicSegment',
     'genomicMatrix': 'genomicMatrix',
-    'probeMap': 'probeMap'
+    'probeMap': 'probeMap',
 }
 
 
 class formatException(Exception):
-	def __init__(self, str):
-		Exception.__init__(self, str)
+
+    def __init__(self, str):
+        Exception.__init__(self, str)
+
 
 class baseObject:
 
@@ -55,7 +57,7 @@ def load(path):
         handle = open(path)
         meta = json.loads(handle.read())
     except IOError:
-        raise formatException("Meta-info (%s) file not found" % (path) )
+        raise formatException("Meta-info (%s) file not found" % (path))
 
     if meta['type'] in objectMap:
         module = __import__("cgData." + meta['type'])
@@ -65,4 +67,4 @@ def load(path):
         out.load(dataPath)
         return out
     else:
-        raise formatException( "%s class not found" % ( meta['type'] ) )
+        raise formatException("%s class not found" % (meta['type']))
