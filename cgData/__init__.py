@@ -31,7 +31,7 @@ class formatException(Exception):
 class baseObject:
 
     def __init__(self):
-        self.attrs = None
+        self.attrs = {}
 
     def load(self, path):
         dHandle = open(path)
@@ -42,9 +42,27 @@ class baseObject:
             mHandle = open(path + ".json")
             self.setAttrs(json.loads(mHandle.read()))
             mHandle.close()
+    
+    def store(self, path):
+        mHandle = open(path + ".json", "w")
+        mHandle.write(json.dumps(self.attrs))
+        mHandle.close()
+        
+        dHandle = open(path, "w")
+        self.write(dHandle)
+        dHandle.close()            
 
     def setAttrs(self, attrs):
         self.attrs = attrs
+        
+        
+    def getName(self):
+        return self.attrs.get( 'name', None )
+    
+    def addHistory(self, desc):
+        if not 'history' in self.attrs:
+            self.attrs[ 'history' ] = []
+        self.attrs[ 'history' ].append( desc )
 
 
 def load(path):

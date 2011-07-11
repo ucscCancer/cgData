@@ -18,5 +18,7 @@ matrix.removeNullProbes()
 #remap the matrix using the probe map
 matrix.remap( probeMap, skipMissing=True )
 
+matrix.addHistory( "Transformed from probespace %s to HUGO" % (probeMap.getName() ) )
+
 #output the matrix
-matrix.write( sys.stdout )
+matrix.store( sys.argv[1] + ".hugo" )
