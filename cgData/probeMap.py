@@ -17,7 +17,7 @@ class probe:
         self.aliases = aliases
 
 
-class probeMap(cgData.baseObject):
+class probeMap(cgData.cgDataSetObject):
 
     childType = probe
 

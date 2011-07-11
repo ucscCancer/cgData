@@ -3,6 +3,8 @@
 
 import unittest
 
+import cgData.genomicMatrix
+
 class TestCase(unittest.TestCase):
     
     def setUp(self):

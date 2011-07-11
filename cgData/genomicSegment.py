@@ -14,7 +14,7 @@ class Segment:
         self.value = value
 
 
-class genomicSegment(cgData.baseObject):
+class genomicSegment(cgData.cgDataSetObject):
 
     def __init__(self):
         self.sampleHash = {}

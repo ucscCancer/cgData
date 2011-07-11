@@ -3,7 +3,7 @@ import csv
 import cgData
 
 
-class genomicMatrix(cgData.baseObject):
+class genomicMatrix(cgData.cgDataMatrixObject):
 
     def __init__(self):
         cgData.baseObject.__init__(self)

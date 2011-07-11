@@ -1,7 +1,7 @@
 
 import csv
 import re
-
+import cgData
 
 #column definitions for the current refGene_hg18.table
 COL_CHROM = 2
@@ -44,7 +44,7 @@ class geneInfo:
         return self.name
 
 
-class refGene:
+class refGene(cgData.cgDataSetObject):
 
     def __init__(self):
         self.hugoMap = {}

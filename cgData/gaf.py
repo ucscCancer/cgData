@@ -65,7 +65,7 @@ class gafLine:
         return self.featureID
 
 
-class gaf(cgData.baseObject):
+class gaf(cgData.cgDataSetObject):
 
     def __init__(self):
         cgData.baseObject.__init__(self)

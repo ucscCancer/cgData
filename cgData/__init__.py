@@ -28,7 +28,7 @@ class formatException(Exception):
         Exception.__init__(self, str)
 
 
-class baseObject:
+class cgObjectBase:
 
     def __init__(self):
         self.attrs = {}
@@ -63,6 +63,19 @@ class baseObject:
         if not 'history' in self.attrs:
             self.attrs[ 'history' ] = []
         self.attrs[ 'history' ].append( desc )
+
+
+
+class cgDataSetObject(cgObjectBase):
+    
+    def __init__(self):
+        cgObjectBase.__init__(self)
+
+
+class cgDataMatrixObject(cgObjectBase):
+        
+    def __init__(self):
+        cgObjectBase.__init__(self)
 
 
 def load(path):

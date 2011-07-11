@@ -2,7 +2,7 @@
 import cgData
 
 
-class sampleMap(cgData.baseObject):
+class sampleMap(cgData.cgDataSetObject):
 
     def __init__(self):
         cgData.baseObject.__init__(self)

@@ -48,7 +48,7 @@ class bedFormatError(Exception):
         Exception.__init__(self, text)
 
 
-class bed(cgData.baseObject):
+class bed(cgData.cgDataSetObject):
 
     def __init__(self):
         cgData.baseObject.__init__(self)
