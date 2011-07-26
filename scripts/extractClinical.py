@@ -7,6 +7,7 @@ import json
 import csv
 import re
 import os
+import traceback
 
 serverList = json.loads( open( sys.argv[1] ).read() )
 
@@ -22,14 +23,15 @@ for server in serverList:
 	try:
 		db=MySQLdb.connect(host=info['host'],db=info['db'], passwd=info['passwd'], user=info['user'])
 		cur = db.cursor()	
-		cur.execute("select patDb, wrangler, patDb, platform, aliasTable, profile from raDb")	
+		cur.execute("select name, wrangler, patDb, platform, aliasTable, profile from raDb")	
 		for row in cur.fetchall():
 			name = row[0]
+			print "patDB", name
 			cData = {
-				'type' : 'clinical',
+				'type' : 'clinicalMatrix',
 				'name' : row[0],
 				'author' : row[1],
-				'sampleMap' : row[2],
+				':sampleMap' : row[2],
 			}
 			#print cData
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
@@ -39,9 +41,8 @@ for server in serverList:
 			profile = row[5]
 
 			cur2 = db.cursor()
-			cur2.execute( "select name, shortLabel, longLabel, sampleField, valField, tableName, filterType from colDb where dataset='%s' " % (name) )
-			fMap = {}
-			
+			cur2.execute( "select name, shortLabel, longLabel, sampleField, valField, tableName, filterType from colDb where dataset='%s'" % (name) ) # where dataset='%s' " % (name) )
+			fMap = {}			
 			for row2 in cur2.fetchall():
 				fData = {
 					'name' : row2[0],
@@ -54,11 +55,15 @@ for server in serverList:
 				}
 				fMap[ row2[0] ] = fData
 			cur2.close()
-						
-			if serverList.has_key( profile ) and cData['sampleMap'] is not None:		
+			
+			if len(fMap) == 0:
+				print name, " has no clinical features"
+			
+			if cData[':sampleMap'] is not None:		
 				try:
-					cHost = serverList[ profile ]
-					db2=MySQLdb.connect(host=cHost['host'],db=cData['sampleMap'], passwd=cHost['passwd'], user=cHost['user'])		
+					cHost = serverList[ server ]
+					print "sampleMap", cData[':sampleMap']
+					db2=MySQLdb.connect(host=cHost['host'],db=cData[':sampleMap'], passwd=cHost['passwd'], user=cHost['user'])		
 					cur2 = db2.cursor()
 					
 					fEnum = {}
@@ -71,6 +76,17 @@ for server in serverList:
 						fEnum[ row2[0] ][ row2[1] ][ row2[2] ] = row2[3]
 						
 					fVals = {}
+					
+					"""
+					cur3 = db2.cursor(MySQLdb.cursors.DictCursor)
+					cur3.execute( "select * from %s" % (cData['sampleMap']) )
+					for row3 in cur3.fetchall():
+						print row3
+					
+					cur3.close()
+
+					"""
+							
 					for fName in fMap:
 						try:
 							sampleField = fMap[fName]['sampleField']
@@ -90,7 +106,7 @@ for server in serverList:
 								except KeyError:
 									fVals[ row2[0] ][ fName ] = str( row2[1] )
 							
-						except _mysql_exceptions.OperationalError:
+						except _mysql_exceptions.OperationalError, e:
 							pass
 					
 					oHandle = open( "%s/%s" % (outDir, name), "w" )
@@ -109,8 +125,9 @@ for server in serverList:
 					oHandle.close()
 					
 					cur2.close()
-				except _mysql_exceptions.ProgrammingError:
-					pass
-				
+				except _mysql_exceptions.ProgrammingError, e:
+					traceback.print_exc()
+					
 	except _mysql_exceptions.ProgrammingError, e:
 		pass
+

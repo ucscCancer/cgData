@@ -40,8 +40,8 @@ class ProbeMapper:
 
 
 def geneOverlap(start, end, strand, gene):
-    if gene.strand == gene.strand
-    and gene.chromEnd > start
+    if gene.strand == gene.strand\
+    and gene.chromEnd > start\
     and gene.chromStart < end:
         return True
     return False

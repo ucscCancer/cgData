@@ -3,9 +3,7 @@ import sys
 import os
 from glob import glob
 import json
-import cgData.matrix
-import cgData.sampleMap
-
+import cgData
 
 def log(eStr):
     sys.stderr.write("LOG: %s\n" % (eStr))
@@ -22,21 +20,11 @@ def error(eStr):
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
 
 
-class BrowserCompile:
+class browserCompiler:
 
     def __init__(self):
-        self.setHash = {
-            'genomic': {},
-            "clinical": {},
-            "probeMap": {},
-            "sampleMap": {},
-        }
-        self.pathHash = {
-            'genomic': {},
-            "clinical": {},
-            "probeMap": {},
-            "sampleMap": {},
-        }
+        self.setHash = {}
+        self.pathHash = {}
 
     def scanDirs(self, dirs):
         for dir in dirs:
@@ -44,19 +32,29 @@ class BrowserCompile:
             for path in glob(os.path.join(dir, "*.json")):
                 handle = open(path)
                 data = json.loads(handle.read())
-                if 'name' in data and data['name'] is not None
-                and 'type' in data
-                and data['type'] in self.setHash:
+                if 'name' in data and data['name'] is not None\
+                and 'type' in data\
+                and cgData.has_type(data['type']):
+                    if not data['type'] in self.setHash:
+                        self.setHash[ data['type'] ] = {}
+                        self.pathHash[ data['type'] ] = {}
+                        
                     if data['name'] in self.setHash[data['type']]:
                         error("Duplicate %s file %s" % (
                             data['type'], data['name']))
-                    self.setHash[data['type']][data['name']] = data
+                    self.setHash[data['type']][data['name']] = cgData.lightLoad( path )
                     self.pathHash[data['type']][data['name']] = path
                     log("FOUND: " + data['type'] +
                         "\t" + data['name'] + "\t" + path)
                 else:
                     warn("Unknown file type: %s" % (path))
                 handle.close()
+                
+    def linkObjects(self):
+        for sType in self.setHash:
+            for sName in self.setHash[ sType ]:
+                sObj = self.setHash[ sType ][ sName ]
+                print sObj.getLinkMap()
 
     def validate(self):
         self.validate_1()
@@ -83,7 +81,7 @@ class BrowserCompile:
                 removeList.append(genomicName)
 
             if genomicData['sampleMap'] in self.setHash['sampleMap']:
-                sampleData =
+                sampleData =\
                 self.setHash['sampleMap'][genomicData['sampleMap']]
                 sampleName = genomicData['sampleMap']
             else:

@@ -3,10 +3,10 @@ import csv
 import cgData
 
 
-class genomicMatrix(cgData.cgDataMatrixObject):
+class genomicMatrix(cgData.cgDataMatrixObject,cgData.cgSQLObject):
 
     def __init__(self):
-        cgData.baseObject.__init__(self)
+        cgData.cgDataMatrixObject.__init__(self)
         self.probeHash = {}
         self.sampleList = {}
         self.attrs = {}
@@ -132,3 +132,31 @@ class genomicMatrix(cgData.cgDataMatrixObject):
                     self.probeHash[probe] = [None] * (len(self.sampleList))
                 self.probeHash[probe][self.sampleList[sample]] = \
                 matrix.probeHash[probe][matrix.sampleList[sample]]
+
+
+
+
+    def initSchema(self):
+        CREATE_BED = """
+CREATE TABLE %s (
+    bin smallint unsigned not null,
+    chrom varchar(255) not null,
+    chromStart int unsigned not null,
+    chromEnd int unsigned not null,
+    name varchar(255) not null,
+    score int not null,
+    strand char(1) not null,
+    thickStart int unsigned not null,
+    thickEnd int unsigned not null,
+    reserved int unsigned  not null,
+    blockCount int unsigned not null,
+    blockSizes longblob not null,
+    chromStarts longblob not null,
+    expCount int unsigned not null,
+    expIds longblob not null,
+    expScores longblob not null,
+    INDEX(name(16)),
+    INDEX(chrom(4),chromStart),
+    INDEX(chrom(4),bin)
+);
+"""

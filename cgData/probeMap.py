@@ -22,7 +22,7 @@ class probeMap(cgData.cgDataSetObject):
     childType = probe
 
     def __init__(self):
-        cgData.baseObject()
+        cgData.cgDataSetObject()
         self.geneMap = {}
         self.chromeMap = {}
 

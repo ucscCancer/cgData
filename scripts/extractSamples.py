@@ -34,11 +34,10 @@ for server in serverList:
 			#print cData
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
 			oHandle.write( json.dumps( cData ) )
-			oHandle.close()					
-			profile = row[3]					
-			if serverList.has_key( profile ) and name is not None:		
+			oHandle.close()				
+			if name is not None:		
 				try:
-					cHost = serverList[ profile ]
+					cHost = serverList[ server ]
 					db2=MySQLdb.connect(host=cHost['host'],db=name, passwd=cHost['passwd'], user=cHost['user'])		
 					cur2 = db2.cursor()
 					

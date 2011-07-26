@@ -19,6 +19,8 @@ objectMap = {
     'genomicSegment': 'genomicSegment',
     'genomicMatrix': 'genomicMatrix',
     'probeMap': 'probeMap',
+    'sampleMap': 'sampleMap',
+    'clinicalMatrix': 'clinicalMatrix'
 }
 
 
@@ -27,6 +29,9 @@ class formatException(Exception):
     def __init__(self, str):
         Exception.__init__(self, str)
 
+
+def has_type(typeStr):
+    return typeStr in objectMap
 
 class cgObjectBase:
 
@@ -54,7 +59,12 @@ class cgObjectBase:
 
     def setAttrs(self, attrs):
         self.attrs = attrs
-        
+    
+    def groupName(self):
+        return None
+    
+    def getLinkMap(self):
+        return None
         
     def getName(self):
         return self.attrs.get( 'name', None )
@@ -78,6 +88,17 @@ class cgDataMatrixObject(cgObjectBase):
         cgObjectBase.__init__(self)
 
 
+
+class cgSQLObject:
+    
+    def initSchema(self):
+        pass
+    
+    def genSQL(self):
+        pass
+    
+    
+
 def load(path):
     if not path.endswith(".json"):
         path = path + ".json"
@@ -96,6 +117,28 @@ def load(path):
         cls = getattr(submodule, objectMap[meta['type']])
         out = cls()
         out.load(dataPath)
+        return out
+    else:
+        raise formatException("%s class not found" % (meta['type']))
+
+
+def lightLoad(path):
+    if not path.endswith(".json"):
+        path = path + ".json"
+
+    dataPath = re.sub(r'.json$', '', path)
+
+    try:
+        handle = open(path)
+        meta = json.loads(handle.read())
+    except IOError:
+        raise formatException("Meta-info (%s) file not found" % (path))
+        
+    if meta['type'] in objectMap:
+        module = __import__("cgData." + meta['type'])
+        submodule = getattr(module, meta['type'])
+        cls = getattr(submodule, objectMap[meta['type']])
+        out = cls()
         return out
     else:
         raise formatException("%s class not found" % (meta['type']))
