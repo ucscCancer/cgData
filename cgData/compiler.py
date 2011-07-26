@@ -51,10 +51,31 @@ class browserCompiler:
                 handle.close()
                 
     def linkObjects(self):
+        """
+        Scan found object records and determin if the data they link to is
+        avalible
+        """
         for sType in self.setHash:
             for sName in self.setHash[ sType ]:
                 sObj = self.setHash[ sType ][ sName ]
-                print sObj.getLinkMap()
+                lMap = sObj.getLinkMap()
+                isReady = True
+                for lType in lMap:
+                    if not self.setHash.has_key( lType ):
+                        #print "missing data type", lType
+                        isReady = False
+                    else:
+                        for lName in lMap[ lType ]:
+                            if not self.setHash[lType].has_key( lName ):
+                                #print "missing data", lType, lName
+                                isReady = False
+                
+                if isReady:
+                    print "ready", sType, sName
+        
+        for mergeType in cgData.mergeObjects:
+            mObj = cgData.cgNew( mergeType )
+            print mObj.getTypesSet()
 
     def validate(self):
         self.validate_1()

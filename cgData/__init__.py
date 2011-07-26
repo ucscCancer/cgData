@@ -20,9 +20,12 @@ objectMap = {
     'genomicMatrix': 'genomicMatrix',
     'probeMap': 'probeMap',
     'sampleMap': 'sampleMap',
-    'clinicalMatrix': 'clinicalMatrix'
+    'clinicalMatrix': 'clinicalMatrix',
+    'dataSubType': 'dataSubType',
+    'track': 'track'
 }
 
+mergeObjects = [ 'track' ]
 
 class formatException(Exception):
 
@@ -33,16 +36,24 @@ class formatException(Exception):
 def has_type(typeStr):
     return typeStr in objectMap
 
+
+class cgGroupBase:
+    
+    def __init__(self):
+        pass
+
 class cgObjectBase:
 
     def __init__(self):
         self.attrs = {}
+        self.path = None
 
     def load(self, path):
         dHandle = open(path)
         self.read(dHandle)
         dHandle.close()
-
+        
+        self.path = path
         if (os.path.exists(path + ".json")):
             mHandle = open(path + ".json")
             self.setAttrs(json.loads(mHandle.read()))
@@ -53,6 +64,7 @@ class cgObjectBase:
         mHandle.write(json.dumps(self.attrs))
         mHandle.close()
         
+        self.path = path
         dHandle = open(path, "w")
         self.write(dHandle)
         dHandle.close()            
@@ -60,11 +72,23 @@ class cgObjectBase:
     def setAttrs(self, attrs):
         self.attrs = attrs
     
+    def isGroupMember(self):
+        if 'group' in self.attrs:
+            return True
+        return False
+    
     def groupName(self):
-        return None
+        return self.attrs.get( 'group', self.attrs.get('name', None))
     
     def getLinkMap(self):
-        return None
+        out = {}
+        for key in self.attrs:
+            if key.startswith(':'):
+                if isinstance( self.attrs[ key ], list ):
+                    out[ key[1:] ] = self.attrs[ key ]
+                elif self.attrs[ key ] is not None:
+                    out[ key[1:] ] = [ self.attrs[ key ] ]
+        return out
         
     def getName(self):
         return self.attrs.get( 'name', None )
@@ -75,6 +99,13 @@ class cgObjectBase:
         self.attrs[ 'history' ].append( desc )
 
 
+class cgMergeObject:
+    
+    def __init__(self):
+        pass
+    
+    def getTypesSet(self):
+        return {}
 
 class cgDataSetObject(cgObjectBase):
     
@@ -97,7 +128,13 @@ class cgSQLObject:
     def genSQL(self):
         pass
     
-    
+
+def cgNew(typeStr):
+    module = __import__("cgData." + typeStr)
+    submodule = getattr(module, typeStr)
+    cls = getattr(submodule, objectMap[typeStr])
+    out = cls()
+    return out
 
 def load(path):
     if not path.endswith(".json"):
@@ -112,10 +149,9 @@ def load(path):
         raise formatException("Meta-info (%s) file not found" % (path))
 
     if meta['type'] in objectMap:
-        module = __import__("cgData." + meta['type'])
-        submodule = getattr(module, meta['type'])
-        cls = getattr(submodule, objectMap[meta['type']])
-        out = cls()
+        out = cgNew(meta['type'])
+        out.setAttrs( meta )
+        out.path = dataPath
         out.load(dataPath)
         return out
     else:
@@ -135,10 +171,9 @@ def lightLoad(path):
         raise formatException("Meta-info (%s) file not found" % (path))
         
     if meta['type'] in objectMap:
-        module = __import__("cgData." + meta['type'])
-        submodule = getattr(module, meta['type'])
-        cls = getattr(submodule, objectMap[meta['type']])
-        out = cls()
+        out = cgNew(meta['type'])
+        out.setAttrs( meta )
+        out.path = dataPath
         return out
     else:
         raise formatException("%s class not found" % (meta['type']))

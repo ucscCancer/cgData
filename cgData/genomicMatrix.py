@@ -9,7 +9,6 @@ class genomicMatrix(cgData.cgDataMatrixObject,cgData.cgSQLObject):
         cgData.cgDataMatrixObject.__init__(self)
         self.probeHash = {}
         self.sampleList = {}
-        self.attrs = {}
 
     def read(self, handle, skipVals=False):
         self.sampleList = {}
