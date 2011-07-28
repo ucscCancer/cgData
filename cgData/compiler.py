@@ -4,6 +4,7 @@ import os
 from glob import glob
 import json
 import cgData
+from copy import copy
 
 def log(eStr):
     sys.stderr.write("LOG: %s\n" % (eStr))
@@ -32,6 +33,7 @@ class browserCompiler:
             for path in glob(os.path.join(dir, "*.json")):
                 handle = open(path)
                 data = json.loads(handle.read())
+                handle.close()
                 if 'name' in data and data['name'] is not None\
                 and 'type' in data\
                 and cgData.has_type(data['type']):
@@ -48,93 +50,106 @@ class browserCompiler:
                         "\t" + data['name'] + "\t" + path)
                 else:
                     warn("Unknown file type: %s" % (path))
-                handle.close()
-                
+    
+    def __iter__(self):
+        return self.setHash.__iter__()
+    
+    def __getitem__(self, i):
+        return self.setHash[ i ]
+    
     def linkObjects(self):
         """
-        Scan found object records and determin if the data they link to is
+        Scan found object records and determine if the data they link to is
         avalible
         """
-        for sType in self.setHash:
-            for sName in self.setHash[ sType ]:
-                sObj = self.setHash[ sType ][ sName ]
+        oMatrix = {}
+        for oType in self.setHash:
+        	if issubclass( cgData.get_type( oType ), cgData.cgGroupMember ):
+        	    gMap = {}
+        	    for oName in self.setHash[ oType ]:
+        	        oObj = self.setHash[ oType ][ oName ]
+        	        if oObj.getGroup() not in gMap:
+        	            gMap[ oObj.getGroup() ] = cgData.cgGroupBase( oObj.getGroup() )
+        	        gMap[ oObj.getGroup() ].put( oObj )
+        	    oMatrix[ oType ] = gMap
+        	else:
+        	    oMatrix[ oType ] = self.setHash[ oType ]
+        
+        # Now it's time to check objects for their dependencies
+        readyMatrix = {}
+        for sType in oMatrix:
+            for sName in oMatrix[ sType ]:
+                sObj = oMatrix[ sType ][ sName ]
                 lMap = sObj.getLinkMap()
                 isReady = True
                 for lType in lMap:
-                    if not self.setHash.has_key( lType ):
-                        #print "missing data type", lType
+                    if not oMatrix.has_key( lType ):
+                        warn( "%s missing data type %s" % (sName, lType) )
                         isReady = False
                     else:
                         for lName in lMap[ lType ]:
-                            if not self.setHash[lType].has_key( lName ):
-                                #print "missing data", lType, lName
+                            if not oMatrix[lType].has_key( lName ):
+                                warn( "%s %s missing data %s %s" % ( sType, sName, lType, lName ) )
                                 isReady = False
-                
-                if isReady:
-                    print "ready", sType, sName
+                if not sObj.isLinkReady():
+                    warn( "%s %s not LinkReady" % ( sType, sName ) )
+                elif isReady:
+                    if not sType in readyMatrix:
+                        readyMatrix[ sType ] = {}
+                    readyMatrix[ sType ][ sName ] = sObj
         
+        for rType in readyMatrix:
+            log( "READY %s: %s" % ( rType, ",".join(readyMatrix[rType].keys()) ) ) 
+
         for mergeType in cgData.mergeObjects:
             mObj = cgData.cgNew( mergeType )
-            print mObj.getTypesSet()
-
-    def validate(self):
-        self.validate_1()
-        self.validate_2()
-
-    def validate_1(self):
-        removeList = []
-        for genomicName in self.setHash['genomic']:
-            genomicData = self.setHash['genomic'][genomicName]
-            if genomicData['probeMap'] is None:
-                error("%s lacks probeMap" % (genomicName))
-                removeList.append(genomicName)
-
-            if genomicData['sampleMap'] is None:
-                error("%s lacks sampleMap" % (genomicName))
-                removeList.append(genomicName)
-
-            if genomicData['probeMap'] in self.setHash['probeMap']:
-                probeData = self.setHash['probeMap'][genomicData['probeMap']]
-                probeName = genomicData['probeMap']
-            else:
-                error("%s Missing Probe Data: %s" % (genomicName,
-                    genomicData['probeMap']))
-                removeList.append(genomicName)
-
-            if genomicData['sampleMap'] in self.setHash['sampleMap']:
-                sampleData =\
-                self.setHash['sampleMap'][genomicData['sampleMap']]
-                sampleName = genomicData['sampleMap']
-            else:
-                error("%s Missing Sample Data: %s" % (genomicName,
-                    genomicData['sampleMap']))
-                removeList.append(genomicName)
-
-        print "Remove", removeList
-        for remove in removeList:
-            if remove in self.setHash['genomic']:
-                del self.setHash['genomic'][remove]
-
-    def validate_2(self):
-        removeList = []
-        for genomicName in self.setHash['genomic']:
-            genomeInfo = self.setHash['genomic'][genomicName]
-            probeInfo = self.setHash['probeMap'][genomeInfo['probeMap']]
-            gPath = self.pathHash['genomic'][genomicName].replace(".json", "")
-            gm = cgData.matrix.GeneMatrix()
+            selectTypes = mObj.getTypesSet().keys()
+            selectSet = {}
             try:
-                handle = open(gPath)
-            except IOError:
-                error("unable to open matrix file %s" % (gPath))
-                removeList.append(genomicName)
+                for sType in selectTypes:
+                    selectSet[ sType ] = readyMatrix[ sType ] 
+            except KeyError:
+                error("missing data type %s" % (sType) )
                 continue
+            self.setEnumerate( selectSet )
+    
+    def setEnumerate( self, a, b={} ):
+        """
+		This is an recursive function to enumerate possible sets of elements in the 'a' hash
+		a is a map of types ('probeMap', 'clinicalMatrix', ...), each of those is a map
+        of cgBaseObjects that report getLinkMap requests
+        """
+        #print "Enter", " ".join( (b[c].getName() for c in b) )
+        curKey = None
+        for t in a:
+            if not t in b:
+                curKey = t
+        
+        if curKey is None:
+            print " ".join( ( "%s:%s:%s" % (c, b[c].getName(), str(b[c].getLinkMap()) ) for c in b) )
+        else:
+            for i in a[curKey]:
+                #print "Trying", curKey, i
+                c = copy(b)
+                sObj = a[curKey][i] #the object selected to be added next
+                lMap = sObj.getLinkMap()
+                valid = True
+                for lType in lMap:
+                    if lType in c:
+                        if c[lType].getName() not in lMap[lType]:
+                            #print c[lType].getName(), "not in", lMap[lType]
+                            valid = False
+                for sType in c:
+                    slMap = c[sType].getLinkMap()
+                    for slType in slMap:
+                        if curKey == slType:
+                            if sObj.getName() not in slMap[slType]:
+                                #print a[curKey][i].getName(), "not in",  slMap[slType]
+                                valid = False
+                if valid:
+                    c[ curKey ] = sObj
+                    self.setEnumerate( a, c )
+    
+    
+    
 
-            gm.read(handle, skipVals=True)
-            handle.close()
-
-            sPath = self.pathHash['probeMap'][genomeInfo['probeMap']]
-            sPath = sPath.replace(".json", "")
-            sm = cgData.sampleMap.SampleMap()
-            handle = open(sPath)
-            sm.read(handle)
-            handle.close()

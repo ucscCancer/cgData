@@ -31,7 +31,10 @@ CREATE TABLE `%s` (
 );
 """
         
-
+    def isLinkReady(self):
+        if self.attrs.get( ":sampleMap", None ) == None:
+            return False
+        return True
 
     def genSQL(self):
             

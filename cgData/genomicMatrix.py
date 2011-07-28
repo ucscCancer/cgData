@@ -10,6 +10,11 @@ class genomicMatrix(cgData.cgDataMatrixObject,cgData.cgSQLObject):
         self.probeHash = {}
         self.sampleList = {}
 
+    def isLinkReady(self):
+        if self.attrs.get( ':sampleMap', None ) is None:
+            return False
+        return True
+
     def read(self, handle, skipVals=False):
         self.sampleList = {}
         self.probeHash = {}

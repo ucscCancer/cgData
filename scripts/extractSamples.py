@@ -15,7 +15,7 @@ reCommaEnd = re.compile(r',$')
 for server in serverList:
 	info = serverList[server]
 
-	outDir = "data/%s/samples" % ( server )
+	outDir = "data/%s/sampleMap" % ( server )
 	if not os.path.exists( outDir ):
 		os.makedirs( outDir )
 

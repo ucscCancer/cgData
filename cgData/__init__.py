@@ -22,7 +22,8 @@ objectMap = {
     'sampleMap': 'sampleMap',
     'clinicalMatrix': 'clinicalMatrix',
     'dataSubType': 'dataSubType',
-    'track': 'track'
+    'track': 'track',
+    'assembly':'assembly'
 }
 
 mergeObjects = [ 'track' ]
@@ -36,17 +37,60 @@ class formatException(Exception):
 def has_type(typeStr):
     return typeStr in objectMap
 
+def get_type(typeStr):
+
+    module = __import__("cgData." + typeStr)
+    submodule = getattr(module, typeStr)
+    cls = getattr(submodule, objectMap[typeStr])
+    return cls
+
+
+class cgGroupMember:
+    pass
 
 class cgGroupBase:
+
+    def __init__(self, groupName):
+        self.members = {}
+        self.name = groupName
     
-    def __init__(self):
-        pass
+    def __setitem__(self, name, item):
+        self.members[ name ] = item
+    
+    def __getitem__(self, name):
+        return self.members[ name ]
+    
+    def put(self, obj):
+        self.members[ obj.getName() ] = obj
+    
+    def isLinkReady(self):
+        for name in self.members:
+            if not self.members[name].isLinkReady():
+                return False
+        return True
+    
+    def getName(self):
+        return self.name
+    
+    def getLinkMap(self):
+        out = {}
+        for name in self.members:
+            lMap = self.members[ name ].getLinkMap()
+            for lType in lMap:
+                if lType not in out:
+                    out[ lType ] = []
+                for lName in lMap[lType]:
+                    if lName not in out[lType]:
+                        out[lType].append( lName )
+        return out
+    
 
 class cgObjectBase:
 
     def __init__(self):
         self.attrs = {}
         self.path = None
+        self.lightMode = False
 
     def load(self, path):
         dHandle = open(path)
@@ -58,16 +102,24 @@ class cgObjectBase:
             mHandle = open(path + ".json")
             self.setAttrs(json.loads(mHandle.read()))
             mHandle.close()
+
+    def isLinkReady(self):
+        return True
     
-    def store(self, path):
+    def store(self, path=None):
+        if path is None and self.path is not None:
+            path = self.path
+        if path is None:
+            raise OSError( "Path not defined" ) 
         mHandle = open(path + ".json", "w")
         mHandle.write(json.dumps(self.attrs))
         mHandle.close()
-        
-        self.path = path
-        dHandle = open(path, "w")
-        self.write(dHandle)
-        dHandle.close()            
+        print path
+        if not self.lightMode:
+            self.path = path
+            dHandle = open(path, "w")
+            self.write(dHandle)
+            dHandle.close()            
 
     def setAttrs(self, attrs):
         self.attrs = attrs
@@ -77,8 +129,11 @@ class cgObjectBase:
             return True
         return False
     
-    def groupName(self):
+    def getGroup(self):
         return self.attrs.get( 'group', self.attrs.get('name', None))
+
+    def getName(self):
+        return self.attrs.get( 'name', None )
     
     def getLinkMap(self):
         out = {}
@@ -89,10 +144,7 @@ class cgObjectBase:
                 elif self.attrs[ key ] is not None:
                     out[ key[1:] ] = [ self.attrs[ key ] ]
         return out
-        
-    def getName(self):
-        return self.attrs.get( 'name', None )
-    
+
     def addHistory(self, desc):
         if not 'history' in self.attrs:
             self.attrs[ 'history' ] = []
@@ -174,6 +226,7 @@ def lightLoad(path):
         out = cgNew(meta['type'])
         out.setAttrs( meta )
         out.path = dataPath
+        out.lightMode = True
         return out
     else:
         raise formatException("%s class not found" % (meta['type']))
