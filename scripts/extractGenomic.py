@@ -20,22 +20,30 @@ for server in serverList:
 	info = serverList[server]
 	try:
 		db=MySQLdb.connect(host=info['host'],db=info['db'], passwd=info['passwd'], user=info['user'])
-		cur = db.cursor()	
-		cur.execute("select name, wrangler, patDb, platform, aliasTable, profile, wrangler, wrangling_procedure from raDb")	
+		cur = db.cursor(MySQLdb.cursors.DictCursor)	
+		cur.execute("select * from raDb")	
 		for row in cur.fetchall():
-			name = row[0]
+			name = row['name']
 			print name
 			if name.endswith( '201103' ):
 				continue
 			gData = {
 				'type': 'genomicMatrix',
-				'name' : row[0],
-				'author' : row[1],
-				':sampleMap' : row[2],
-				':dataSubType': row[3],
-				':probeMap' : row[4],
-				'author' : row[6],
-				'notes' : row[7]
+				'name' : row['name'],
+				'author' : row['wrangler'],
+				':sampleMap' : row['patDb'],
+				'url': row['url'],
+				'gain' : row['gain'],
+				'citation' : row['citation'],
+				'microscope' : row['microscope'],
+				'articleTitle' : row['article_title'],
+				'authorList' : row['author_list'],
+				':dataSubType': row['platform'],
+				':probeMap' : row['aliasTable'],
+				'notes' : row['wrangling_procedure'],
+				'shortTitle' : row['shortLabel'],
+				'longTitle' : row['longLabel'],
+				'groupTitle' : row['groupName']
 			}
 			oHandle = open( "%s/%s.json" % (outDir, name), "w" )
 			oHandle.write( json.dumps( gData ) )

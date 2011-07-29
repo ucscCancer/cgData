@@ -72,6 +72,18 @@ class cgGroupBase:
     def getName(self):
         return self.name
     
+    def get(self, **kw):
+		for elem in self.members:
+			found = True
+			obj = self.members[ elem ]
+			for key in kw:
+				if obj.attrs.get( key, None ) != kw[key]\
+				and obj.attrs.get( ":" + key, None ) != kw[key]:
+					found = False
+			if found:
+				return obj
+					
+    
     def getLinkMap(self):
         out = {}
         for name in self.members:
@@ -92,9 +104,13 @@ class cgObjectBase:
         self.path = None
         self.lightMode = False
 
-    def load(self, path):
+    def load(self, path=None, **kw):
+        if path is None and self.path is not None:
+            path = self.path
+        if path is None:
+            raise OSError( "Path not defined" ) 
         dHandle = open(path)
-        self.read(dHandle)
+        self.read(dHandle, **kw)
         dHandle.close()
         
         self.path = path
@@ -153,11 +169,15 @@ class cgObjectBase:
 
 class cgMergeObject:
     
-    def __init__(self):
-        pass
+    typeSet = {}
     
-    def getTypesSet(self):
-        return {}
+    def __init__(self):
+        self.members = {}
+    
+    def merge(self, **kw):
+        self.members = kw
+
+
 
 class cgDataSetObject(cgObjectBase):
     
@@ -177,7 +197,10 @@ class cgSQLObject:
     def initSchema(self):
         pass
     
-    def genSQL(self):
+    def genSQL(self, idTable):
+        pass
+    
+    def buildIDs(self, idAllocator):
         pass
     
 
