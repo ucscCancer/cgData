@@ -48,9 +48,14 @@ class browserCompiler:
             log("SCANNING DIR: %s" % (dir))
             for path in glob(os.path.join(dir, "*.json")):
                 handle = open(path)
-                data = json.loads(handle.read())
+                try:
+                    data = json.loads(handle.read())
+                except ValueError, e:
+                    error("BAD JSON in " + path + " " + str(e) )
+                    data = None
                 handle.close()
-                if 'name' in data and data['name'] is not None\
+                
+                if data is not None and 'name' in data and data['name'] is not None\
                 and 'type' in data\
                 and cgData.has_type(data['type']):
                     if not data['type'] in self.setHash:

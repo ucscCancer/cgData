@@ -23,7 +23,8 @@ objectMap = {
     'clinicalMatrix': 'clinicalMatrix',
     'dataSubType': 'dataSubType',
     'track': 'track',
-    'assembly':'assembly'
+    'assembly':'assembly',
+    'clinicalFeature':'clinicalFeature'
 }
 
 mergeObjects = [ 'track' ]
