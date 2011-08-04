@@ -23,13 +23,15 @@ class probeMap(cgData.cgDataSetObject,cgData.cgGroupMember):
 
     def __init__(self):
         cgData.cgDataSetObject()
-        self.geneMap = {}
-        self.chromeMap = {}
+        self.geneMap = None
+        self.chromeMap = None
 
     def readMeta(self, handle):
         self.attrs = json.loads(handle.read())
 
     def read(self, handle):
+        self.geneMap = {}
+        self.chromeMap = {}
         read = csv.reader(handle, delimiter="\t")
         for line in read:
             self.geneMap[line[0]] = line[1].split(',')
@@ -56,6 +58,14 @@ class probeMap(cgData.cgDataSetObject,cgData.cgGroupMember):
                     str(self.chromeMap[chrom][probe].chromStart),
                     str(self.chromeMap[chrom][probe].chromEnd),
                     self.chromeMap[chrom][probe].strand])))
+    
+    def get(self, item):
+        if self.geneMap is None:
+            self.load()
+        for chrome in self.chromeMap:
+            if item in self.chromeMap[chrome]:
+                return self.chromeMap[chrome][item]
+        return None
 
     def __iter__(self):
         for chrome in self.chromeMap:

@@ -48,3 +48,5 @@ if __name__ == "__main__":
 	cg.scanDirs( args )
 	
 	cg.linkObjects()
+	cg.buildIDs()
+	cg.genSQL()

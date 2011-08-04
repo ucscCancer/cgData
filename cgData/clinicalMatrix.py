@@ -3,18 +3,10 @@
 
 import csv
 import cgData
+import cgData.tsvMatrix
+from cgData.sqlUtil import *
 
-
-class clinicalMatrix(cgData.cgDataMatrixObject,cgData.cgSQLObject):
-
-    def __init__(self):
-        cgData.cgDataMatrixObject.__init__(self)
-        self.probeHash = {}
-        self.sampleList = {}
-        self.attrs = {}
-
-    def initSchema(self):
-        CREATE_colDb = """
+CREATE_colDb = """
 CREATE TABLE `%s` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) default NULL,
@@ -30,41 +22,48 @@ CREATE TABLE `%s` (
   KEY `name` (`name`)
 );
 """
+
+class clinicalMatrix(cgData.tsvMatrix.tsvMatrix,cgData.cgSQLObject):
+    
+    elementType = str
+
+    def __init__(self):
+        cgData.tsvMatrix.tsvMatrix.__init__(self)
+
+    def initSchema(self):
+		pass
         
     def isLinkReady(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
-
-    def genSQL(self):
+        
+    def buildIDs(self, idAllocator):
+        if self.lightMode:
+            self.load()
             
-        colName = None
-        colHash = {}
-        targetSet = []
-        for row in read:
-            if colName is None:
-                colName = row
-                for name in colName[1:]:
-                    colHash[ name ] = {}
-            else:
-                for i in range( 1, len(row) ):
-                    colHash[ colName[i] ][ row[0].rstrip() ] = row[i]
-                targetSet.append( row[0].rstrip() )
-        handle.close()
+        sampleList = self.getRows()
         
-        #print colHash
-        
+        for sampleID in sampleList:
+            idAllocator.alloc( 'sampleID', sampleID )
+
+        featureList = self.getCols()
+        for featureID in featureList:
+            idAllocator.alloc( 'featureID', sampleID )
+
+    def genSQL(self, idTable):
         floatMap = {}
         enumMap = {}
-        for key in colHash:
+        for key in self.colList:
+            col = self.colList[ key ]
             isFloat = True
             hasVal = False
             enumSet = {}
-            for sample in colHash[ key ]:
+            for row in self.rowHash:
                 try:
                     #print colHash[ key ][ sample ]
-                    value = colHash[ key ][ sample ]
-                    if value != "null" and len(value):
+                    value = self.rowHash[ row ][ col ]
+                    if value not in ["null", "None", "NA"] and value is not None and len(value):
                         hasVal = True
                         if not enumSet.has_key( value ):
                             enumSet[ value ] = len( enumSet )
@@ -100,35 +99,37 @@ CREATE TABLE `%s` (
             colOrder.append( colName )
             origOrder.append( name )		
         
-        dHandle = open( "%s.sql" % (basename), "w")
-        dHandle.write("drop table if exists clinical_%s;" % ( featureInfo[ 'name' ] ) )
-        dHandle.write("""
+        tableName = self.attrs['name']
+        
+        yield "drop table if exists clinical_%s;" % ( tableName )
+        
+        yield """
 CREATE TABLE clinical_%s (
-\tsampleID int""" % ( featureInfo[ 'name' ] ))
+\tsampleID int""" % ( tableName )
+
         for col in colOrder:
             if ( enumMap.has_key( col ) ):
-                dHandle.write(",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join(enumMap[ col ].keys() ) ) )
+                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sqlFix(a) for a in enumMap[ col ].keys() ) )
             else:
-                dHandle.write(",\n\t%s FLOAT default NULL" % (col) )		
-        dHandle.write("""
+                yield ",\n\t%s FLOAT default NULL" % (col)
+        yield """
     ) ;	
-    """)
+    """
         
-        for target in targetSet:
+        for target in self.rowHash:
             a = []
             for col in origOrder:
-                val = colHash[ col ].get( target, None )
+                val = self.rowHash[ target ][ self.colList[ col ] ]
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\N")
                 else:				
-                    a.append( "'" + str(val) + "'" )
-            dHandle.write("INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( featureInfo[ 'name' ], sampleMap[ target ], ",".join(a) ) )
-        dHandle.close()
+                    a.append( "'" + sqlFix( str(val) ) + "'" )
+            yield "INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( tableName, idTable.get( 'sampleID', target ), ",".join(a) )
 
-        cHandle = open( "%s_colDb.sql" % (basename), "w" )
-        cHandle.write("drop table if exists clinical_%s_colDb;" % ( featureInfo[ 'name' ] ) )
-        cHandle.write( CREATE_colDb % ( "clinical_" + featureInfo[ 'name' ] + "_colDb" ) )
+
+        yield "drop table if exists clinical_%s_colDb;" % ( tableName )
+        yield CREATE_colDb % ( "clinical_" + tableName + "_colDb" ) 
         """
 `id` int(10) unsigned NOT NULL default '0',
 `name` varchar(255) default NULL,
@@ -144,8 +145,8 @@ PRIMARY KEY  (`id`),
 KEY `name` (`name`)
 """
         for name in colOrder:
-            cHandle.write("INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
-                ( featureInfo[ 'name' ], name, name, name, name, "clinical_" + featureInfo[ 'name' ] ) )
-        cHandle.close()
+            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
+                ( tableName, name, name, name, name, "clinical_" + tableName )
+
             
         

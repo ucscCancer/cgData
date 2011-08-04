@@ -21,20 +21,41 @@ def error(eStr):
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
 
 
+class cgIDTable:
+    
+    def __init__(self):
+        self.idTable = {}
+    
+    def alloc( self, iType, iName ):
+        if iType not in self.idTable:
+            self.idTable[ iType ] = {}
+        if iName not in self.idTable[ iType ]:
+            self.idTable[ iType ][ iName ] = len( self.idTable[ iType ] )
+    
+    def get( self, iType, iName ):
+        return self.idTable[ iType ][ iName ]
+
+
 class browserCompiler:
 
     def __init__(self):
         self.setHash = {}
         self.pathHash = {}
+        self.outDir = "out"
 
     def scanDirs(self, dirs):
         for dir in dirs:
             log("SCANNING DIR: %s" % (dir))
             for path in glob(os.path.join(dir, "*.json")):
                 handle = open(path)
-                data = json.loads(handle.read())
+                try:
+                    data = json.loads(handle.read())
+                except ValueError, e:
+                    error("BAD JSON in " + path + " " + str(e) )
+                    data = None
                 handle.close()
-                if 'name' in data and data['name'] is not None\
+                
+                if data is not None and 'name' in data and data['name'] is not None\
                 and 'type' in data\
                 and cgData.has_type(data['type']):
                     if not data['type'] in self.setHash:
@@ -64,16 +85,16 @@ class browserCompiler:
         """
         oMatrix = {}
         for oType in self.setHash:
-        	if issubclass( cgData.get_type( oType ), cgData.cgGroupMember ):
-        	    gMap = {}
-        	    for oName in self.setHash[ oType ]:
-        	        oObj = self.setHash[ oType ][ oName ]
-        	        if oObj.getGroup() not in gMap:
-        	            gMap[ oObj.getGroup() ] = cgData.cgGroupBase( oObj.getGroup() )
-        	        gMap[ oObj.getGroup() ].put( oObj )
-        	    oMatrix[ oType ] = gMap
-        	else:
-        	    oMatrix[ oType ] = self.setHash[ oType ]
+            if issubclass( cgData.get_type( oType ), cgData.cgGroupMember ):
+                gMap = {}
+                for oName in self.setHash[ oType ]:
+                    oObj = self.setHash[ oType ][ oName ]
+                    if oObj.getGroup() not in gMap:
+                        gMap[ oObj.getGroup() ] = cgData.cgGroupBase( oObj.getGroup() )
+                    gMap[ oObj.getGroup() ].put( oObj )
+                oMatrix[ oType ] = gMap
+            else:
+                oMatrix[ oType ] = self.setHash[ oType ]
         
         # Now it's time to check objects for their dependencies
         readyMatrix = {}
@@ -102,8 +123,9 @@ class browserCompiler:
             log( "READY %s: %s" % ( rType, ",".join(readyMatrix[rType].keys()) ) ) 
 
         for mergeType in cgData.mergeObjects:
-            mObj = cgData.cgNew( mergeType )
-            selectTypes = mObj.getTypesSet().keys()
+            mType = cgData.get_type( mergeType )
+            print mType
+            selectTypes = mType.typeSet
             selectSet = {}
             try:
                 for sType in selectTypes:
@@ -111,12 +133,18 @@ class browserCompiler:
             except KeyError:
                 error("missing data type %s" % (sType) )
                 continue
-            self.setEnumerate( selectSet )
-    
-    def setEnumerate( self, a, b={} ):
+            mObjList = self.setEnumerate( mType, selectSet )
+            for mObj in mObjList:
+                if mergeType not in readyMatrix:
+                    readyMatrix[ mergeType ] = {}
+                readyMatrix[ mergeType ][ mObj.getName() ] = mObj
+        
+        self.readyMatrix = readyMatrix                    
+        
+    def setEnumerate( self, mergeType, a, b={} ):
         """
-		This is an recursive function to enumerate possible sets of elements in the 'a' hash
-		a is a map of types ('probeMap', 'clinicalMatrix', ...), each of those is a map
+        This is an recursive function to enumerate possible sets of elements in the 'a' hash
+        a is a map of types ('probeMap', 'clinicalMatrix', ...), each of those is a map
         of cgBaseObjects that report getLinkMap requests
         """
         #print "Enter", " ".join( (b[c].getName() for c in b) )
@@ -126,8 +154,13 @@ class browserCompiler:
                 curKey = t
         
         if curKey is None:
-            print " ".join( ( "%s:%s:%s" % (c, b[c].getName(), str(b[c].getLinkMap()) ) for c in b) )
+            #print " ".join( ( "%s:%s:%s" % (c, b[c].getName(), str(b[c].getLinkMap()) ) for c in b) )
+            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].getName()) for c in b) ) )  
+            mergeObj = mergeType()
+            mergeObj.merge( **b )
+            return [ mergeObj ]
         else:
+            out = []
             for i in a[curKey]:
                 #print "Trying", curKey, i
                 c = copy(b)
@@ -148,8 +181,29 @@ class browserCompiler:
                                 valid = False
                 if valid:
                     c[ curKey ] = sObj
-                    self.setEnumerate( a, c )
-    
+                    out.extend( self.setEnumerate( mergeType, a, c ) )
+            return out
+        return []
+
+    def buildIDs(self):
+        log( "Building Common ID tables" )
+        self.idTable = cgIDTable()        
+        for rType in self.readyMatrix:
+            if issubclass( cgData.get_type( rType ), cgData.cgSQLObject ):
+                for rName in self.readyMatrix[ rType ]:
+                    self.readyMatrix[ rType ][ rName ].buildIDs( self.idTable )
+
+    def genSQL(self):
+        log( "Writing SQL" )        
+        for rType in self.readyMatrix:
+            if issubclass( cgData.get_type( rType ), cgData.cgSQLObject ):
+                for rName in self.readyMatrix[ rType ]:
+                    sHandle = self.readyMatrix[ rType ][ rName ].genSQL( self.idTable )
+                    if sHandle is not None:
+                        oHandle = open( os.path.join( self.outDir, "%s.%s.sql" % (rType, rName ) ), "w" )
+                        for line in sHandle:
+                            oHandle.write( line )
+                        oHandle.close()
     
     
 
