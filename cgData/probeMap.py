@@ -61,3 +61,8 @@ class probeMap(cgData.cgDataSetObject,cgData.cgGroupMember):
         for chrome in self.chromeMap:
             for probe in self.chromeMap[chrome]:
                 yield self.chromeMap[chrome][probe]
+    
+	def get(self, item):
+		for chrome in self.chromeMap:
+			if item in self.chromeMap[chrome]:
+				return self.chromeMap[chrome][item]
