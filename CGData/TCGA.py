@@ -10,7 +10,7 @@ host = "http://tcga-data.nci.nih.gov"
 shost = "https://tcga-data.nci.nih.gov"
 
 
-class dccwsItem(object):
+class DCCWSItem(object):
     baseURL = "http://tcga-data.nci.nih.gov/tcgadccws/GetXML?query="
 
     def __init__(self):
@@ -45,57 +45,57 @@ class dccwsItem(object):
                 next = None
 
 
-class DiseaseList(dccwsItem):
+class DiseaseList(DCCWSItem):
     def __init__(self):
         super(DiseaseList, self).__init__()
-        self.url = dccwsItem.baseURL + "Disease"
+        self.url = DCCWSItem.baseURL + "Disease"
 
 
-class ArchiveList(dccwsItem):
+class ArchiveList(DCCWSItem):
     def __init__(self):
         super(ArchiveList, self).__init__()
-        self.url = dccwsItem.baseURL + "Archive"
+        self.url = DCCWSItem.baseURL + "Archive"
 
 
-class ArchiveCollection(dccwsItem):
+class ArchiveCollection(DCCWSItem):
     def __init__(self, diseaseID):
         super(ArchiveCollection, self).__init__()
-        self.url = dccwsItem.baseURL +
+        self.url = DCCWSItem.baseURL +
         "Archive&Disease[@id=%s]&roleName=archiveCollection" % (diseaseID)
 
 
-class Platform(dccwsItem):
+class Platform(DCCWSItem):
     def __init__(self, archiveID):
         super(Platform, self).__init__()
-        self.url = dccwsItem.baseURL +
+        self.url = DCCWSItem.baseURL +
         "Platform&Archive[@id=%s]&roleName=platform" % (archiveID)
 
 
-class ArchiveType(dccwsItem):
+class ArchiveType(DCCWSItem):
     def __init__(self, archiveID):
         super(ArchiveType, self).__init__()
-        self.url = dccwsItem.baseURL +
+        self.url = DCCWSItem.baseURL +
         "ArchiveType&Archive[@id=%s]&roleName=archiveType" % (archiveID)
 
 
-class FileInfo(dccwsItem):
+class FileInfo(DCCWSItem):
     def __init__(self, archiveID):
         super(FileInfo, self).__init__()
-        self.url = dccwsItem.baseURL +
+        self.url = DCCWSItem.baseURL +
         "FileInfo&Archive[@id=%s]&roleName=fileCollection" % (archiveID)
 
 
-class FileBarcode(dccwsItem):
+class FileBarcode(DCCWSItem):
     def __init__(self, fileID):
         super(FileBarcode, self).__init__()
-        self.url = dccwsItem.baseURL +
+        self.url = DCCWSItem.baseURL +
         "BiospecimenBarcode&FileInfo[@id=%s]&roleName=biospecimenBarcodeCollection" % (fileID)
 
 
-class CustomQuery(dccwsItem):
+class CustomQuery(DCCWSItem):
     def __init__(self, query):
         super(CustomQuery, self).__init__()
-        self.url = dccwsItem.baseURL + query
+        self.url = DCCWSItem.baseURL + query
 
 
 def getText(nodelist):

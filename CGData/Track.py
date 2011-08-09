@@ -1,6 +1,6 @@
 
-import cgData
-from cgData.sqlUtil import *
+import CGData
+from CGData.SQLUtil import *
 
 CREATE_BED = """
 CREATE TABLE %s (
@@ -27,7 +27,7 @@ CREATE TABLE %s (
 """
 
 
-class track(cgData.cgMergeObject,cgData.cgSQLObject):
+class track(CGData.CGMergeObject,CGData.CGSQLObject):
 
     typeSet = { 
         'clinicalMatrix' : True, 
@@ -37,7 +37,7 @@ class track(cgData.cgMergeObject,cgData.cgSQLObject):
     } 
 
     def __init__(self):
-        cgData.cgMergeObject.__init__(self)
+        CGData.CGMergeObject.__init__(self)
             
     def getName( self ):
         return "%s" % ( self.members[ "genomicMatrix" ].getName() )

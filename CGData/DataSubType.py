@@ -1,8 +1,8 @@
 
 
-import cgData
+import CGData
 
-class dataSubType(cgData.cgDataSetObject):
+class DataSubType(CGData.CGDataSetObject):
 
     def __init__(self):
-        cgData.cgDataSetObject.__init__(self)
+        CGData.CGDataSetObject.__init__(self)

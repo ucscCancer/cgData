@@ -1,6 +1,6 @@
 
 
-class cancerTrack:
+class CancerTrack:
 	
 	if includeList is not None and not includeList.has_key( genomeInfo[ 'name' ] ):
 			return 

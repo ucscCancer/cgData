@@ -1,9 +1,9 @@
 
 
-import cgData
+import CGData
 
 
-class bedLine:
+class BedLine:
 
     def __init__(self, chrom, chromStart, chromEnd, name,
         score=None, strand=None, thickStart=None, thickEnd=None,
@@ -42,13 +42,13 @@ bedColNames = [
 ]
 
 
-class bedFormatError(Exception):
+class BedFormatError(Exception):
 
     def __init__(self, text):
         Exception.__init__(self, text)
 
 
-class bed(cgData.cgDataSetObject):
+class Bed(CGData.CGDataSetObject):
 
     def __init__(self):
         cgData.cgDataSetObject.__init__(self)
@@ -67,7 +67,7 @@ class bed(cgData.cgDataSetObject):
                 for val in tmp:
                     data[bedColNames[i]] = val
                     i += 1
-                bl = bedLine(**data)
+                bl = BedLine(**data)
                 self.bedArray.append(bl)
 
     def __iter__(self):

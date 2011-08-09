@@ -1,8 +1,8 @@
 
 import csv
-import cgData
+import CGData
 
 
-class clinicalFeature(cgData.cgObjectBase):
+class ClinicalFeature(CGData.CGObjectBase):
     def __init__(self):
         pass

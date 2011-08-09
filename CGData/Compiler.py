@@ -3,8 +3,8 @@ import sys
 import os
 from glob import glob
 import json
-import cgData
 from copy import copy
+import CGData
 
 def log(eStr):
     sys.stderr.write("LOG: %s\n" % (eStr))
@@ -21,7 +21,7 @@ def error(eStr):
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
 
 
-class cgIDTable:
+class CGIDTable:
     
     def __init__(self):
         self.idTable = {}
@@ -36,7 +36,7 @@ class cgIDTable:
         return self.idTable[ iType ][ iName ]
 
 
-class browserCompiler:
+class BrowserCompiler:
 
     def __init__(self):
         self.setHash = {}
@@ -57,7 +57,7 @@ class browserCompiler:
                 
                 if data is not None and 'name' in data and data['name'] is not None\
                 and 'type' in data\
-                and cgData.has_type(data['type']):
+                and CGData.has_type(data['type']):
                     if not data['type'] in self.setHash:
                         self.setHash[ data['type'] ] = {}
                         self.pathHash[ data['type'] ] = {}
@@ -65,7 +65,7 @@ class browserCompiler:
                     if data['name'] in self.setHash[data['type']]:
                         error("Duplicate %s file %s" % (
                             data['type'], data['name']))
-                    self.setHash[data['type']][data['name']] = cgData.lightLoad( path )
+                    self.setHash[data['type']][data['name']] = CGData.lightLoad( path )
                     self.pathHash[data['type']][data['name']] = path
                     log("FOUND: " + data['type'] +
                         "\t" + data['name'] + "\t" + path)
@@ -85,12 +85,12 @@ class browserCompiler:
         """
         oMatrix = {}
         for oType in self.setHash:
-            if issubclass( cgData.get_type( oType ), cgData.cgGroupMember ):
+            if issubclass( CGData.get_type( oType ), CGData.CGGroupMember ):
                 gMap = {}
                 for oName in self.setHash[ oType ]:
                     oObj = self.setHash[ oType ][ oName ]
                     if oObj.getGroup() not in gMap:
-                        gMap[ oObj.getGroup() ] = cgData.cgGroupBase( oObj.getGroup() )
+                        gMap[ oObj.getGroup() ] = CGData.CGGroupBase( oObj.getGroup() )
                     gMap[ oObj.getGroup() ].put( oObj )
                 oMatrix[ oType ] = gMap
             else:
@@ -122,8 +122,8 @@ class browserCompiler:
         for rType in readyMatrix:
             log( "READY %s: %s" % ( rType, ",".join(readyMatrix[rType].keys()) ) ) 
 
-        for mergeType in cgData.mergeObjects:
-            mType = cgData.get_type( mergeType )
+        for mergeType in CGData.mergeObjects:
+            mType = CGData.get_type( mergeType )
             print mType
             selectTypes = mType.typeSet
             selectSet = {}
@@ -187,16 +187,16 @@ class browserCompiler:
 
     def buildIDs(self):
         log( "Building Common ID tables" )
-        self.idTable = cgIDTable()        
+        self.idTable = CGIDTable()        
         for rType in self.readyMatrix:
-            if issubclass( cgData.get_type( rType ), cgData.cgSQLObject ):
+            if issubclass( CGData.get_type( rType ), CGData.CGSQLObject ):
                 for rName in self.readyMatrix[ rType ]:
                     self.readyMatrix[ rType ][ rName ].buildIDs( self.idTable )
 
     def genSQL(self):
         log( "Writing SQL" )        
         for rType in self.readyMatrix:
-            if issubclass( cgData.get_type( rType ), cgData.cgSQLObject ):
+            if issubclass( CGData.get_type( rType ), CGData.CGSQLObject ):
                 for rName in self.readyMatrix[ rType ]:
                     sHandle = self.readyMatrix[ rType ][ rName ].genSQL( self.idTable )
                     if sHandle is not None:

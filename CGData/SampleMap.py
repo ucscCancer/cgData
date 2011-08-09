@@ -1,12 +1,12 @@
 
-import cgData
+import CGData
 
 
-class sampleMap(cgData.cgDataSetObject):
+class SampleMap(CGData.CGDataSetObject):
 
     def __init__(self):
-        cgData.cgDataSetObject.__init__(self)
-        self.sampleHash = {}
+        CGData.CGDataSetObject.__init__(self)
+        self.MHash = {}
 
     def read(self, handle):
         for line in handle:

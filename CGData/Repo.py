@@ -19,7 +19,7 @@ class RepoError(Exception):
         Exception.__init__(self, text)
 
 
-class repoElemFile:
+class RepoElemFile:
 
     def __init__(self, base, path):
         self.base = base
@@ -95,7 +95,7 @@ class repoElemFile:
         handle.close()
 
 
-class repoType:
+class RepoType:
 
     def __init__(self, typeName):
         self.typeName = typeName
@@ -124,7 +124,7 @@ class repoType:
             self.elems[name].writeDigest()
 
 
-class repo:
+class Repo:
 
     def __init__(self):
         self.metaHash = {}
@@ -144,11 +144,11 @@ class repo:
                 handle.close()
                 if 'type' in data and 'name' in data:
                     if not data['type'] in self.metaHash:
-                        self.metaHash[data['type']] = repoType(data['type'])
+                        self.metaHash[data['type']] = RepoType(data['type'])
                     jPath = os.path.relpath(file, self.basePath)
                     jPath = re.sub(r'.json$', '', jPath)
                     self.metaHash[data['type']][data['name']] =
-                    repoElemFile(self.basePath, jPath)
+                    RepoElemFile(self.basePath, jPath)
 
     def loadURL(self, url):
         print url

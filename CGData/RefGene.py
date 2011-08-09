@@ -1,7 +1,7 @@
 
 import csv
 import re
-import cgData
+import CGData
 
 #column definitions for the current refGene_hg18.table
 COL_CHROM = 2
@@ -19,7 +19,7 @@ COL_HUGO = 12
 reCommaEnd = re.compile(r',$')
 
 
-class geneInfo:
+class GeneInfo:
     """
     Class to hold information about gene, including exon start/stops
     """
@@ -44,7 +44,7 @@ class geneInfo:
         return self.name
 
 
-class refGene(cgData.cgDataSetObject):
+class RefGene(CGData.CGDataSetObject):
 
     def __init__(self):
         self.hugoMap = {}
@@ -54,7 +54,7 @@ class refGene(cgData.cgDataSetObject):
 
         self.hugoMap = {}
         for row in read:
-            gene = geneInfo(
+            gene = GeneInfo(
                 row[COL_CHROM],
                 row[COL_STRAND],
                 row[COL_START],

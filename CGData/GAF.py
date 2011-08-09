@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-import cgData
 import re
+import CGData
 
 gafHeaders = [
     "Entry Number", "FeatureID", "FeatureType", "FeatureDBSource",
@@ -22,7 +22,7 @@ gafCols = [
 reComposite = re.compile(r'chr(\w+):(\w+)-(\w+):(.)')
 
 
-class gafLine:
+class GafLine:
 
     def __init__(
         self, entryNumber, featureID, featureType, featureDBSource,
@@ -65,10 +65,10 @@ class gafLine:
         return self.featureID
 
 
-class gaf(cgData.cgDataSetObject):
+class Gaf(CGData.CGDataSetObject):
 
     def __init__(self):
-        cgData.baseObject.__init__(self)
+        CGData.BaseObject.__init__(self)
         self.gafData = []
 
     def read(self, handle, strict=True):
@@ -78,7 +78,7 @@ class gaf(cgData.cgDataSetObject):
             line = line.rstrip("\n")
             splitLine = line.split("\t")
             assert(len(splitLine) == len(gafCols))
-            self.gafData.append(gafLine(**dict(zip(gafCols, splitLine))))
+            self.gafData.append(GafLine(**dict(zip(gafCols, splitLine))))
 
     def __iter__(self):
         for i in self.gafData:

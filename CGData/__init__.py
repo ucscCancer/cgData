@@ -5,11 +5,11 @@ import json
 
 
 """
-cgData object style:
+CGData object style:
 
-Every file type documented in the cgData specification has an equivilent object
+Every file type documented in the CGData specification has an equivilent object
 to parse and manipulate the contents of that file type. For <dataType> there
-should be a cgData.<dataType> object with a <cgData> class. These classes
+should be a CGData.<dataType> object with a <CGData> class. These classes
 should extend the baseObject class. For loading they implement the 'read'
 function which will parse the contents of a file from a passed file handle.
 """
@@ -29,7 +29,7 @@ objectMap = {
 
 mergeObjects = [ 'track' ]
 
-class formatException(Exception):
+class FormatException(Exception):
 
     def __init__(self, str):
         Exception.__init__(self, str)
@@ -40,16 +40,16 @@ def has_type(typeStr):
 
 def get_type(typeStr):
 
-    module = __import__("cgData." + typeStr)
+    module = __import__("CGData." + typeStr)
     submodule = getattr(module, typeStr)
     cls = getattr(submodule, objectMap[typeStr])
     return cls
 
 
-class cgGroupMember:
+class CGGroupMember:
     pass
 
-class cgGroupBase:
+class CGGroupBase:
 
     def __init__(self, groupName):
         self.members = {}
@@ -98,7 +98,7 @@ class cgGroupBase:
         return out
     
 
-class cgObjectBase:
+class CGObjectBase:
 
     def __init__(self):
         self.attrs = {}
@@ -168,7 +168,7 @@ class cgObjectBase:
         self.attrs[ 'history' ].append( desc )
 
 
-class cgMergeObject:
+class CGMergeObject:
     
     typeSet = {}
     
@@ -180,20 +180,20 @@ class cgMergeObject:
 
 
 
-class cgDataSetObject(cgObjectBase):
+class CGDataSetObject(CGObjectBase):
     
     def __init__(self):
-        cgObjectBase.__init__(self)
+        CGObjectBase.__init__(self)
 
 
-class cgDataMatrixObject(cgObjectBase):
+class CGDataMatrixObject(CGObjectBase):
         
     def __init__(self):
-        cgObjectBase.__init__(self)
+        CGObjectBase.__init__(self)
 
 
 
-class cgSQLObject:
+class CGSQLObject:
     
     def initSchema(self):
         pass
@@ -206,7 +206,7 @@ class cgSQLObject:
     
 
 def cgNew(typeStr):
-    module = __import__("cgData." + typeStr)
+    module = __import__("CGData." + typeStr)
     submodule = getattr(module, typeStr)
     cls = getattr(submodule, objectMap[typeStr])
     out = cls()
@@ -222,7 +222,7 @@ def load(path):
         handle = open(path)
         meta = json.loads(handle.read())
     except IOError:
-        raise formatException("Meta-info (%s) file not found" % (path))
+        raise FormatException("Meta-info (%s) file not found" % (path))
 
     if meta['type'] in objectMap:
         out = cgNew(meta['type'])
@@ -231,7 +231,7 @@ def load(path):
         out.load(dataPath)
         return out
     else:
-        raise formatException("%s class not found" % (meta['type']))
+        raise FormatException("%s class not found" % (meta['type']))
 
 
 def lightLoad(path):
@@ -244,7 +244,7 @@ def lightLoad(path):
         handle = open(path)
         meta = json.loads(handle.read())
     except IOError:
-        raise formatException("Meta-info (%s) file not found" % (path))
+        raise FormatException("Meta-info (%s) file not found" % (path))
         
     if meta['type'] in objectMap:
         out = cgNew(meta['type'])
@@ -253,4 +253,4 @@ def lightLoad(path):
         out.lightMode = True
         return out
     else:
-        raise formatException("%s class not found" % (meta['type']))
+        raise FormatException("%s class not found" % (meta['type']))

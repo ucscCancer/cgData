@@ -1,6 +1,6 @@
 
 
-class raDb:
+class RADB:
 	
     
     def initSchema(self):

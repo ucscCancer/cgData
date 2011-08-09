@@ -1,8 +1,8 @@
 
 import csv
-import cgData
+import CGData
 
 
-class assembly(cgData.cgObjectBase):
+class Assembly(CGData.CGObjectBase):
     def __init__(self):
         pass

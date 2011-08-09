@@ -1,12 +1,12 @@
 
 import csv
-import cgData
-import cgData.tsvMatrix
+import CGData
+import CGData.TSVMatrix
 
-class genomicMatrix(cgData.tsvMatrix.tsvMatrix):
+class genomicMatrix(CGData.TSVMatrix.TSVMatrix):
 
     def __init__(self):
-        cgData.tsvMatrix.tsvMatrix.__init__(self)
+        CGData.TSVMatrix.TSVMatrix.__init__(self)
         
     def isLinkReady(self):
         if self.attrs.get( ':sampleMap', None ) is None:

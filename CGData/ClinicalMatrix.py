@@ -2,9 +2,9 @@
 
 
 import csv
-import cgData
-import cgData.tsvMatrix
-from cgData.sqlUtil import *
+import CGData
+import CGData.TSVMatrix
+from CGData.SQLUtil import *
 
 CREATE_colDb = """
 CREATE TABLE `%s` (
@@ -23,12 +23,12 @@ CREATE TABLE `%s` (
 );
 """
 
-class clinicalMatrix(cgData.tsvMatrix.tsvMatrix,cgData.cgSQLObject):
+class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.cgSQLObject):
     
     elementType = str
 
     def __init__(self):
-        cgData.tsvMatrix.tsvMatrix.__init__(self)
+        CGData.TSVMatrix.TSVMatrix.__init__(self)
 
     def initSchema(self):
 		pass

@@ -1,10 +1,10 @@
 
 import csv
 import json
-import cgData
+import CGData
 
 
-class probe:
+class Probe:
 
     coreAttr = ['name', 'chrom', 'chromStart', 'chromEnd', 'strand']
 
@@ -17,12 +17,12 @@ class probe:
         self.aliases = aliases
 
 
-class probeMap(cgData.cgDataSetObject,cgData.cgGroupMember):
+class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
 
-    childType = probe
+    childType = Probe
 
     def __init__(self):
-        cgData.cgDataSetObject()
+        CGData.CGDataSetObject()
         self.geneMap = None
         self.chromeMap = None
 
@@ -36,13 +36,13 @@ class probeMap(cgData.cgDataSetObject,cgData.cgGroupMember):
         for line in read:
             self.geneMap[line[0]] = line[1].split(',')
             self.append(
-            probe(line[0], line[2], int(line[3]),
+            Probe(line[0], line[2], int(line[3]),
                 int(line[4]), line[5], self.geneMap[line[0]]))
 
     def append(self, probe):
         for attr in self.childType.coreAttr:
             if not hasattr(probe, attr):
-                raise cgData.formatException("Missing %s" % (attr))
+                raise CGData.FormatException("Missing %s" % (attr))
 
         if not probe.chrom in self.chromeMap:
             self.chromeMap[probe.chrom] = {}

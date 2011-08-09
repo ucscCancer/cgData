@@ -1,9 +1,9 @@
 
 import csv
-import cgData
-import cgData.tsvMatrix
+import CGData
+import CGData.TSVMatrix
 
-class tsvMatrix(cgData.cgDataMatrixObject):
+class TSVMatrix(CGData.CGDataMatrixObject):
 
     elementType = float
     

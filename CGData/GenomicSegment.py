@@ -1,5 +1,5 @@
 
-import cgData
+import CGData
 
 
 class Segment:
@@ -14,7 +14,7 @@ class Segment:
         self.value = value
 
 
-class genomicSegment(cgData.cgDataSetObject):
+class GenomicSegment(CGData.CGDataSetObject):
 
     def __init__(self):
         self.sampleHash = {}
