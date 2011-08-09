@@ -16,15 +16,15 @@ function which will parse the contents of a file from a passed file handle.
 
 
 objectMap = {
-    'genomicSegment': 'genomicSegment',
-    'genomicMatrix': 'genomicMatrix',
-    'probeMap': 'probeMap',
-    'sampleMap': 'sampleMap',
-    'clinicalMatrix': 'clinicalMatrix',
-    'dataSubType': 'dataSubType',
-    'track': 'track',
-    'assembly':'assembly',
-    'clinicalFeature':'clinicalFeature'
+    'genomicSegment': ('GenomicSegment', 'GenomicSegment'),
+    'genomicMatrix': ('GenomicMatrix', 'GenomicMatrix'),
+    'probeMap': ('ProbeMap', 'ProbeMap'),
+    'sampleMap': ('SampleMap', 'SampleMap'),
+    'clinicalMatrix': ('ClinicalMatrix', 'ClinicalMatrix'),
+    'dataSubType': ('DataSubType', 'DataSubType'),
+    'track': ('Track', 'Track'),
+    'assembly': ('Assembly', 'Assembly'),
+    'clinicalFeature': ('ClinicalFeature', 'ClinicalFeature')
 }
 
 mergeObjects = [ 'track' ]
@@ -39,10 +39,10 @@ def has_type(typeStr):
     return typeStr in objectMap
 
 def get_type(typeStr):
-
-    module = __import__("CGData." + typeStr)
-    submodule = getattr(module, typeStr)
-    cls = getattr(submodule, objectMap[typeStr])
+    modName, clsName = objectMap[typeStr]
+    module = __import__("CGData." + modName)
+    submodule = getattr(module, modName)
+    cls = getattr(submodule, clsName)
     return cls
 
 
@@ -74,16 +74,16 @@ class CGGroupBase:
         return self.name
     
     def get(self, **kw):
-		for elem in self.members:
-			found = True
-			obj = self.members[ elem ]
-			for key in kw:
-				if obj.attrs.get( key, None ) != kw[key]\
-				and obj.attrs.get( ":" + key, None ) != kw[key]:
-					found = False
-			if found:
-				return obj
-					
+        for elem in self.members:
+            found = True
+            obj = self.members[ elem ]
+            for key in kw:
+                if obj.attrs.get( key, None ) != kw[key]\
+                and obj.attrs.get( ":" + key, None ) != kw[key]:
+                    found = False
+            if found:
+                return obj
+                    
     
     def getLinkMap(self):
         out = {}
@@ -206,9 +206,10 @@ class CGSQLObject:
     
 
 def cgNew(typeStr):
-    module = __import__("CGData." + typeStr)
-    submodule = getattr(module, typeStr)
-    cls = getattr(submodule, objectMap[typeStr])
+    modName, clsName = objectMap[typeStr]
+    module = __import__("CGData." + modName)
+    submodule = getattr(module, modName)
+    cls = getattr(submodule, clsName)
     out = cls()
     return out
 

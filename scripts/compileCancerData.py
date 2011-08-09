@@ -5,8 +5,8 @@ import sys
 from glob import glob
 import json
 import re
-import cgData
-import cgData.compiler
+import CGData
+import CGData.Compiler
 
 import csv
 from getopt import getopt
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 			DATABASE_NAME = o
 
 
-	cg = cgData.compiler.browserCompiler()
+	cg = CGData.Compiler.BrowserCompiler()
 	cg.scanDirs( args )
 	
 	cg.linkObjects()
