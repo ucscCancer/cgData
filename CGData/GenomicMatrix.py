@@ -3,7 +3,7 @@ import csv
 import CGData
 import CGData.TSVMatrix
 
-class genomicMatrix(CGData.TSVMatrix.TSVMatrix):
+class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
 
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
