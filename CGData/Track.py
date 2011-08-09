@@ -27,7 +27,7 @@ CREATE TABLE %s (
 """
 
 
-class track(CGData.CGMergeObject,CGData.CGSQLObject):
+class Track(CGData.CGMergeObject,CGData.CGSQLObject):
 
     typeSet = { 
         'clinicalMatrix' : True, 

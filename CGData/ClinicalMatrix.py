@@ -23,7 +23,7 @@ CREATE TABLE `%s` (
 );
 """
 
-class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.cgSQLObject):
+class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     
     elementType = str
 
