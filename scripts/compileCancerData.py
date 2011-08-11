@@ -18,35 +18,35 @@ DATABASE_NAME = "hg18_test"
 
 errorLogHandle = None
 def error(eStr):
-	sys.stderr.write("ERROR: %s\n" % (eStr) )
-	errorLogHandle.write( "ERROR: %s\n" % (eStr) )
+    sys.stderr.write("ERROR: %s\n" % (eStr) )
+    errorLogHandle.write( "ERROR: %s\n" % (eStr) )
 
 def warn(eStr):
-	sys.stderr.write("WARNING: %s\n" % (eStr) )
-	errorLogHandle.write( "WARNING: %s\n" % (eStr) )
+    sys.stderr.write("WARNING: %s\n" % (eStr) )
+    errorLogHandle.write( "WARNING: %s\n" % (eStr) )
 
 def log(eStr):
-	sys.stderr.write("LOG: %s\n" % (eStr) )
-	errorLogHandle.write( "LOG: %s\n" % (eStr) )
+    sys.stderr.write("LOG: %s\n" % (eStr) )
+    errorLogHandle.write( "LOG: %s\n" % (eStr) )
 
 includeList = None
 
 if __name__ == "__main__":
-	opts, args = getopt( sys.argv[1:], "d:l:" )
-	for a,o in opts:
-		if a == "-l":
-			handle = open( o )
-			includeList = {}
-			for line in handle:
-				includeList[ line.rstrip() ] = True
-			handle.close()
-		if a == "-d":
-			DATABASE_NAME = o
+    opts, args = getopt( sys.argv[1:], "d:l:" )
+    for a,o in opts:
+        if a == "-l":
+            handle = open( o )
+            includeList = {}
+            for line in handle:
+                includeList[ line.rstrip() ] = True
+            handle.close()
+        if a == "-d":
+            DATABASE_NAME = o
 
 
-	cg = CGData.Compiler.BrowserCompiler()
-	cg.scanDirs( args )
-	
-	cg.linkObjects()
-	cg.buildIDs()
-	cg.genSQL()
+    cg = CGData.Compiler.BrowserCompiler()
+    cg.scanDirs( args )
+    
+    cg.linkObjects()
+    cg.buildIDs()
+    cg.genSQL()

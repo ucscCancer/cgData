@@ -23,9 +23,9 @@ pm = cgData.geneMap.ProbeMapper('b')
 out = cgData.matrix.GeneMatrix()
 
 for sample in sg:
-	sys.stderr.write( sample + "\n" )
-	for seg in sg[sample]:
-		for hit in pm.findOverlap( seg, rg ):
-			out.add( probe=hit, sample=sample, value=seg.value )
+    sys.stderr.write( sample + "\n" )
+    for seg in sg[sample]:
+        for hit in pm.findOverlap( seg, rg ):
+            out.add( probe=hit, sample=sample, value=seg.value )
 
-out.write( sys.stdout )		
+out.write( sys.stdout )     

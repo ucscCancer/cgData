@@ -15,7 +15,7 @@ opts, args = getopt( sys.argv[1:], "".join(cgData.geneMap.optionMap.keys()) )
 #hitFunc is the function that will be used to do the overlap comparision
 hitFunc = cgData.geneMap.geneOverlap
 for a, o in opts:
-	hitFunc = cgData.geneMap.optionMap[ a[1:] ]
+    hitFunc = cgData.geneMap.optionMap[ a[1:] ]
 
 handle = open( args[0] )
 refGene = cgData.refGene.refGene( )
@@ -31,13 +31,13 @@ mapper = cgData.geneMap.ProbeMapper( )
 pm = cgData.probeMap.probeMap()
 
 for bed in bedFile:
-	out = mapper.findOverlap( bed, refGene, hitFunc )
-	o = []
-	
-	bed.aliases = []
-	for e in out:
-		bed.aliases.append( e.name )
+    out = mapper.findOverlap( bed, refGene, hitFunc )
+    o = []
+    
+    bed.aliases = []
+    for e in out:
+        bed.aliases.append( e.name )
 
-	pm.append( bed )
+    pm.append( bed )
 
 pm.write( sys.stdout )

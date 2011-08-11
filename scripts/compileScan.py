@@ -6,7 +6,7 @@ from glob import glob
 
 dirs  =[]
 for dir in sys.argv[1:]:
-	dirs.extend( glob( dir ) )
+    dirs.extend( glob( dir ) )
 
 comp = cgData.compile.BrowserCompile()
 
