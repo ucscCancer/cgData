@@ -16,15 +16,15 @@ class SampleMap(CGData.CGDataSetObject):
             if len(tmp) > 1:
                 self.sampleHash[tmp[0]][tmp[1]] = True
 
-    def getChildren(self, sample):
+    def get_children(self, sample):
         out = {}
         for a in self.sampleHash.get(sample, {}):
             out[a] = True
-            for c in self.getChildren(a):
+            for c in self.get_children(a):
                 out[c] = True
         return out.keys()
 
-    def genSQL(self):
+    def gen_sql(self):
         basename = os.path.join( OUT_DIR, "%s_sample_%s" % ( DATABASE_NAME, sampleInfo[ 'name' ] ) )
 
         lPath = reJson.sub( "", samplePath )

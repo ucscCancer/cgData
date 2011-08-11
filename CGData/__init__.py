@@ -62,15 +62,15 @@ class CGGroupBase:
         return self.members[ name ]
     
     def put(self, obj):
-        self.members[ obj.getName() ] = obj
+        self.members[ obj.get_name() ] = obj
     
-    def isLinkReady(self):
+    def is_link_ready(self):
         for name in self.members:
-            if not self.members[name].isLinkReady():
+            if not self.members[name].is_link_ready():
                 return False
         return True
     
-    def getName(self):
+    def get_name(self):
         return self.name
     
     def get(self, **kw):
@@ -85,10 +85,10 @@ class CGGroupBase:
                 return obj
                     
     
-    def getLinkMap(self):
+    def get_link_map(self):
         out = {}
         for name in self.members:
-            lMap = self.members[ name ].getLinkMap()
+            lMap = self.members[ name ].get_link_map()
             for lType in lMap:
                 if lType not in out:
                     out[ lType ] = []
@@ -117,10 +117,10 @@ class CGObjectBase:
         self.path = path
         if (os.path.exists(path + ".json")):
             mHandle = open(path + ".json")
-            self.setAttrs(json.loads(mHandle.read()))
+            self.set_attrs(json.loads(mHandle.read()))
             mHandle.close()
 
-    def isLinkReady(self):
+    def is_link_ready(self):
         return True
     
     def store(self, path=None):
@@ -138,21 +138,21 @@ class CGObjectBase:
             self.write(dHandle)
             dHandle.close()            
 
-    def setAttrs(self, attrs):
+    def set_attrs(self, attrs):
         self.attrs = attrs
     
-    def isGroupMember(self):
+    def is_group_member(self):
         if 'group' in self.attrs:
             return True
         return False
     
-    def getGroup(self):
+    def get_group(self):
         return self.attrs.get( 'group', self.attrs.get('name', None))
 
-    def getName(self):
+    def get_name(self):
         return self.attrs.get( 'name', None )
     
-    def getLinkMap(self):
+    def get_link_map(self):
         out = {}
         for key in self.attrs:
             if key.startswith(':'):
@@ -162,7 +162,7 @@ class CGObjectBase:
                     out[ key[1:] ] = [ self.attrs[ key ] ]
         return out
 
-    def addHistory(self, desc):
+    def add_history(self, desc):
         if not 'history' in self.attrs:
             self.attrs[ 'history' ] = []
         self.attrs[ 'history' ].append( desc )
@@ -195,17 +195,17 @@ class CGDataMatrixObject(CGObjectBase):
 
 class CGSQLObject:
     
-    def initSchema(self):
+    def init_schema(self):
         pass
     
-    def genSQL(self, idTable):
+    def gen_sql(self, idTable):
         pass
     
-    def buildIDs(self, idAllocator):
+    def build_ids(self, idAllocator):
         pass
     
 
-def cgNew(typeStr):
+def cg_new(typeStr):
     modName, clsName = objectMap[typeStr]
     module = __import__("CGData." + modName)
     submodule = getattr(module, modName)
@@ -226,8 +226,8 @@ def load(path):
         raise FormatException("Meta-info (%s) file not found" % (path))
 
     if meta['type'] in objectMap:
-        out = cgNew(meta['type'])
-        out.setAttrs( meta )
+        out = cg_new(meta['type'])
+        out.set_attrs( meta )
         out.path = dataPath
         out.load(dataPath)
         return out
@@ -248,8 +248,8 @@ def lightLoad(path):
         raise FormatException("Meta-info (%s) file not found" % (path))
         
     if meta['type'] in objectMap:
-        out = cgNew(meta['type'])
-        out.setAttrs( meta )
+        out = cg_new(meta['type'])
+        out.set_attrs( meta )
         out.path = dataPath
         out.lightMode = True
         return out

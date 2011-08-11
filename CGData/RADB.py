@@ -3,7 +3,7 @@
 class RADB:
     
     
-    def initSchema(self):
+    def init_schema(self):
         """
         `name` varchar(255) default NULL,
         `downSampleTable` varchar(255) default NULL,

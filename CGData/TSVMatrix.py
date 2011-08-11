@@ -54,25 +54,25 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                 out.append(val)
             write.writerow(out)
 
-    def getCols(self):
+    def get_cols(self):
         if self.colList is None:
             self.load( skipVals=True )
         return self.colList.keys()
     
-    def getRows(self):
+    def get_rows(self):
         return self.rowHash.keys()
     
-    def getRowVals(self, rowName):
+    def get_row_vals(self, rowName):
         if self.rowHash is None or self.rowHash[ rowName ] is None:
             self.load( )
         return self.rowHash[ rowName ]
 
-    def colRename(self, oldCol, newCol):
+    def col_rename(self, oldCol, newCol):
         if oldCol in self.colList:
             self.rowList[newCol] = self.rowList[oldCol]
             del self.sampleList[oldCol]
 
-    def rowRemap(self, oldRow, newRow):
+    def row_remap(self, oldRow, newRow):
         self.rowHash[newRow] = self.rowHash[oldRow]
         del self.rowHash[oldRow]
         

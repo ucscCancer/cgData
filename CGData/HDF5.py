@@ -3,7 +3,7 @@ import h5py
 import numpy
 
 
-def writeProbeMap(h5, probeMap):
+def write_probe_map(h5, probeMap):
     if not "probeMap" in h5:
         h5.create_group("probeMap")
 
@@ -31,7 +31,7 @@ def writeProbeMap(h5, probeMap):
         i += 1
 
 
-def writeGeneMatrix(h5, gm):
+def write_gene_matrix(h5, gm):
     ds = h5.create_dataset(
     "%s" % (gm.attrs['name']),
     [len(gm.probeHash), len(gm.sampleList)],

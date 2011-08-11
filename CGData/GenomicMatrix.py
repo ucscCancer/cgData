@@ -8,29 +8,29 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
         
-    def isLinkReady(self):
+    def is_link_ready(self):
         if self.attrs.get( ':sampleMap', None ) is None:
             return False
         return True
 
-    def getProbeList(self):
-        return self.getRows()
+    def get_probe_list(self):
+        return self.get_rows()
 
-    def getSampleList(self):
-        return self.getCols()
+    def get_sample_list(self):
+        return self.get_cols()
 
-    def sampleRename(self, oldSample, newSample):
-        self.colRename( oldSample, newSample )
+    def sample_rename(self, oldSample, newSample):
+        self.col_rename( oldSample, newSample )
 
-    def probeRemap(self, oldProbe, newProbe):
-        self.rowRename( oldProbe, newProbe )
+    def probe_remap(self, oldProbe, newProbe):
+        self.row_rename( oldProbe, newProbe )
 
     def remap(self, altMap, skipMissing=False):
         validMap = {}
         for alt in altMap:
             validMap[alt.aliases[0]] = True
             if not skipMissing or alt.name in self.probeHash:
-                self.probeRemap(alt.name, alt.aliases[0])
+                self.probe_remap(alt.name, alt.aliases[0])
         if skipMissing:
             removeList = []
             for name in self.probeHash:
@@ -39,7 +39,7 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
             for name in removeList:
                 del self.probeHash[name]
 
-    def removeNullProbes(self, threshold=0.0):
+    def remove_null_probes(self, threshold=0.0):
         removeList = []
         for probe in self.probeHash:
             nullCount = 0.0
@@ -52,9 +52,9 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
         for name in removeList:
             del self.probeHash[name]
 
-    def writeGCT(self, handle, missing=''):
+    def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
-        sampleList = self.getSampleList()
+        sampleList = self.get_sample_list()
         sampleList.sort(lambda x, y: self.sampleList[x] - self.sampleList[y])
         write.writerow(["#1.2"])
         write.writerow([len(self.probeHash), len(sampleList)])

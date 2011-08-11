@@ -26,7 +26,7 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         self.geneMap = None
         self.chromeMap = None
 
-    def readMeta(self, handle):
+    def read_meta(self, handle):
         self.attrs = json.loads(handle.read())
 
     def read(self, handle):

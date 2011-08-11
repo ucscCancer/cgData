@@ -98,7 +98,7 @@ class CustomQuery(DCCWSItem):
         self.url = DCCWSItem.baseURL + query
 
 
-def getText(nodelist):
+def get_text(nodelist):
     rc = []
     for node in nodelist:
         if node.nodeType == node.TEXT_NODE:
@@ -123,7 +123,7 @@ commonMap = {
 }
 
 
-def allowedFile(name):
+def allowed_file(name):
     if name.startswith("README") or name.endswith(".xml"):
         return False
     if name.endswith(".xsd") or name in skipFiles:
@@ -133,8 +133,8 @@ def allowedFile(name):
     return True
 
 
-def extractGenetic(path, iHandle, oHandle):
-    if allowedFile(os.path.basename(path)):
+def extract_genetic(path, iHandle, oHandle):
+    if allowed_file(os.path.basename(path)):
         if path.endswith('.idf.txt') or path.endswith('.sdrf.txt'):
             if path.endswith('.sdrf.txt'):
                 read = csv.reader(iHandle, delimiter="\t")

@@ -15,7 +15,7 @@ class GEOQuery:
         robjects.r('library(GEOquery)')
         robjects.r('library(rjson)')
     
-    def getGSM(self, gsmID):
+    def get_gsm(self, gsmID):
         robjects.r.assign("gsm.id", gsmID)
         tmp = NamedTemporaryFile(delete=True)
         tmp.close()

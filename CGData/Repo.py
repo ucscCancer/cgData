@@ -28,15 +28,15 @@ class RepoElemFile:
     def __str__(self):
         return self.path
 
-    def getDataPath(self):
+    def get_data_path(self):
         return os.path.join(self.base, self.path)
 
-    def getMetaPath(self):
+    def get_meta_path(self):
         return os.path.join(self.base, self.path + ".json")
 
-    def checkDigest(self):
-        calc = self.calcDigest()
-        read = self.readDigest()
+    def check_digest(self):
+        calc = self.calc_digest()
+        read = self.read_digest()
 
         out = []
         if calc[0] != read[0]:
@@ -46,9 +46,9 @@ class RepoElemFile:
 
         return out
 
-    def calcDigest(self):
-        dDpath = self.getDataPath()
-        dMpath = self.getMetaPath()
+    def calc_digest(self):
+        dDpath = self.get_data_path()
+        dMpath = self.get_meta_path()
 
         d = hashlib.md5()
         handle = open(dDpath)
@@ -62,9 +62,9 @@ class RepoElemFile:
 
         return (d.hexdigest(), m.hexdigest())
 
-    def readDigest(self):
-        dDpath = self.getDataPath()
-        dMpath = self.getMetaPath()
+    def read_digest(self):
+        dDpath = self.get_data_path()
+        dMpath = self.get_meta_path()
         try:
             handle = open(dDpath + ".md5")
             dVal = handle.readline().rstrip()
@@ -80,11 +80,11 @@ class RepoElemFile:
             mVal = "0"
         return (dVal, mVal)
 
-    def writeDigest(self):
-        v = self.calcDigest()
+    def write_digest(self):
+        v = self.calc_digest()
 
-        dDpath = self.getDataPath()
-        dMpath = self.getMetaPath()
+        dDpath = self.get_data_path()
+        dMpath = self.get_meta_path()
 
         handle = open(dDpath + ".md5", "w")
         handle.write(v[0])
@@ -113,15 +113,15 @@ class RepoType:
         for name in self.elems:
             yield name
 
-    def checkDigest(self):
+    def check_digest(self):
         out = []
         for name in self.elems:
-            out.extend(self.elems[name].checkDigest())
+            out.extend(self.elems[name].check_digest())
         return out
 
-    def writeDigest(self):
+    def write_digest(self):
         for name in self.elems:
-            self.elems[name].writeDigest()
+            self.elems[name].write_digest()
 
 
 class Repo:
@@ -131,13 +131,13 @@ class Repo:
         self.basePath = None
         self.isLocal = False
 
-    def scanDir(self, path):
+    def scan_dir(self, path):
         self.isLocal = True
         if self.basePath is None:
             self.basePath = path
         for file in glob(os.path.join(path, "*")):
             if os.path.isdir(file):
-                self.scanDir(file)
+                self.scan_dir(file)
             elif file.endswith(".json"):
                 handle = open(file)
                 data = json.loads(handle.read())
@@ -150,7 +150,7 @@ class Repo:
                     self.metaHash[data['type']][data['name']] =
                     RepoElemFile(self.basePath, jPath)
 
-    def loadURL(self, url):
+    def load_url(self, url):
         print url
 
     def __iter__(self):
@@ -176,15 +176,15 @@ class Repo:
         self.write(out)
         out.close()
 
-    def writeDigest(self):
+    def write_digest(self):
         if not self.isLocal:
             raise RepoError("Can't write digest of non-local repo")
 
         for type in self.metaHash:
-            self.metaHash[type].writeDigest()
+            self.metaHash[type].write_digest()
 
-    def checkDigest(self):
+    def check_digest(self):
         out = []
         for type in self.metaHash:
-            out.extend(self.metaHash[type].checkDigest())
+            out.extend(self.metaHash[type].check_digest())
         return out

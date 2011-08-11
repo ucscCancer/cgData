@@ -45,8 +45,8 @@ if __name__ == "__main__":
 
 
     cg = CGData.Compiler.BrowserCompiler()
-    cg.scanDirs( args )
+    cg.scan_dirs( args )
     
-    cg.linkObjects()
-    cg.buildIDs()
-    cg.genSQL()
+    cg.link_objects()
+    cg.build_ids()
+    cg.gen_sql()

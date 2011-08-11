@@ -75,8 +75,8 @@ class RefGene(CGData.CGDataSetObject):
             self.chromMap[chrom].sort(
             lambda x, y: x.chromStart - y.chromStart)
 
-    def hasChrom(self, chrom):
+    def has_chrom(self, chrom):
         return chrom in self.chromMap
 
-    def getChrom(self, chrom):
+    def get_chrom(self, chrom):
         return self.chromMap[chrom]

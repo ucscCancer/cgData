@@ -13,12 +13,12 @@ class ProbeMapper:
     def __init__(self, mode='g'):
         self.cmpFunc = optionMap[mode]
 
-    def findOverlap(self, segment, refGene, cmpFunc=None):
+    def find_overlap(self, segment, refGene, cmpFunc=None):
         """
         Function to find overlaps for a given probe description.
         the cmpFunc arg is a function that returns a 'True' or 'False' for
-        a given probe description and a gene, examples include 'geneOverlap'
-        and 'geneSimpleMethOverlap'
+        a given probe description and a gene, examples include 'gene_overlap'
+        and 'gene_simple_meth_overlap'
         """
         if cmpFunc is None:
             cmpFunc = self.cmpFunc
@@ -39,7 +39,7 @@ class ProbeMapper:
 #
 
 
-def geneOverlap(start, end, strand, gene):
+def gene_overlap(start, end, strand, gene):
     if gene.strand == gene.strand\
     and gene.chromEnd > start\
     and gene.chromStart < end:
@@ -47,13 +47,13 @@ def geneOverlap(start, end, strand, gene):
     return False
 
 
-def blockOverlap(start, end, strand, gene):
+def block_overlap(start, end, strand, gene):
     if gene.chromEnd > start and gene.chromStart < end:
         return True
     return False
 
 
-def exonOverlap(start, end, strand, gene):
+def exon_overlap(start, end, strand, gene):
     if gene.strand != gene.strand:
         return False
     for i in range(gene.exCount):
@@ -62,7 +62,7 @@ def exonOverlap(start, end, strand, gene):
     return False
 
 
-def geneSimpleMethOverlap(start, end, strand, gene):
+def gene_simple_meth_overlap(start, end, strand, gene):
     if gene.chromEnd > start and gene.chromStart < end:
         return True
     return False
@@ -73,11 +73,11 @@ def geneSimpleMethOverlap(start, end, strand, gene):
 ####
 
 ###To add options to the command line, map the option character to a function
-###for example '-m' maps to geneSimpleMethOverlap
+###for example '-m' maps to gene_simple_meth_overlap
 
 optionMap = {
-    "g": geneOverlap,
-    "b": blockOverlap,
-    "m": geneSimpleMethOverlap,
-    "e": exonOverlap,
+    "g": gene_overlap,
+    "b": block_overlap,
+    "m": gene_simple_meth_overlap,
+    "e": exon_overlap,
 }

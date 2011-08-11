@@ -7,7 +7,7 @@ base = os.path.dirname(os.path.abspath(__file__))
 segLib = ctypes.cdll.LoadLibrary(base + "/CsegToMatrix.so")
 
 
-def segToMatrix(segHandle, outHandle):
+def seg_to_matrix(segHandle, outHandle):
     s = segLib.newSegment()
     t = segLib.newTargetSet()
     for line in segHandle:

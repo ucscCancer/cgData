@@ -39,24 +39,24 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
     def __init__(self):
         CGData.CGMergeObject.__init__(self)
             
-    def getName( self ):
-        return "%s" % ( self.members[ "genomicMatrix" ].getName() )
+    def get_name( self ):
+        return "%s" % ( self.members[ "genomicMatrix" ].get_name() )
 
 
-    def buildIDs(self, idTable):
+    def build_ids(self, idTable):
         
-        for sample in self.members[ 'genomicMatrix' ].getSampleList():
+        for sample in self.members[ 'genomicMatrix' ].get_sample_list():
             idTable.alloc( 'sampleID', sample)
 
-    def genSQL(self, idTable):
+    def gen_sql(self, idTable):
 
         gMatrix = self.members[ 'genomicMatrix' ]
         pMap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
         if pMap is None:
-            print "Missing HG18 %s" % ( self.members[ 'probeMap'].getName() )
+            print "Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() )
             return
         
-        tableBase = self.getName()
+        tableBase = self.get_name()
         
         # write out the sample table
         yield "drop table if exists sample_%s;" % ( tableBase )
@@ -67,7 +67,7 @@ CREATE TABLE sample_%s (
 );
 """ % ( tableBase )
 
-        for sample in gMatrix.getSampleList():
+        for sample in gMatrix.get_sample_list():
             yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( tableBase, idTable.get( 'sampleID', sample), sample )
 
         # write out the BED table
@@ -75,17 +75,17 @@ CREATE TABLE sample_%s (
         yield CREATE_BED % ( "genomic_" + tableBase )
         
         sampleIDs = []
-        for sample in gMatrix.getSampleList():
+        for sample in gMatrix.get_sample_list():
             sampleIDs.append( str( idTable.get( 'sampleID', sample ) ) )
         
-        for probeName in gMatrix.getProbeList():
+        for probeName in gMatrix.get_probe_list():
             expIDs = ','.join( sampleIDs )
-            row = gMatrix.getRowVals( probeName )
+            row = gMatrix.get_row_vals( probeName )
             exps = ','.join( str(a) for a in row[1:])
             probe = pMap.get( probeName )
             if probe is not None:
                 iStr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( "genomic_%s" % (tableBase), probe.chrom, probe.chromStart, probe.chromEnd, probe.strand, sqlFix(probeName), len(exps), expIDs, exps )
+                    ( "genomic_%s" % (tableBase), probe.chrom, probe.chromStart, probe.chromEnd, probe.strand, sql_fix(probeName), len(exps), expIDs, exps )
                 yield iStr
             else:
                 print "Probe not found:", probeName

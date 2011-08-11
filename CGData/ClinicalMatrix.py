@@ -30,28 +30,28 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
 
-    def initSchema(self):
+    def init_schema(self):
 		pass
         
-    def isLinkReady(self):
+    def is_link_ready(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
         
-    def buildIDs(self, idAllocator):
+    def build_ids(self, idAllocator):
         if self.lightMode:
             self.load()
             
-        sampleList = self.getRows()
+        sampleList = self.get_rows()
         
         for sampleID in sampleList:
             idAllocator.alloc( 'sampleID', sampleID )
 
-        featureList = self.getCols()
+        featureList = self.get_cols()
         for featureID in featureList:
             idAllocator.alloc( 'featureID', sampleID )
 
-    def genSQL(self, idTable):
+    def gen_sql(self, idTable):
         floatMap = {}
         enumMap = {}
         for key in self.colList:
@@ -88,14 +88,14 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         for name in floatMap:
             idMap[ name ] = idNum
             idNum += 1	
-            colName = colFix( name )
+            colName = col_fix( name )
             colOrder.append( colName )
             origOrder.append( name )
             
         for name in enumMap:		
             idMap[ name ] = idNum
             idNum += 1	
-            colName = colFix( name )
+            colName = col_fix( name )
             colOrder.append( colName )
             origOrder.append( name )		
         
@@ -109,7 +109,7 @@ CREATE TABLE clinical_%s (
 
         for col in colOrder:
             if ( enumMap.has_key( col ) ):
-                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sqlFix(a) for a in enumMap[ col ].keys() ) )
+                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sql_fix(a) for a in enumMap[ col ].keys() ) )
             else:
                 yield ",\n\t%s FLOAT default NULL" % (col)
         yield """
@@ -124,7 +124,7 @@ CREATE TABLE clinical_%s (
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\N")
                 else:				
-                    a.append( "'" + sqlFix( str(val) ) + "'" )
+                    a.append( "'" + sql_fix( str(val) ) + "'" )
             yield "INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( tableName, idTable.get( 'sampleID', target ), ",".join(a) )
 
 
