@@ -1,7 +1,6 @@
 
 import csv
 import CGData
-import CGData.TSVMatrix
 
 class TSVMatrix(CGData.CGDataMatrixObject):
 

@@ -15,7 +15,7 @@ function which will parse the contents of a file from a passed file handle.
 """
 
 
-objectMap = {
+OBJECT_MAP = {
     'genomicSegment': ('GenomicSegment', 'GenomicSegment'),
     'genomicMatrix': ('GenomicMatrix', 'GenomicMatrix'),
     'probeMap': ('ProbeMap', 'ProbeMap'),
@@ -27,7 +27,7 @@ objectMap = {
     'clinicalFeature': ('ClinicalFeature', 'ClinicalFeature')
 }
 
-mergeObjects = [ 'track' ]
+MERGE_OBJECTS = [ 'track' ]
 
 class FormatException(Exception):
 
@@ -36,10 +36,10 @@ class FormatException(Exception):
 
 
 def has_type(type_str):
-    return type_str in objectMap
+    return type_str in OBJECT_MAP
 
 def get_type(type_str):
-    mod_name, cls_name = objectMap[type_str]
+    mod_name, cls_name = OBJECT_MAP[type_str]
     module = __import__("CGData." + mod_name)
     submodule = getattr(module, mod_name)
     cls = getattr(submodule, cls_name)
@@ -206,7 +206,7 @@ class CGSQLObject:
     
 
 def cg_new(type_str):
-    mod_name, cls_name = objectMap[type_str]
+    mod_name, cls_name = OBJECT_MAP[type_str]
     module = __import__("CGData." + mod_name)
     submodule = getattr(module, mod_name)
     cls = getattr(submodule, cls_name)
@@ -225,7 +225,7 @@ def load(path):
     except IOError:
         raise FormatException("Meta-info (%s) file not found" % (path))
 
-    if meta['type'] in objectMap:
+    if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
         out.set_attrs( meta )
         out.path = data_path
@@ -247,7 +247,7 @@ def light_load(path):
     except IOError:
         raise FormatException("Meta-info (%s) file not found" % (path))
         
-    if meta['type'] in objectMap:
+    if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
         out.set_attrs( meta )
         out.path = data_path

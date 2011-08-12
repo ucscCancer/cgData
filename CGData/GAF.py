@@ -3,7 +3,7 @@
 import re
 import CGData
 
-gafHeaders = [
+GAF_HEADERS = [
     "Entry Number", "FeatureID", "FeatureType", "FeatureDBSource",
     "FeatureDBVersion", "FeatuerDBDate", "FeatureSeqFileName", "Composite",
     "CompositeType", "CompositeDBSource", "CompositeDBVersion",
@@ -11,7 +11,7 @@ gafHeaders = [
     "CompositeCoordinates", "Gene", "GeneLocus", "FeatureAliases",
     "FeatureInfo"]
 
-gafCols = [
+GAF_VARS = [
     "entry_number", "feature_id", "feature_type", "feature_db_source",
     "feature_db_version", "feature_db_date", "feature_seq_file_name", "composite",
     "composite_type", "composite_db_source", "composite_db_version",
@@ -73,12 +73,12 @@ class Gaf(CGData.CGDataSetObject):
 
     def read(self, handle, strict=True):
         if strict:
-            assert(handle.readline()[:-1].split("\t") == gafHeaders)
+            assert(handle.readline()[:-1].split("\t") == GAF_HEADERS)
         for line in handle:
             line = line.rstrip("\n")
             split_line = line.split("\t")
-            assert(len(split_line) == len(gafCols))
-            self.gafData.append(GafLine(**dict(zip(gafCols, split_line))))
+            assert(len(split_line) == len(GAF_VARS))
+            self.gafData.append(GafLine(**dict(zip(GAF_VARS, split_line))))
 
     def __iter__(self):
         for i in self.gafData:

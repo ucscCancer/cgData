@@ -122,7 +122,7 @@ class BrowserCompiler:
         for rtype in ready_matrix:
             log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) ) 
 
-        for merge_type in CGData.mergeObjects:
+        for merge_type in CGData.MERGE_OBJECTS:
             mtype = CGData.get_type( merge_type )
             print mtype
             select_types = mtype.typeSet

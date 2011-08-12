@@ -6,7 +6,7 @@ import CGData
 import CGData.TSVMatrix
 from CGData.SQLUtil import *
 
-CREATE_colDb = """
+CREATE_COL_DB = """
 CREATE TABLE `%s` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) default NULL,
@@ -129,7 +129,7 @@ CREATE TABLE clinical_%s (
 
 
         yield "drop table if exists clinical_%s_colDb;" % ( table_name )
-        yield CREATE_colDb % ( "clinical_" + table_name + "_colDb" ) 
+        yield CREATE_COL_DB % ( "clinical_" + table_name + "_colDb" ) 
         """
 `id` int(10) unsigned NOT NULL default '0',
 `name` varchar(255) default NULL,

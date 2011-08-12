@@ -26,7 +26,7 @@ class BedLine:
         return "%s (%s %d-%d)" % (self.name,
                                     self.chrom, self.chrom_start, self.chrom_end)
 
-bedColNames = [
+BED_COL_NAMES = [
 "chrom",
 "chrom_start",
 "chrom_end",
@@ -65,7 +65,7 @@ class Bed(CGData.CGDataSetObject):
                 i = 0
                 data = {}
                 for val in tmp:
-                    data[bedColNames[i]] = val
+                    data[BED_COL_NAMES[i]] = val
                     i += 1
                 bl = BedLine(**data)
                 self.bed_array.append(bl)

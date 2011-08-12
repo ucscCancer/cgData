@@ -6,8 +6,8 @@ import os
 import csv
 
 
-host = "http://tcga-data.nci.nih.gov"
-shost = "https://tcga-data.nci.nih.gov"
+HOST = "http://tcga-data.nci.nih.gov"
+SHOST = "https://tcga-data.nci.nih.gov"
 
 
 class DCCWSItem(object):
