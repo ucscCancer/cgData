@@ -25,7 +25,7 @@ CREATE TABLE `%s` (
 
 class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     
-    elementType = str
+    element_type = str
 
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
@@ -38,105 +38,105 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
             return False
         return True
         
-    def build_ids(self, idAllocator):
-        if self.lightMode:
+    def build_ids(self, id_allocator):
+        if self.light_mode:
             self.load()
             
-        sampleList = self.get_rows()
+        sample_list = self.get_rows()
         
-        for sampleID in sampleList:
-            idAllocator.alloc( 'sampleID', sampleID )
+        for sample_id in sample_list:
+            id_allocator.alloc( 'sample_id', sample_id )
 
-        featureList = self.get_cols()
-        for featureID in featureList:
-            idAllocator.alloc( 'featureID', sampleID )
+        feature_list = self.get_cols()
+        for feature_id in feature_list:
+            id_allocator.alloc( 'feature_id', sample_id )
 
-    def gen_sql(self, idTable):
-        floatMap = {}
-        enumMap = {}
-        for key in self.colList:
-            col = self.colList[ key ]
-            isFloat = True
-            hasVal = False
-            enumSet = {}
-            for row in self.rowHash:
+    def gen_sql(self, id_table):
+        float_map = {}
+        enum_map = {}
+        for key in self.col_list:
+            col = self.col_list[ key ]
+            is_float = True
+            has_val = False
+            enum_set = {}
+            for row in self.row_hash:
                 try:
                     #print colHash[ key ][ sample ]
-                    value = self.rowHash[ row ][ col ]
+                    value = self.row_hash[ row ][ col ]
                     if value not in ["null", "None", "NA"] and value is not None and len(value):
-                        hasVal = True
-                        if not enumSet.has_key( value ):
-                            enumSet[ value ] = len( enumSet )
+                        has_val = True
+                        if not enum_set.has_key( value ):
+                            enum_set[ value ] = len( enum_set )
                         a = float(value)
                 except ValueError:
-                    isFloat = False
-            if hasVal:
-                if isFloat:
-                    floatMap[ key ] = True
+                    is_float = False
+            if has_val:
+                if is_float:
+                    float_map[ key ] = True
                 else:
-                    enumMap[ key ] = enumSet
+                    enum_map[ key ] = enum_set
             
-        #print floatMap
-        #print enumMap
+        #print float_map
+        #print enum_map
         
-        idMap = {}
-        idNum = 0
+        id_map = {}
+        id_num = 0
         prior = 1
-        colOrder = []
-        origOrder = []	
+        col_order = []
+        orig_order = []	
 
-        for name in floatMap:
-            idMap[ name ] = idNum
-            idNum += 1	
+        for name in float_map:
+            id_map[ name ] = id_num
+            id_num += 1	
             colName = col_fix( name )
-            colOrder.append( colName )
-            origOrder.append( name )
+            col_order.append( colName )
+            orig_order.append( name )
             
-        for name in enumMap:		
-            idMap[ name ] = idNum
-            idNum += 1	
+        for name in enum_map:		
+            id_map[ name ] = id_num
+            id_num += 1	
             colName = col_fix( name )
-            colOrder.append( colName )
-            origOrder.append( name )		
+            col_order.append( colName )
+            orig_order.append( name )		
         
-        tableName = self.attrs['name']
+        table_name = self.attrs['name']
         
-        yield "drop table if exists clinical_%s;" % ( tableName )
+        yield "drop table if exists clinical_%s;" % ( table_name )
         
         yield """
 CREATE TABLE clinical_%s (
-\tsampleID int""" % ( tableName )
+\tsampleID int""" % ( table_name )
 
-        for col in colOrder:
-            if ( enumMap.has_key( col ) ):
-                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sql_fix(a) for a in enumMap[ col ].keys() ) )
+        for col in col_order:
+            if ( enum_map.has_key( col ) ):
+                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sql_fix(a) for a in enum_map[ col ].keys() ) )
             else:
                 yield ",\n\t%s FLOAT default NULL" % (col)
         yield """
     ) ;	
     """
         
-        for target in self.rowHash:
+        for target in self.row_hash:
             a = []
-            for col in origOrder:
-                val = self.rowHash[ target ][ self.colList[ col ] ]
+            for col in orig_order:
+                val = self.row_hash[ target ][ self.col_list[ col ] ]
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\N")
                 else:				
                     a.append( "'" + sql_fix( str(val) ) + "'" )
-            yield "INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( tableName, idTable.get( 'sampleID', target ), ",".join(a) )
+            yield "INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sampleID', target ), ",".join(a) )
 
 
-        yield "drop table if exists clinical_%s_colDb;" % ( tableName )
-        yield CREATE_colDb % ( "clinical_" + tableName + "_colDb" ) 
+        yield "drop table if exists clinical_%s_colDb;" % ( table_name )
+        yield CREATE_colDb % ( "clinical_" + table_name + "_colDb" ) 
         """
 `id` int(10) unsigned NOT NULL default '0',
 `name` varchar(255) default NULL,
 `shortLabel` varchar(255) default NULL,
 `longLabel` varchar(255) default NULL,
 `valField` varchar(255) default NULL,
-`tableName` varchar(255) default NULL,
+`table_name` varchar(255) default NULL,
 `priority` float default NULL,
 `filterType` varchar(255) default NULL,
 `visibility` varchar(255) default NULL,
@@ -144,9 +144,9 @@ CREATE TABLE clinical_%s (
 PRIMARY KEY  (`id`),
 KEY `name` (`name`)
 """
-        for name in colOrder:
-            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
-                ( tableName, name, name, name, name, "clinical_" + tableName )
+        for name in col_order:
+            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,table_name) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
+                ( table_name, name, name, name, name, "clinical_" + table_name )
 
             
         

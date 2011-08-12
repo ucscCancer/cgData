@@ -47,58 +47,58 @@ class RepoElemFile:
         return out
 
     def calc_digest(self):
-        dDpath = self.get_data_path()
-        dMpath = self.get_meta_path()
+        ddpath = self.get_data_path()
+        dmpath = self.get_meta_path()
 
         d = hashlib.md5()
-        handle = open(dDpath)
+        handle = open(ddpath)
         d.update(handle.read())
         handle.close()
 
         m = hashlib.md5()
-        handle = open(dMpath)
+        handle = open(dmpath)
         m.update(handle.read())
         handle.close()
 
         return (d.hexdigest(), m.hexdigest())
 
     def read_digest(self):
-        dDpath = self.get_data_path()
-        dMpath = self.get_meta_path()
+        ddpath = self.get_data_path()
+        dmpath = self.get_meta_path()
         try:
-            handle = open(dDpath + ".md5")
-            dVal = handle.readline().rstrip()
+            handle = open(ddpath + ".md5")
+            dval = handle.readline().rstrip()
             handle.close()
         except IOError:
-            dVal = "0"
+            dval = "0"
 
         try:
-            handle = open(dMpath + ".md5")
-            mVal = handle.readline().rstrip()
+            handle = open(dmpath + ".md5")
+            mval = handle.readline().rstrip()
             handle.close()
         except IOError:
-            mVal = "0"
-        return (dVal, mVal)
+            mval = "0"
+        return (dval, mval)
 
     def write_digest(self):
         v = self.calc_digest()
 
-        dDpath = self.get_data_path()
-        dMpath = self.get_meta_path()
+        ddpath = self.get_data_path()
+        dmpath = self.get_meta_path()
 
-        handle = open(dDpath + ".md5", "w")
+        handle = open(ddpath + ".md5", "w")
         handle.write(v[0])
         handle.close()
 
-        handle = open(dMpath + ".md5", "w")
+        handle = open(dmpath + ".md5", "w")
         handle.write(v[1])
         handle.close()
 
 
 class RepoType:
 
-    def __init__(self, typeName):
-        self.typeName = typeName
+    def __init__(self, type_name):
+        self.type_name = type_name
         self.elems = {}
 
     def __setitem__(self, name, data):
@@ -127,14 +127,14 @@ class RepoType:
 class Repo:
 
     def __init__(self):
-        self.metaHash = {}
-        self.basePath = None
-        self.isLocal = False
+        self.meta_hash = {}
+        self.base_path = None
+        self.is_local = False
 
     def scan_dir(self, path):
-        self.isLocal = True
-        if self.basePath is None:
-            self.basePath = path
+        self.is_local = True
+        if self.base_path is None:
+            self.base_path = path
         for file in glob(os.path.join(path, "*")):
             if os.path.isdir(file):
                 self.scan_dir(file)
@@ -143,48 +143,47 @@ class Repo:
                 data = json.loads(handle.read())
                 handle.close()
                 if 'type' in data and 'name' in data:
-                    if not data['type'] in self.metaHash:
-                        self.metaHash[data['type']] = RepoType(data['type'])
-                    jPath = os.path.relpath(file, self.basePath)
-                    jPath = re.sub(r'.json$', '', jPath)
-                    self.metaHash[data['type']][data['name']] =
-                    RepoElemFile(self.basePath, jPath)
+                    if not data['type'] in self.meta_hash:
+                        self.meta_hash[data['type']] = RepoType(data['type'])
+                    jpath = os.path.relpath(file, self.base_path)
+                    jpath = re.sub(r'.json$', '', jpath)
+                    self.meta_hash[data['type']][data['name']] = RepoElemFile(self.base_path, jpath)
 
     def load_url(self, url):
         print url
 
     def __iter__(self):
-        for type in self.metaHash:
+        for type in self.meta_hash:
             yield type
 
     def __getitem__(self, name):
-        return self.metaHash[name]
+        return self.meta_hash[name]
 
     def write(self, handle):
         out = {}
-        for type in self.metaHash:
+        for type in self.meta_hash:
             a = {}
-            for name in self.metaHash[type]:
-                a[name] = self.metaHash[type][name].path
+            for name in self.meta_hash[type]:
+                a[name] = self.meta_hash[type][name].path
             out[type] = a
         handle.write(json.dumps(out))
 
     def store(self):
-        if not self.isLocal:
+        if not self.is_local:
             raise RepoError("Can't store to non-local repo")
-        out = open(os.path.join(self.basePath, "cgManifest"), "w")
+        out = open(os.path.join(self.base_path, "cgManifest"), "w")
         self.write(out)
         out.close()
 
     def write_digest(self):
-        if not self.isLocal:
+        if not self.is_local:
             raise RepoError("Can't write digest of non-local repo")
 
-        for type in self.metaHash:
-            self.metaHash[type].write_digest()
+        for type in self.meta_hash:
+            self.meta_hash[type].write_digest()
 
     def check_digest(self):
         out = []
-        for type in self.metaHash:
-            out.extend(self.metaHash[type].check_digest())
+        for type in self.meta_hash:
+            out.extend(self.meta_hash[type].check_digest())
         return out

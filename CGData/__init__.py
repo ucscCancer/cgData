@@ -35,14 +35,14 @@ class FormatException(Exception):
         Exception.__init__(self, str)
 
 
-def has_type(typeStr):
-    return typeStr in objectMap
+def has_type(type_str):
+    return type_str in objectMap
 
-def get_type(typeStr):
-    modName, clsName = objectMap[typeStr]
-    module = __import__("CGData." + modName)
-    submodule = getattr(module, modName)
-    cls = getattr(submodule, clsName)
+def get_type(type_str):
+    mod_name, cls_name = objectMap[type_str]
+    module = __import__("CGData." + mod_name)
+    submodule = getattr(module, mod_name)
+    cls = getattr(submodule, cls_name)
     return cls
 
 
@@ -51,9 +51,9 @@ class CGGroupMember:
 
 class CGGroupBase:
 
-    def __init__(self, groupName):
+    def __init__(self, group_name):
         self.members = {}
-        self.name = groupName
+        self.name = group_name
     
     def __setitem__(self, name, item):
         self.members[ name ] = item
@@ -88,13 +88,13 @@ class CGGroupBase:
     def get_link_map(self):
         out = {}
         for name in self.members:
-            lMap = self.members[ name ].get_link_map()
-            for lType in lMap:
-                if lType not in out:
-                    out[ lType ] = []
-                for lName in lMap[lType]:
-                    if lName not in out[lType]:
-                        out[lType].append( lName )
+            lmap = self.members[ name ].get_link_map()
+            for ltype in lmap:
+                if ltype not in out:
+                    out[ ltype ] = []
+                for lname in lmap[ltype]:
+                    if lname not in out[ltype]:
+                        out[ltype].append( lname )
         return out
     
 
@@ -103,22 +103,22 @@ class CGObjectBase:
     def __init__(self):
         self.attrs = {}
         self.path = None
-        self.lightMode = False
+        self.light_mode = False
 
     def load(self, path=None, **kw):
         if path is None and self.path is not None:
             path = self.path
         if path is None:
             raise OSError( "Path not defined" ) 
-        dHandle = open(path)
-        self.read(dHandle, **kw)
-        dHandle.close()
+        dhandle = open(path)
+        self.read(dhandle, **kw)
+        dhandle.close()
         
         self.path = path
         if (os.path.exists(path + ".json")):
-            mHandle = open(path + ".json")
-            self.set_attrs(json.loads(mHandle.read()))
-            mHandle.close()
+            mhandle = open(path + ".json")
+            self.set_attrs(json.loads(mhandle.read()))
+            mhandle.close()
 
     def is_link_ready(self):
         return True
@@ -132,11 +132,11 @@ class CGObjectBase:
         mHandle.write(json.dumps(self.attrs))
         mHandle.close()
         print path
-        if not self.lightMode:
+        if not self.light_mode:
             self.path = path
-            dHandle = open(path, "w")
-            self.write(dHandle)
-            dHandle.close()            
+            dhandle = open(path, "w")
+            self.write(dhandle)
+            dhandle.close()            
 
     def set_attrs(self, attrs):
         self.attrs = attrs
@@ -198,18 +198,18 @@ class CGSQLObject:
     def init_schema(self):
         pass
     
-    def gen_sql(self, idTable):
+    def gen_sql(self, id_table):
         pass
     
-    def build_ids(self, idAllocator):
+    def build_ids(self, id_allocator):
         pass
     
 
-def cg_new(typeStr):
-    modName, clsName = objectMap[typeStr]
-    module = __import__("CGData." + modName)
-    submodule = getattr(module, modName)
-    cls = getattr(submodule, clsName)
+def cg_new(type_str):
+    mod_name, cls_name = objectMap[type_str]
+    module = __import__("CGData." + mod_name)
+    submodule = getattr(module, mod_name)
+    cls = getattr(submodule, cls_name)
     out = cls()
     return out
 
@@ -217,7 +217,7 @@ def load(path):
     if not path.endswith(".json"):
         path = path + ".json"
 
-    dataPath = re.sub(r'.json$', '', path)
+    data_path = re.sub(r'.json$', '', path)
 
     try:
         handle = open(path)
@@ -228,18 +228,18 @@ def load(path):
     if meta['type'] in objectMap:
         out = cg_new(meta['type'])
         out.set_attrs( meta )
-        out.path = dataPath
-        out.load(dataPath)
+        out.path = data_path
+        out.load(data_path)
         return out
     else:
         raise FormatException("%s class not found" % (meta['type']))
 
 
-def lightLoad(path):
+def light_load(path):
     if not path.endswith(".json"):
         path = path + ".json"
 
-    dataPath = re.sub(r'.json$', '', path)
+    data_path = re.sub(r'.json$', '', path)
 
     try:
         handle = open(path)
@@ -250,8 +250,8 @@ def lightLoad(path):
     if meta['type'] in objectMap:
         out = cg_new(meta['type'])
         out.set_attrs( meta )
-        out.path = dataPath
-        out.lightMode = True
+        out.path = data_path
+        out.light_mode = True
         return out
     else:
         raise FormatException("%s class not found" % (meta['type']))

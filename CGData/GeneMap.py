@@ -11,25 +11,25 @@ class ProbeMapper:
     """
 
     def __init__(self, mode='g'):
-        self.cmpFunc = optionMap[mode]
+        self.cmp_func = optionMap[mode]
 
-    def find_overlap(self, segment, refGene, cmpFunc=None):
+    def find_overlap(self, segment, ref_gene, cmp_func=None):
         """
         Function to find overlaps for a given probe description.
-        the cmpFunc arg is a function that returns a 'True' or 'False' for
+        the cmp_func arg is a function that returns a 'True' or 'False' for
         a given probe description and a gene, examples include 'gene_overlap'
         and 'gene_simple_meth_overlap'
         """
-        if cmpFunc is None:
-            cmpFunc = self.cmpFunc
-        if not refGene.hasChrom(segment.chrom):
+        if cmp_func is None:
+            cmp_func = self.cmp_func
+        if not ref_gene.has_chrom(segment.chrom):
             return []
-        chromList = refGene.getChrom(segment.chrom)
+        chromList = ref_gene.get_chrom(segment.chrom)
 
         out = []
         for gene in chromList:
-            if cmpFunc(segment.chromStart,
-            segment.chromEnd, segment.strand, gene):
+            if cmp_func(segment.chrom_start,
+            segment.chrom_end, segment.strand, gene):
                 out.append(gene)
         return out
 
@@ -41,14 +41,14 @@ class ProbeMapper:
 
 def gene_overlap(start, end, strand, gene):
     if gene.strand == gene.strand\
-    and gene.chromEnd > start\
-    and gene.chromStart < end:
+    and gene.chrom_end > start\
+    and gene.chrom_start < end:
         return True
     return False
 
 
 def block_overlap(start, end, strand, gene):
-    if gene.chromEnd > start and gene.chromStart < end:
+    if gene.chrom_end > start and gene.chrom_start < end:
         return True
     return False
 
@@ -56,14 +56,14 @@ def block_overlap(start, end, strand, gene):
 def exon_overlap(start, end, strand, gene):
     if gene.strand != gene.strand:
         return False
-    for i in range(gene.exCount):
-        if gene.exEnd[i] > start and gene.exStart[i] < end:
+    for i in range(gene.ex_count):
+        if gene.ex_end[i] > start and gene.ex_start[i] < end:
             return True
     return False
 
 
 def gene_simple_meth_overlap(start, end, strand, gene):
-    if gene.chromEnd > start and gene.chromStart < end:
+    if gene.chrom_end > start and gene.chrom_start < end:
         return True
     return False
 

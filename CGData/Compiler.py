@@ -24,24 +24,24 @@ def error(eStr):
 class CGIDTable:
     
     def __init__(self):
-        self.idTable = {}
+        self.id_table = {}
     
-    def alloc( self, iType, iName ):
-        if iType not in self.idTable:
-            self.idTable[ iType ] = {}
-        if iName not in self.idTable[ iType ]:
-            self.idTable[ iType ][ iName ] = len( self.idTable[ iType ] )
+    def alloc( self, itype, iname ):
+        if itype not in self.id_table:
+            self.id_table[ itype ] = {}
+        if iname not in self.id_table[ itype ]:
+            self.id_table[ itype ][ iname ] = len( self.id_table[ itype ] )
     
-    def get( self, iType, iName ):
-        return self.idTable[ iType ][ iName ]
+    def get( self, itype, iname ):
+        return self.id_table[ itype ][ iname ]
 
 
 class BrowserCompiler:
 
     def __init__(self):
-        self.setHash = {}
-        self.pathHash = {}
-        self.outDir = "out"
+        self.set_hash = {}
+        self.path_hash = {}
+        self.out_dir = "out"
 
     def scan_dirs(self, dirs):
         for dir in dirs:
@@ -58,152 +58,152 @@ class BrowserCompiler:
                 if data is not None and 'name' in data and data['name'] is not None\
                 and 'type' in data\
                 and CGData.has_type(data['type']):
-                    if not data['type'] in self.setHash:
-                        self.setHash[ data['type'] ] = {}
-                        self.pathHash[ data['type'] ] = {}
+                    if not data['type'] in self.set_hash:
+                        self.set_hash[ data['type'] ] = {}
+                        self.path_hash[ data['type'] ] = {}
                         
-                    if data['name'] in self.setHash[data['type']]:
+                    if data['name'] in self.set_hash[data['type']]:
                         error("Duplicate %s file %s" % (
                             data['type'], data['name']))
-                    self.setHash[data['type']][data['name']] = CGData.lightLoad( path )
-                    self.pathHash[data['type']][data['name']] = path
+                    self.set_hash[data['type']][data['name']] = CGData.light_load( path )
+                    self.path_hash[data['type']][data['name']] = path
                     log("FOUND: " + data['type'] +
                         "\t" + data['name'] + "\t" + path)
                 else:
                     warn("Unknown file type: %s" % (path))
     
     def __iter__(self):
-        return self.setHash.__iter__()
+        return self.set_hash.__iter__()
     
     def __getitem__(self, i):
-        return self.setHash[ i ]
+        return self.set_hash[ i ]
     
     def link_objects(self):
         """
         Scan found object records and determine if the data they link to is
         avalible
         """
-        oMatrix = {}
-        for oType in self.setHash:
-            if issubclass( CGData.get_type( oType ), CGData.CGGroupMember ):
-                gMap = {}
-                for oName in self.setHash[ oType ]:
-                    oObj = self.setHash[ oType ][ oName ]
-                    if oObj.get_group() not in gMap:
-                        gMap[ oObj.get_group() ] = CGData.CGGroupBase( oObj.get_group() )
-                    gMap[ oObj.get_group() ].put( oObj )
-                oMatrix[ oType ] = gMap
+        omatrix = {}
+        for otype in self.set_hash:
+            if issubclass( CGData.get_type( otype ), CGData.CGGroupMember ):
+                gmap = {}
+                for oname in self.set_hash[ otype ]:
+                    oobj = self.set_hash[ otype ][ oname ]
+                    if oobj.get_group() not in gmap:
+                        gmap[ oobj.get_group() ] = CGData.CGGroupBase( oobj.get_group() )
+                    gmap[ oobj.get_group() ].put( oobj )
+                omatrix[ otype ] = gmap
             else:
-                oMatrix[ oType ] = self.setHash[ oType ]
+                omatrix[ otype ] = self.set_hash[ otype ]
         
         # Now it's time to check objects for their dependencies
-        readyMatrix = {}
-        for sType in oMatrix:
-            for sName in oMatrix[ sType ]:
-                sObj = oMatrix[ sType ][ sName ]
-                lMap = sObj.get_link_map()
-                isReady = True
-                for lType in lMap:
-                    if not oMatrix.has_key( lType ):
-                        warn( "%s missing data type %s" % (sName, lType) )
-                        isReady = False
+        ready_matrix = {}
+        for stype in omatrix:
+            for sname in omatrix[ stype ]:
+                sobj = omatrix[ stype ][ sname ]
+                lmap = sobj.get_link_map()
+                is_ready = True
+                for ltype in lmap:
+                    if not omatrix.has_key( ltype ):
+                        warn( "%s missing data type %s" % (sname, ltype) )
+                        is_ready = False
                     else:
-                        for lName in lMap[ lType ]:
-                            if not oMatrix[lType].has_key( lName ):
-                                warn( "%s %s missing data %s %s" % ( sType, sName, lType, lName ) )
-                                isReady = False
-                if not sObj.is_link_ready():
-                    warn( "%s %s not LinkReady" % ( sType, sName ) )
-                elif isReady:
-                    if not sType in readyMatrix:
-                        readyMatrix[ sType ] = {}
-                    readyMatrix[ sType ][ sName ] = sObj
+                        for lname in lmap[ ltype ]:
+                            if not omatrix[ltype].has_key( lname ):
+                                warn( "%s %s missing data %s %s" % ( stype, sname, ltype, lname ) )
+                                is_ready = False
+                if not sobj.is_link_ready():
+                    warn( "%s %s not LinkReady" % ( stype, sname ) )
+                elif is_ready:
+                    if not stype in ready_matrix:
+                        ready_matrix[ stype ] = {}
+                    ready_matrix[ stype ][ sname ] = sobj
         
-        for rType in readyMatrix:
-            log( "READY %s: %s" % ( rType, ",".join(readyMatrix[rType].keys()) ) ) 
+        for rtype in ready_matrix:
+            log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) ) 
 
-        for mergeType in CGData.mergeObjects:
-            mType = CGData.get_type( mergeType )
-            print mType
-            selectTypes = mType.typeSet
-            selectSet = {}
+        for merge_type in CGData.mergeObjects:
+            mtype = CGData.get_type( merge_type )
+            print mtype
+            select_types = mtype.typeSet
+            select_set = {}
             try:
-                for sType in selectTypes:
-                    selectSet[ sType ] = readyMatrix[ sType ] 
+                for stype in select_types:
+                    select_set[ stype ] = ready_matrix[ stype ] 
             except KeyError:
-                error("missing data type %s" % (sType) )
+                error("missing data type %s" % (stype) )
                 continue
-            mObjList = self.set_enumerate( mType, selectSet )
-            for mObj in mObjList:
-                if mergeType not in readyMatrix:
-                    readyMatrix[ mergeType ] = {}
-                readyMatrix[ mergeType ][ mObj.get_name() ] = mObj
+            mobjlist = self.set_enumerate( mtype, select_set )
+            for mobj in mobjlist:
+                if merge_type not in ready_matrix:
+                    ready_matrix[ merge_type ] = {}
+                ready_matrix[ merge_type ][ mobj.get_name() ] = mobj
         
-        self.readyMatrix = readyMatrix                    
+        self.ready_matrix = ready_matrix                    
         
-    def set_enumerate( self, mergeType, a, b={} ):
+    def set_enumerate( self, merge_type, a, b={} ):
         """
         This is an recursive function to enumerate possible sets of elements in the 'a' hash
         a is a map of types ('probeMap', 'clinicalMatrix', ...), each of those is a map
         of cgBaseObjects that report get_link_map requests
         """
         #print "Enter", " ".join( (b[c].get_name() for c in b) )
-        curKey = None
+        cur_key = None
         for t in a:
             if not t in b:
-                curKey = t
+                cur_key = t
         
-        if curKey is None:
+        if cur_key is None:
             #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
             log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
-            mergeObj = mergeType()
+            mergeObj = merge_type()
             mergeObj.merge( **b )
             return [ mergeObj ]
         else:
             out = []
-            for i in a[curKey]:
-                #print "Trying", curKey, i
+            for i in a[cur_key]:
+                #print "Trying", cur_key, i
                 c = copy(b)
-                sObj = a[curKey][i] #the object selected to be added next
-                lMap = sObj.get_link_map()
+                sobj = a[cur_key][i] #the object selected to be added next
+                lmap = sobj.get_link_map()
                 valid = True
-                for lType in lMap:
-                    if lType in c:
-                        if c[lType].get_name() not in lMap[lType]:
-                            #print c[lType].get_name(), "not in", lMap[lType]
+                for ltype in lmap:
+                    if ltype in c:
+                        if c[ltype].get_name() not in lmap[ltype]:
+                            #print c[ltype].get_name(), "not in", lmap[ltype]
                             valid = False
-                for sType in c:
-                    slMap = c[sType].get_link_map()
-                    for slType in slMap:
-                        if curKey == slType:
-                            if sObj.get_name() not in slMap[slType]:
-                                #print a[curKey][i].get_name(), "not in",  slMap[slType]
+                for stype in c:
+                    slmap = c[stype].get_link_map()
+                    for sltype in slmap:
+                        if cur_key == sltype:
+                            if sobj.get_name() not in slmap[sltype]:
+                                #print a[cur_key][i].get_name(), "not in",  slmap[sltype]
                                 valid = False
                 if valid:
-                    c[ curKey ] = sObj
-                    out.extend( self.set_enumerate( mergeType, a, c ) )
+                    c[ cur_key ] = sobj
+                    out.extend( self.set_enumerate( merge_type, a, c ) )
             return out
         return []
 
     def build_ids(self):
         log( "Building Common ID tables" )
-        self.idTable = CGIDTable()        
-        for rType in self.readyMatrix:
-            if issubclass( CGData.get_type( rType ), CGData.CGSQLObject ):
-                for rName in self.readyMatrix[ rType ]:
-                    self.readyMatrix[ rType ][ rName ].build_ids( self.idTable )
+        self.id_table = CGIDTable()        
+        for rtype in self.ready_matrix:
+            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
+                for rname in self.ready_matrix[ rtype ]:
+                    self.ready_matrix[ rtype ][ rname ].build_ids( self.id_table )
 
     def gen_sql(self):
         log( "Writing SQL" )        
-        for rType in self.readyMatrix:
-            if issubclass( CGData.get_type( rType ), CGData.CGSQLObject ):
-                for rName in self.readyMatrix[ rType ]:
-                    sHandle = self.readyMatrix[ rType ][ rName ].gen_sql( self.idTable )
-                    if sHandle is not None:
-                        oHandle = open( os.path.join( self.outDir, "%s.%s.sql" % (rType, rName ) ), "w" )
-                        for line in sHandle:
-                            oHandle.write( line )
-                        oHandle.close()
+        for rtype in self.ready_matrix:
+            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
+                for rname in self.ready_matrix[ rtype ]:
+                    shandle = self.ready_matrix[ rtype ][ rname ].gen_sql( self.id_table )
+                    if shandle is not None:
+                        ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
+                        for line in shandle:
+                            ohandle.write( line )
+                        ohandle.close()
     
     
 

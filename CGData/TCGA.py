@@ -32,11 +32,9 @@ class DCCWSItem(object):
                     for node in cls.childNodes:
                         nodeName = node.getAttribute("name")
                         if node.hasAttribute("xlink:href"):
-                            outData[nodeName] =
-                            node.getAttribute("xlink:href")
+                            outData[nodeName] = node.getAttribute("xlink:href")
                         else:
-                            outData[nodeName] =
-                            getText(node.childNodes)
+                            outData[nodeName] = getText(node.childNodes)
                     yield outData
             if len(dom.getElementsByTagName('next')) > 0:
                 nextElm = dom.getElementsByTagName('next').pop()
@@ -60,36 +58,31 @@ class ArchiveList(DCCWSItem):
 class ArchiveCollection(DCCWSItem):
     def __init__(self, diseaseID):
         super(ArchiveCollection, self).__init__()
-        self.url = DCCWSItem.baseURL +
-        "Archive&Disease[@id=%s]&roleName=archiveCollection" % (diseaseID)
+        self.url = DCCWSItem.baseURL + "Archive&Disease[@id=%s]&roleName=archiveCollection" % (diseaseID)
 
 
 class Platform(DCCWSItem):
     def __init__(self, archiveID):
         super(Platform, self).__init__()
-        self.url = DCCWSItem.baseURL +
-        "Platform&Archive[@id=%s]&roleName=platform" % (archiveID)
+        self.url = DCCWSItem.baseURL + "Platform&Archive[@id=%s]&roleName=platform" % (archiveID)
 
 
 class ArchiveType(DCCWSItem):
     def __init__(self, archiveID):
         super(ArchiveType, self).__init__()
-        self.url = DCCWSItem.baseURL +
-        "ArchiveType&Archive[@id=%s]&roleName=archiveType" % (archiveID)
+        self.url = DCCWSItem.baseURL + "ArchiveType&Archive[@id=%s]&roleName=archiveType" % (archiveID)
 
 
 class FileInfo(DCCWSItem):
     def __init__(self, archiveID):
         super(FileInfo, self).__init__()
-        self.url = DCCWSItem.baseURL +
-        "FileInfo&Archive[@id=%s]&roleName=fileCollection" % (archiveID)
+        self.url = DCCWSItem.baseURL + "FileInfo&Archive[@id=%s]&roleName=fileCollection" % (archiveID)
 
 
 class FileBarcode(DCCWSItem):
     def __init__(self, fileID):
         super(FileBarcode, self).__init__()
-        self.url = DCCWSItem.baseURL +
-        "BiospecimenBarcode&FileInfo[@id=%s]&roleName=biospecimenBarcodeCollection" % (fileID)
+        self.url = DCCWSItem.baseURL + "BiospecimenBarcode&FileInfo[@id=%s]&roleName=biospecimenBarcodeCollection" % (fileID)
 
 
 class CustomQuery(DCCWSItem):
@@ -115,7 +108,7 @@ skipFiles = [
     "DCC_ALTERED_FILES.txt"
 ]
 
-commonMap = {
+common_map = {
  "Segment_Mean": "seg.mean",
  "Start": "loc.start",
  "End": "loc.end",
@@ -133,57 +126,57 @@ def allowed_file(name):
     return True
 
 
-def extract_genetic(path, iHandle, oHandle):
+def extract_genetic(path, ihandle, ohandle):
     if allowed_file(os.path.basename(path)):
         if path.endswith('.idf.txt') or path.endswith('.sdrf.txt'):
             if path.endswith('.sdrf.txt'):
-                read = csv.reader(iHandle, delimiter="\t")
-                colNum = None
+                read = csv.reader(ihandle, delimiter="\t")
+                col_num = None
                 for row in read:
-                    if colNum is None:
-                        colNum = {}
+                    if col_num is None:
+                        col_num = {}
                         for i in range(len(row)):
-                            colNum[row[i]] = i
+                            col_num[row[i]] = i
                     else:
-                        if not "Material Type" in colNum or row[colNum["Material Type"]] != "genomic_DNA":
-                            oHandle.emit(row[colNum["Hybridization Name"]], row[colNum["Extract Name"]], "targets")
+                        if not "Material Type" in col_num or row[col_num["Material Type"]] != "genomic_DNA":
+                            ohandle.emit(row[col_num["Hybridization Name"]], row[col_num["Extract Name"]], "targets")
         else:
             mode = None
             target = None
-            colName = None
-            colType = None
-            for line in iHandle:
-                if colName is None:
-                    colName = line.rstrip().split("\t")
-                    if colName[0] == "Chromosome":
+            col_name = None
+            col_type = None
+            for line in ihandle:
+                if col_name is None:
+                    col_name = line.rstrip().split("\t")
+                    if col_name[0] == "Chromosome":
                         mode = 1
                         target = os.path.basename(path).split('.')[0]
-                    if colName[0] == "Hybridization REF":
+                    if col_name[0] == "Hybridization REF":
                         mode = 2
 
-                    for i in range(len(colName)):
-                        if colName[i] in commonMap:
-                            colName[i] = commonMap[colName[i]]
-                elif mode == 2 and colType is None:
-                    colType = line.rstrip().split("\t")
-                    for i in range(len(colType)):
-                        if colType[i] in commonMap:
-                            colType[i] = commonMap[colType[i]]
+                    for i in range(len(col_name)):
+                        if col_name[i] in common_map:
+                            col_name[i] = common_map[col_name[i]]
+                elif mode == 2 and col_type is None:
+                    col_type = line.rstrip().split("\t")
+                    for i in range(len(col_type)):
+                        if col_type[i] in common_map:
+                            col_type[i] = common_map[col_type[i]]
                 else:
                     tmp = line.rstrip().split("\t")
                     if mode == 2:
                         out = {}
-                        for col in colName[1:]:
+                        for col in col_name[1:]:
                             out[col] = {"target": col}
-                        for i in range(1, len(colType)):
-                            out[colName[i]][colType[i]] = tmp[i]
+                        for i in range(1, len(col_type)):
+                            out[col_name[i]][col_type[i]] = tmp[i]
                         for col in out:
-                            oHandle.emit(tmp[0], out[col], path)
+                            ohandle.emit(tmp[0], out[col], path)
                     else:
                         out = {}
-                        for i in range(len(colName)):
-                            out[colName[i]] = tmp[i]
+                        for i in range(len(col_name)):
+                            out[col_name[i]] = tmp[i]
                         if mode == 1:
-                            oHandle.emit(target, out, "probes")
+                            ohandle.emit(target, out, "probes")
                         else:
-                            oHandle.emit(tmp[0], out, "probes")
+                            ohandle.emit(tmp[0], out, "probes")

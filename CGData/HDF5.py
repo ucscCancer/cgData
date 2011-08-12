@@ -3,11 +3,11 @@ import h5py
 import numpy
 
 
-def write_probe_map(h5, probeMap):
-    if not "probeMap" in h5:
-        h5.create_group("probeMap")
+def write_probe_map(h5, probe_map):
+    if not "probe_map" in h5:
+        h5.create_group("probe_map")
 
-    probeType = numpy.dtype(
+    probe_type = numpy.dtype(
         [
             ('hugo', 'S'),
             ('chrome', 'S'),
@@ -15,17 +15,17 @@ def write_probe_map(h5, probeMap):
             ('stop', 'i'),
             ('strand', 'S'),
         ])
-    hProbeType = h5py.new_vlen(probeType)
-    print probeType
-    probes = probeMap.geneMap.keys()
+    h_probe_type = h5py.new_vlen(probe_type)
+    print probe_type
+    probes = probe_map.geneMap.keys()
     probes.sort()
-    pmCount = len(probes)
+    pm_count = len(probes)
 
     ds = h5.create_dataset(
-    "/probeMap/%s" % (probeMap.attrs['name']), [pmCount], dtype=hProbeType)
+    "/probe_map/%s" % (probe_map.attrs['name']), [pm_count], dtype=h_probe_type)
 
     i = 0
-    val = numpy.zeros(1, dtype=probeType)
+    val = numpy.zeros(1, dtype=probe_type)
     for probe in probes:
         ds[i] = i
         i += 1
@@ -34,14 +34,14 @@ def write_probe_map(h5, probeMap):
 def write_gene_matrix(h5, gm):
     ds = h5.create_dataset(
     "%s" % (gm.attrs['name']),
-    [len(gm.probeHash), len(gm.sampleList)],
+    [len(gm.probe_hash), len(gm.sample_list)],
     dtype=float)
     i = 0
-    for probe in gm.probeHash:
-        rowHash = gm.probeHash[probe]
-        row = numpy.zeros(len(gm.sampleList))
-        for j in range(len(gm.sampleList)):
-            if gm.sampleList[j] in rowHash:
-                row[j] = rowHash[gm.sampleList[j]]
+    for probe in gm.probe_hash:
+        row_hash = gm.probe_hash[probe]
+        row = numpy.zeros(len(gm.sample_list))
+        for j in range(len(gm.sample_list)):
+            if gm.sample_list[j] in row_hash:
+                row[j] = row_hash[gm.sample_list[j]]
         ds[i] = row
         i += 1

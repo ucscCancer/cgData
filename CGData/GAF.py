@@ -12,48 +12,48 @@ gafHeaders = [
     "FeatureInfo"]
 
 gafCols = [
-    "entryNumber", "featureID", "featureType", "featureDBSource",
-    "featureDBVersion", "featureDBDate", "featureSeqFileName", "composite",
-    "compositeType", "compositeDBSource", "compositeDBVersion",
-    "compositeDBDate", "alignmentType", "featureCoordinates",
-    "compositeCoordinates", "gene", "geneLocus", "featureAliases",
-    "featureInfo"]
+    "entry_number", "feature_id", "feature_type", "feature_db_source",
+    "feature_db_version", "feature_db_date", "feature_seq_file_name", "composite",
+    "composite_type", "composite_db_source", "composite_db_version",
+    "composite_db_date", "alignment_type", "feature_coordinates",
+    "composite_coordinates", "gene", "gene_locus", "feature_aliases",
+    "feature_info"]
 
-reComposite = re.compile(r'chr(\w+):(\w+)-(\w+):(.)')
+re_composite = re.compile(r'chr(\w+):(\w+)-(\w+):(.)')
 
 
 class GafLine:
 
     def __init__(
-        self, entryNumber, featureID, featureType, featureDBSource,
-        featureDBVersion, featureDBDate, featureSeqFileName, composite,
-        compositeType, compositeDBSource, compositeDBVersion, compositeDBDate,
-        alignmentType, featureCoordinates, compositeCoordinates, gene,
-        geneLocus, featureAliases, featureInfo):
+        self, entry_number, feature_id, feature_type, feature_db_source,
+        feature_db_version, feature_db_date, feature_seq_file_name, composite,
+        composite_type, composite_db_source, composite_db_version, composite_db_date,
+        alignment_type, feature_coordinates, composite_coordinates, gene,
+        gene_locus, feature_aliases, feature_info):
 
-        self.name = featureID
-        self.entryNumber = entryNumber
-        self.featureID = featureID
-        self.featureType = featureType
-        self.featureDBSource = featureDBSource
-        self.featureDBVersion = featureDBVersion
-        self.featureDBDate = featureDBDate
-        self.featureSeqFileName = featureSeqFileName
+        self.name = feature_id
+        self.entry_number = entry_number
+        self.feature_id = feature_id
+        self.feature_type = feature_type
+        self.feature_db_source = feature_db_source
+        self.feature_db_version = feature_db_version
+        self.feature_db_date = feature_db_date
+        self.feature_seq_file_name = feature_seq_file_name
         self.composite = composite
-        self.compositeType = compositeType
-        self.compositeDBSource = compositeDBSource
-        self.compositeDBVersion = compositeDBVersion
-        self.compositeDBDate = compositeDBDate
-        self.alignmentType = alignmentType
-        self.featureCoordinates = featureCoordinates
-        self.compositeCoordinates = compositeCoordinates
+        self.composite_type = composite_type
+        self.composite_db_source = composite_db_source
+        self.composite_db_version = composite_db_version
+        self.composite_db_date = composite_db_date
+        self.alignment_type = alignment_type
+        self.feature_coordinates = feature_coordinates
+        self.composite_coordinates = composite_coordinates
         self.gene = gene
-        self.geneLocus = geneLocus
-        self.featureAliases = featureAliases
-        self.featureInfo = featureInfo
+        self.gene_locus = gene_locus
+        self.feature_aliases = feature_aliases
+        self.feature_info = feature_info
 
         self.aliases = [gene.split('|')[0]]
-        res = reComposite.search(compositeCoordinates)
+        res = re_composite.search(composite_coordinates)
         if res:
             tmp = res.groups()
             self.chrom = 'chr' + tmp[0]
@@ -62,7 +62,7 @@ class GafLine:
             self.strand = tmp[3]
 
     def __str__(self):
-        return self.featureID
+        return self.feature_id
 
 
 class Gaf(CGData.CGDataSetObject):
@@ -76,9 +76,9 @@ class Gaf(CGData.CGDataSetObject):
             assert(handle.readline()[:-1].split("\t") == gafHeaders)
         for line in handle:
             line = line.rstrip("\n")
-            splitLine = line.split("\t")
-            assert(len(splitLine) == len(gafCols))
-            self.gafData.append(GafLine(**dict(zip(gafCols, splitLine))))
+            split_line = line.split("\t")
+            assert(len(split_line) == len(gafCols))
+            self.gafData.append(GafLine(**dict(zip(gafCols, split_line))))
 
     def __iter__(self):
         for i in self.gafData:

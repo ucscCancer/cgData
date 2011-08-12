@@ -17,20 +17,20 @@ class Segment:
 class GenomicSegment(CGData.CGDataSetObject):
 
     def __init__(self):
-        self.sampleHash = {}
+        self.sample_hash = {}
 
     def read(self, handle):
-        self.sampleHash = {}
+        self.sample_hash = {}
         for line in handle:
             tmp = line.rstrip().split("\t")
-            if not tmp[0] in self.sampleHash:
-                self.sampleHash[tmp[0]] = []
-            self.sampleHash[tmp[0]].append(
+            if not tmp[0] in self.sample_hash:
+                self.sample_hash[tmp[0]] = []
+            self.sample_hash[tmp[0]].append(
             Segment(tmp[1], int(tmp[2]), int(tmp[3]), tmp[4], float(tmp[5])))
 
     def __iter__(self):
-        for key in self.sampleHash:
+        for key in self.sample_hash:
             yield key
 
     def __getitem__(self, i):
-        return self.sampleHash[i]
+        return self.sample_hash[i]

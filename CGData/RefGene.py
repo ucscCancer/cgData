@@ -16,7 +16,7 @@ COL_HUGO = 12
 
 #sometimes the ref table ends with a comma, which makes
 #arrays that end with '' when you split
-reCommaEnd = re.compile(r',$')
+re_comma_end = re.compile(r',$')
 
 
 class GeneInfo:
@@ -25,18 +25,18 @@ class GeneInfo:
     """
 
     def __init__(self,
-    chrom, strand, start, end, exCount, exStart, exEnd, hugo):
+    chrom, strand, start, end, ex_count, ex_start, ex_end, hugo):
         self.chrom = chrom
         self.strand = strand
-        self.chromStart = int(start)
-        self.chromEnd = int(end)
-        self.exCount = exCount
-        self.exStart = []
-        for p in reCommaEnd.sub("", exStart).split(','):
-            self.exStart.append(int(p))
-        self.exEnd = []
-        for p in reCommaEnd.sub("", exEnd).split(','):
-            self.exEnd.append(int(p))
+        self.chrom_start = int(start)
+        self.chrom_end = int(end)
+        self.ex_count = ex_count
+        self.ex_start = []
+        for p in re_comma_end.sub("", ex_start).split(','):
+            self.ex_start.append(int(p))
+        self.ex_End = []
+        for p in re_comma_end.sub("", ex_end).split(','):
+            self.ex_End.append(int(p))
         self.name = hugo
 
     def __repr__(self):
@@ -47,12 +47,12 @@ class GeneInfo:
 class RefGene(CGData.CGDataSetObject):
 
     def __init__(self):
-        self.hugoMap = {}
+        self.hugo_map = {}
 
     def read(self, handle):
         read = csv.reader(handle, delimiter="\t")
 
-        self.hugoMap = {}
+        self.hugo_map = {}
         for row in read:
             gene = GeneInfo(
                 row[COL_CHROM],
@@ -63,20 +63,20 @@ class RefGene(CGData.CGDataSetObject):
                 row[COL_EXSTART],
                 row[COL_EXEND],
                 row[COL_HUGO])
-            self.hugoMap[row[COL_HUGO]] = gene
+            self.hugo_map[row[COL_HUGO]] = gene
 
-        self.chromMap = {}
-        for hugo in self.hugoMap:
-            if not self.hugoMap[hugo].chrom in self.chromMap:
-                self.chromMap[self.hugoMap[hugo].chrom] = []
-            self.chromMap[self.hugoMap[hugo].chrom].append(self.hugoMap[hugo])
+        self.chrom_map = {}
+        for hugo in self.hugo_map:
+            if not self.hugo_map[hugo].chrom in self.chrom_map:
+                self.chrom_map[self.hugo_map[hugo].chrom] = []
+            self.chrom_map[self.hugo_map[hugo].chrom].append(self.hugo_map[hugo])
 
-        for chrom in self.chromMap:
-            self.chromMap[chrom].sort(
-            lambda x, y: x.chromStart - y.chromStart)
+        for chrom in self.chrom_map:
+            self.chrom_map[chrom].sort(
+            lambda x, y: x.chrom_start - y.chrom_start)
 
     def has_chrom(self, chrom):
-        return chrom in self.chromMap
+        return chrom in self.chrom_map
 
     def get_chrom(self, chrom):
-        return self.chromMap[chrom]
+        return self.chrom_map[chrom]

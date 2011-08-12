@@ -19,50 +19,50 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
     def get_sample_list(self):
         return self.get_cols()
 
-    def sample_rename(self, oldSample, newSample):
-        self.col_rename( oldSample, newSample )
+    def sample_rename(self, old_sample, new_sample):
+        self.col_rename( old_sample, new_sample )
 
-    def probe_remap(self, oldProbe, newProbe):
-        self.row_rename( oldProbe, newProbe )
+    def probe_remap(self, old_probe, new_probe):
+        self.row_rename( old_probe, new_probe )
 
-    def remap(self, altMap, skipMissing=False):
-        validMap = {}
-        for alt in altMap:
-            validMap[alt.aliases[0]] = True
-            if not skipMissing or alt.name in self.probeHash:
+    def remap(self, alt_map, skip_missing=False):
+        valid_map = {}
+        for alt in alt_map:
+            valid_map[alt.aliases[0]] = True
+            if not skip_missing or alt.name in self.probe_hash:
                 self.probe_remap(alt.name, alt.aliases[0])
-        if skipMissing:
-            removeList = []
-            for name in self.probeHash:
-                if not name in validMap:
-                    removeList.append(name)
-            for name in removeList:
-                del self.probeHash[name]
+        if skip_missing:
+            remove_list = []
+            for name in self.probe_hash:
+                if not name in valid_map:
+                    remove_list.append(name)
+            for name in remove_list:
+                del self.probe_hash[name]
 
     def remove_null_probes(self, threshold=0.0):
-        removeList = []
-        for probe in self.probeHash:
-            nullCount = 0.0
-            for val in self.probeHash[probe]:
+        remove_list = []
+        for probe in self.probe_hash:
+            null_count = 0.0
+            for val in self.probe_hash[probe]:
                 if val is None:
-                    nullCount += 1.0
-            nullPrec = nullCount / float(len(self.probeHash[probe]))
+                    null_count += 1.0
+            nullPrec = null_count / float(len(self.probe_hash[probe]))
             if 1.0 - nullPrec <= threshold:
-                removeList.append(probe)
-        for name in removeList:
-            del self.probeHash[name]
+                remove_list.append(probe)
+        for name in remove_list:
+            del self.probe_hash[name]
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
         sampleList = self.get_sample_list()
         sampleList.sort(lambda x, y: self.sampleList[x] - self.sampleList[y])
         write.writerow(["#1.2"])
-        write.writerow([len(self.probeHash), len(sampleList)])
+        write.writerow([len(self.probe_hash), len(sampleList)])
         write.writerow(["NAME", "Description"] + sampleList)
-        for probe in self.probeHash:
+        for probe in self.probe_hash:
             out = [probe, probe]
             for sample in sampleList:
-                val = self.probeHash[probe][self.sampleList[sample]]
+                val = self.probe_hash[probe][self.sampleList[sample]]
                 if val is None:
                     val = missing
                 out.append(val)
