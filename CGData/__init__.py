@@ -2,7 +2,7 @@
 import os
 import re
 import json
-
+from zipfile import ZipFile
 
 """
 CGData object style:
@@ -103,6 +103,7 @@ class CGObjectBase:
     def __init__(self):
         self.attrs = {}
         self.path = None
+        self.zip = None
         self.light_mode = False
 
     def load(self, path=None, **kw):
@@ -110,10 +111,18 @@ class CGObjectBase:
             path = self.path
         if path is None:
             raise OSError( "Path not defined" ) 
-        dhandle = open(path)
-        self.read(dhandle, **kw)
-        dhandle.close()
         
+        if self.zip is None:
+            dhandle = open(path)
+            self.read(dhandle, **kw)
+            dhandle.close()
+        else:
+            z = ZipFile(self.zip)
+            dhandle = z.open(self.path)
+            self.read(dhandle, **kw)
+            dhandle.close()
+            z.close()
+            
         self.path = path
         if (os.path.exists(path + ".json")):
             mhandle = open(path + ".json")
@@ -213,7 +222,7 @@ def cg_new(type_str):
     out = cls()
     return out
 
-def load(path):
+def load(path, zip=None):
     if not path.endswith(".json"):
         path = path + ".json"
 
@@ -235,22 +244,30 @@ def load(path):
         raise FormatException("%s class not found" % (meta['type']))
 
 
-def light_load(path):
+def light_load(path, zip=None):
     if not path.endswith(".json"):
         path = path + ".json"
 
     data_path = re.sub(r'.json$', '', path)
 
-    try:
-        handle = open(path)
+    if zip is None:
+        try:
+            handle = open(path)
+            meta = json.loads(handle.read())
+        except IOError:
+            raise FormatException("Meta-info (%s) file not found" % (path))
+    else:
+        z = ZipFile(zip)
+        handle = z.open(path)
         meta = json.loads(handle.read())
-    except IOError:
-        raise FormatException("Meta-info (%s) file not found" % (path))
+        handle.close()
+        z.close()
         
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
         out.set_attrs( meta )
         out.path = data_path
+        out.zip = zip
         out.light_mode = True
         return out
     else:

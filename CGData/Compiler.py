@@ -5,6 +5,7 @@ from glob import glob
 import json
 from copy import copy
 import CGData
+import CGData.CGZ
 
 def log(eStr):
     sys.stderr.write("LOG: %s\n" % (eStr))
@@ -40,7 +41,6 @@ class BrowserCompiler:
 
     def __init__(self):
         self.set_hash = {}
-        self.path_hash = {}
         self.out_dir = "out"
 
     def scan_dirs(self, dirs):
@@ -54,23 +54,36 @@ class BrowserCompiler:
                     error("BAD JSON in " + path + " " + str(e) )
                     data = None
                 handle.close()
+
+                if (data is not None and 'name' in data 
+                and data['name'] is not None
+                and 'type' in data):                
+                    self.addFile(data['type'], data['name'], path)
                 
-                if data is not None and 'name' in data and data['name'] is not None\
-                and 'type' in data\
-                and CGData.has_type(data['type']):
-                    if not data['type'] in self.set_hash:
-                        self.set_hash[ data['type'] ] = {}
-                        self.path_hash[ data['type'] ] = {}
+                
+            
+            for path in glob(os.path.join(dir, "*.cgz")):
+                cgzList = CGData.CGZ.list( path )
+                for type in cgzList:
+                    for zPath in cgzList[type]:
+                        self.addFile(type, cgzList[type][zPath], zPath, path)
+                    
+    
+    def addFile(self, type, name, path, zipFile=None):
+        if CGData.has_type(type):
+            if not type in self.set_hash:
+                self.set_hash[ type ] = {}
                         
-                    if data['name'] in self.set_hash[data['type']]:
-                        error("Duplicate %s file %s" % (
-                            data['type'], data['name']))
-                    self.set_hash[data['type']][data['name']] = CGData.light_load( path )
-                    self.path_hash[data['type']][data['name']] = path
-                    log("FOUND: " + data['type'] +
-                        "\t" + data['name'] + "\t" + path)
-                else:
-                    warn("Unknown file type: %s" % (path))
+            if name in self.set_hash[type]:
+                error("Duplicate %s file %s" % (
+                type, name))
+            self.set_hash[type][name] = CGData.light_load( path, zipFile )
+            log("FOUND: " + type +
+                "\t" + name + "\t" + path)
+        else:
+            warn("Unknown file type: %s" % (path))
+            
+    
     
     def __iter__(self):
         return self.set_hash.__iter__()
