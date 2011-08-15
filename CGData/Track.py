@@ -94,8 +94,3 @@ CREATE TABLE sample_%s (
                 yield istr
             else:
                 print "Probe not found:", probe_name
-        
-
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, expCount) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%d');\n" % \
-            ( "genomic_" + table_base, "sample_" + table_base, "clinical_" + table_base, "clinical_" + table_base + "_colDb", "genomic_" + table_base + "_alias", table_base, expCount )
-		
