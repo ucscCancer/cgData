@@ -81,14 +81,12 @@ CREATE TABLE sample_%s (
         for sample in gmatrix.get_sample_list():
             sample_ids.append( str( id_table.get( 'sampleID', sample ) ) )
         
-        expCount = 0
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
             exps = ','.join( str(a) for a in row[1:])
             probe = pmap.get( probe_name )
             if probe is not None:
-                expCount = len(exps)
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
                     ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(exps), exp_ids, exps )
                 yield istr
