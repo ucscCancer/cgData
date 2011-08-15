@@ -43,6 +43,7 @@ class BrowserCompiler:
         self.set_hash = {}
         self.out_dir = "out"
 
+
     def scan_dirs(self, dirs):
         for dir in dirs:
             log("SCANNING DIR: %s" % (dir))

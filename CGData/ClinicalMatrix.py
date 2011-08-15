@@ -109,9 +109,9 @@ CREATE TABLE clinical_%s (
 
         for col in col_order:
             if ( enum_map.has_key( col ) ):
-                yield ",\n\t%s ENUM( '%s' ) default NULL" % (col, "','".join( sql_fix(a) for a in enum_map[ col ].keys() ) )
+                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in enum_map[ col ].keys() ) )
             else:
-                yield ",\n\t%s FLOAT default NULL" % (col)
+                yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
         yield """
     ) ;	
     """
@@ -136,7 +136,7 @@ CREATE TABLE clinical_%s (
 `shortLabel` varchar(255) default NULL,
 `longLabel` varchar(255) default NULL,
 `valField` varchar(255) default NULL,
-`table_name` varchar(255) default NULL,
+`tableName` varchar(255) default NULL,
 `priority` float default NULL,
 `filterType` varchar(255) default NULL,
 `visibility` varchar(255) default NULL,
@@ -145,8 +145,8 @@ PRIMARY KEY  (`id`),
 KEY `name` (`name`)
 """
         for name in col_order:
-            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,table_name) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
-                ( table_name, name, name, name, name, "clinical_" + table_name )
+            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
+                ( table_name, name, name, name, name.strip(), "clinical_" + table_name )
 
             
         

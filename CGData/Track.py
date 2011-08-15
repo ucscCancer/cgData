@@ -6,8 +6,8 @@ CREATE_BED = """
 CREATE TABLE %s (
     bin smallint unsigned not null,
     chrom varchar(255) not null,
-    chrom_start int unsigned not null,
-    chrom_end int unsigned not null,
+    chromStart int unsigned not null,
+    chromEnd int unsigned not null,
     name varchar(255) not null,
     score int not null,
     strand char(1) not null,
@@ -21,7 +21,8 @@ CREATE TABLE %s (
     expIds longblob not null,
     expScores longblob not null,
     INDEX(name(16)),
-    INDEX(chrom(4),chrom_start),
+    INDEX(chrom(4),chromStart),
+    INDEX(chrom(4),chromEnd),
     INDEX(chrom(4),bin)
 );
 """
@@ -78,12 +79,14 @@ CREATE TABLE sample_%s (
         for sample in gmatrix.get_sample_list():
             sample_ids.append( str( id_table.get( 'sampleID', sample ) ) )
         
+        expCount = 0
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
             exps = ','.join( str(a) for a in row[1:])
             probe = pmap.get( probe_name )
             if probe is not None:
+                expCount = len(exps)
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
                     ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(exps), exp_ids, exps )
                 yield istr
@@ -91,6 +94,6 @@ CREATE TABLE sample_%s (
                 print "Probe not found:", probe_name
         
 
-        #raDbHandle.write( "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s');\n" % \
-        #    ( "genomic_" + genomicName, "sample_" + sampleName, "clinical_" + clinicalNames[0], "clinical_" + clinicalNames[0] + "_colDb", "genomic_" + genomicName + "_alias", genomicName ))
+        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, expCount) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%d');\n" % \
+            ( "genomic_" + table_base, "sample_" + table_base, "clinical_" + table_base, "clinical_" + table_base + "_colDb", "genomic_" + table_base + "_alias", table_base, expCount )
 		

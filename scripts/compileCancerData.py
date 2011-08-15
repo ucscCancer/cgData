@@ -50,3 +50,4 @@ if __name__ == "__main__":
     cg.link_objects()
     cg.build_ids()
     cg.gen_sql()
+
