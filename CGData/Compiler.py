@@ -6,21 +6,7 @@ import json
 from copy import copy
 import CGData
 import CGData.CGZ
-
-def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr))
-    #errorLogHandle.write("LOG: %s\n" % (eStr))
-
-
-def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr))
-    #errorLogHandle.write("WARNING: %s\n" % (eStr))
-
-
-def error(eStr):
-    sys.stderr.write("ERROR: %s\n" % (eStr))
-    #errorLogHandle.write("ERROR: %s\n" % (eStr))
-
+from CGData import log, error, warn
 
 class CGIDTable:
     
@@ -152,7 +138,9 @@ class BrowserCompiler:
                     ready_matrix[ merge_type ] = {}
                 ready_matrix[ merge_type ][ mobj.get_name() ] = mobj
         
-        self.ready_matrix = ready_matrix                    
+        self.ready_matrix = ready_matrix
+        for dType in self.ready_matrix:
+            log("Found %s %d" % (dType, len(self.ready_matrix[dType])))
         
     def set_enumerate( self, merge_type, a, b={} ):
         """
@@ -217,6 +205,8 @@ class BrowserCompiler:
                         for line in shandle:
                             ohandle.write( line )
                         ohandle.close()
+                    #tell the object to unload data, so we don't continually allocate over the compile
+                    self.ready_matrix[ rtype ][ rname ].unload()
     
     
 
