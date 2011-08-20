@@ -89,7 +89,7 @@ CREATE TABLE sample_%s (
             probe = pmap.get( probe_name )
             if probe is not None:
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(exps), exp_ids, exps )
+                    ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
                 yield istr
             else:
                 missingProbeCount += 1
