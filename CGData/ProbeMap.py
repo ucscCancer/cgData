@@ -44,6 +44,8 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             if not hasattr(probe, attr):
                 raise CGData.FormatException("Missing %s" % (attr))
 
+        if self.chrom_map is None:
+            self.chrom_map = {}
         if not probe.chrom in self.chrom_map:
             self.chrom_map[probe.chrom] = {}
         self.chrom_map[probe.chrom][probe.name] = probe

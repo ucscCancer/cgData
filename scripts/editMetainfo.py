@@ -2,12 +2,12 @@
 
 import sys
 import csv
-import cgData.compiler
+import CGData.Compiler
 
 editHash={}
 
 handle = open( sys.argv[1] )
-reader = csv.reader( handle, delimiter="\t" )
+reader = csv.reader(handle)
 
 rowNum = None
 
@@ -18,19 +18,21 @@ for row in reader:
             rowNum[ i ] = row[i]
     else:
         e = {}
-        for i in rowNum:
+        for i in range(1,len(row)):
             e[ rowNum[i] ] = row[i]
         editHash[ row[0] ] = e
 handle.close()
 
+editSpace = sys.argv[2]
+
 print editHash
 
-cg = cgData.compiler.browserCompiler()
-cg.scanDirs( sys.argv[2:] )
+cg = CGData.Compiler.BrowserCompiler()
+cg.scan_dirs( sys.argv[3:] )
 
-for cName in cg[ 'genomicMatrix' ]:
+for cName in cg[ editSpace ]:
     if cName in editHash:
-        cObj = cg[ 'genomicMatrix' ][ cName ]
+        cObj = cg[ editSpace ][ cName ]
         for col in editHash[ cName ]:
             cObj.attrs[col] = editHash[ cName ][col]
             print cObj.attrs

@@ -3,7 +3,7 @@ import os
 import re
 import json
 from zipfile import ZipFile
-
+import sys
 """
 CGData object style:
 
@@ -73,6 +73,10 @@ class CGGroupBase:
     def get_name(self):
         return self.name
     
+    def unload(self):
+        for name in self.members:
+            self.members[name].unload()
+    
     def get(self, **kw):
         for elem in self.members:
             found = True
@@ -128,6 +132,9 @@ class CGObjectBase:
             mhandle = open(path + ".json")
             self.set_attrs(json.loads(mhandle.read()))
             mhandle.close()
+
+    def unload(self):
+		pass
 
     def is_link_ready(self):
         return True
@@ -272,3 +279,19 @@ def light_load(path, zip=None):
         return out
     else:
         raise FormatException("%s class not found" % (meta['type']))
+
+
+
+def log(eStr):
+    sys.stderr.write("LOG: %s\n" % (eStr))
+    #errorLogHandle.write("LOG: %s\n" % (eStr))
+
+
+def warn(eStr):
+    sys.stderr.write("WARNING: %s\n" % (eStr))
+    #errorLogHandle.write("WARNING: %s\n" % (eStr))
+
+
+def error(eStr):
+    sys.stderr.write("ERROR: %s\n" % (eStr))
+    #errorLogHandle.write("ERROR: %s\n" % (eStr))

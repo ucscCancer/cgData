@@ -97,3 +97,7 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                     self.row_hash[probe] = [None] * (len(self.sample_list))
                 self.row_hash[probe][self.sample_list[sample]] = \
                 matrix.row_hash[probe][matrix.sample_list[sample]]
+
+    def unload(self):
+        self.col_list = None
+        self.row_hash = None

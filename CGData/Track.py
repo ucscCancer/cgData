@@ -53,10 +53,11 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
         gmatrix = self.members[ 'genomicMatrix' ]
         pmap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
         if pmap is None:
-            print "Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() )
+            CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
         
         table_base = self.get_name()
+        CGData.log("Writing Track %s" % (table_base))
 
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, expCount, dataType, platform) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s');\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
@@ -88,6 +89,7 @@ CREATE TABLE sample_%s (
         for sample in gmatrix.get_sample_list():
             sample_ids.append( str( id_table.get( 'sampleID', sample ) ) )
         
+        missingProbeCount = 0
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
@@ -95,7 +97,12 @@ CREATE TABLE sample_%s (
             probe = pmap.get( probe_name )
             if probe is not None:
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(exps), exp_ids, exps )
+                    ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
                 yield istr
             else:
-                print "Probe not found:", probe_name
+                missingProbeCount += 1
+        CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
+
+    def unload(self):
+        for t in self.members:
+            self.members[t].unload()
