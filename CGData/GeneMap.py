@@ -56,7 +56,7 @@ def block_overlap(start, end, strand, gene):
 def exon_overlap(start, end, strand, gene):
     if gene.strand != gene.strand:
         return False
-    for i in range(gene.ex_count):
+    for i in range(int(gene.ex_count)):
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
             return True
     return False

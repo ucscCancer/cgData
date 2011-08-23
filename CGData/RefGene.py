@@ -34,9 +34,9 @@ class GeneInfo:
         self.ex_start = []
         for p in re_comma_end.sub("", ex_start).split(','):
             self.ex_start.append(int(p))
-        self.ex_End = []
+        self.ex_end = []
         for p in re_comma_end.sub("", ex_end).split(','):
-            self.ex_End.append(int(p))
+            self.ex_end.append(int(p))
         self.name = hugo
 
     def __repr__(self):
