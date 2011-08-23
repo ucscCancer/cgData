@@ -40,9 +40,9 @@ class ProbeMapper:
 
 
 def gene_overlap(start, end, strand, gene):
-    if gene.strand == gene.strand\
-    and gene.chrom_end > start\
-    and gene.chrom_start < end:
+    if ((gene.strand == strand or strand == '.' or gene.strand == '.')
+    and gene.chrom_end > start
+    and gene.chrom_start < end):
         return True
     return False
 
@@ -54,7 +54,7 @@ def block_overlap(start, end, strand, gene):
 
 
 def exon_overlap(start, end, strand, gene):
-    if gene.strand != gene.strand:
+    if gene.strand != strand and gene.strand != '.' and strand != '.':
         return False
     for i in range(gene.ex_count):
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
