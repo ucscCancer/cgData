@@ -59,14 +59,16 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
         table_base = self.get_name()
         CGData.log("Writing Track %s" % (table_base))
 
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, expCount, dataType, platform) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s');\n" % \
+        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, expCount, dataType, platform, profile, security) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s');\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + table_base, "clinical_" + table_base + "_colDb",
                 "genomic_" + table_base + "_alias",
                 table_base,
                 len(gmatrix.get_sample_list()),
-                'bed15',
+                'bed 15',
                 gmatrix.attrs[':dataSubType'],
+                'localDb',
+                'public',
                 )
         
         # write out the sample table
