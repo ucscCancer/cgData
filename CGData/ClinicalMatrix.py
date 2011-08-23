@@ -13,7 +13,7 @@ CREATE TABLE `%s` (
   `shortLabel` varchar(255) default NULL,
   `longLabel` varchar(255) default NULL,
   `valField` varchar(255) default NULL,
-  `tableName` varchar(255) default NULL,
+  `clinicalTable` varchar(255) default NULL,
   `priority` float default NULL,
   `filterType` varchar(255) default NULL,
   `visibility` varchar(255) default NULL,
@@ -136,7 +136,7 @@ CREATE TABLE clinical_%s (
 `shortLabel` varchar(255) default NULL,
 `longLabel` varchar(255) default NULL,
 `valField` varchar(255) default NULL,
-`tableName` varchar(255) default NULL,
+`clinicalTable` varchar(255) default NULL,
 `priority` float default NULL,
 `filterType` varchar(255) default NULL,
 `visibility` varchar(255) default NULL,
@@ -145,7 +145,7 @@ PRIMARY KEY  (`id`),
 KEY `name` (`name`)
 """
         for name in col_order:
-            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,tableName) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
+            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable) VALUES( '%s', '%s', '%s', '%s', '%s' );\n" % \
                 ( table_name, name, name, name, name.strip(), "clinical_" + table_name )
 
             
