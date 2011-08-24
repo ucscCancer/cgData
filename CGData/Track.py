@@ -87,7 +87,7 @@ CREATE TABLE sample_%s (
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
-            exps = ','.join( str(a) for a in row[1:])
+            exps = ','.join( str(a) for a in row )
             probe = pmap.get( probe_name )
             if probe is not None:
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
