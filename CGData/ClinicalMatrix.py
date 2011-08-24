@@ -145,12 +145,9 @@ PRIMARY KEY  (`id`),
 KEY `name` (`name`)
 """
         for name in col_order:
-            if ( enum_map.has_key( name ) ):
-                yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType) VALUES( '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( clinicalTable, name, name, name, name, "clinical_" + clinicalTable, "coded"  )
-            else:
-                yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType) VALUES( '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( table_name, name, name, name, name, "clinical_" + table_name, "minmax"  )
+            filter = 'coded' if enum_map.has_key(name) else 'minMax'
+            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
+                    ( table_name, name, name, name, name, "clinical_" + table_name, filter )
 
             
         
