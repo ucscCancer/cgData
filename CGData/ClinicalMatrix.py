@@ -105,7 +105,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         
         yield """
 CREATE TABLE clinical_%s (
-\tid int""" % ( table_name )
+\tsampleID int""" % ( table_name )
 
         for col in col_order:
             if ( enum_map.has_key( col ) ):
