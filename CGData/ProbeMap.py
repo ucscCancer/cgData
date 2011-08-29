@@ -35,10 +35,13 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         read = csv.reader(handle, delimiter="\t")
         for line in read:
             self.gene_map[line[0]] = line[1].split(',')
-            self.append(
-            Probe(line[0], line[2], int(line[3]),
-                int(line[4]), line[5], self.gene_map[line[0]]))
-
+            try:
+                self.append(
+                Probe(line[0], line[2], int(line[3]),
+                    int(line[4]), line[5], self.gene_map[line[0]]))
+            except ValueError:
+                """location int conversion failed, ignore silently"""
+                pass
     def append(self, probe):
         for attr in self.child_type.core_attr:
             if not hasattr(probe, attr):

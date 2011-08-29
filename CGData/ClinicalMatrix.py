@@ -52,6 +52,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
             id_allocator.alloc( 'feature_id', sample_id )
 
     def gen_sql(self, id_table):
+        CGData.log( "Gen %s SQL" % (self.attrs['name']))
         float_map = {}
         enum_map = {}
         for key in self.col_list:
@@ -122,10 +123,10 @@ CREATE TABLE clinical_%s (
                 val = self.row_hash[ target ][ self.col_list[ col ] ]
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
-                    a.append("\N")
+                    a.append("\\N")
                 else:				
-                    a.append( "'" + sql_fix( str(val) ) + "'" )
-            yield "INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sample_id', target ), ",".join(a) )
+                    a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
+            yield u"INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sample_id', target ), u",".join(a) )
 
 
         yield "drop table if exists clinical_%s_colDb;" % ( table_name )

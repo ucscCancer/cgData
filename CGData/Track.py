@@ -47,7 +47,7 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
     def build_ids(self, id_table):
         
         for sample in self.members[ 'genomicMatrix' ].get_sample_list():
-            id_table.alloc( 'sampleID', sample)
+            id_table.alloc( 'sample_id', sample)
 
     def gen_sql(self, id_table):
         gmatrix = self.members[ 'genomicMatrix' ]
@@ -83,7 +83,7 @@ CREATE TABLE sample_%s (
 """ % ( table_base )
 
         for sample in gmatrix.get_sample_list():
-            yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( 'sampleID', sample), sample )
+            yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( 'sample_id', sample), sample )
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
@@ -91,7 +91,7 @@ CREATE TABLE sample_%s (
         
         sample_ids = []
         for sample in gmatrix.get_sample_list():
-            sample_ids.append( str( id_table.get( 'sampleID', sample ) ) )
+            sample_ids.append( str( id_table.get( 'sample_id', sample ) ) )
         
         missingProbeCount = 0
         for probe_name in gmatrix.get_probe_list():

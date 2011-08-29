@@ -34,6 +34,10 @@ for cName in cg[ editSpace ]:
     if cName in editHash:
         cObj = cg[ editSpace ][ cName ]
         for col in editHash[ cName ]:
-            cObj.attrs[col] = editHash[ cName ][col]
-            print cObj.attrs
-            cObj.store()
+            if len(editHash[ cName ][col]):
+                cObj.attrs[col] = editHash[ cName ][col]
+            else:
+                if col in cObj.attrs:
+                    del cObj.attrs[col]
+        print cObj.attrs
+        cObj.store()
