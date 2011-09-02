@@ -47,7 +47,7 @@ class SampleMap(CGData.CGDataSetObject):
     CREATE TABLE sample_%s (
         id           int,
         sampleName   varchar(255)
-    );
+    ) engine 'MyISAM';
     """ % ( sample_info[ 'name' ] ) )
         
         sample_hash = {}

@@ -24,7 +24,7 @@ CREATE TABLE %s (
     INDEX(chrom(4),chromStart),
     INDEX(chrom(4),chromEnd),
     INDEX(chrom(4),bin)
-);
+) engine 'MyISAM';
 """
 
 
@@ -79,7 +79,7 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
 CREATE TABLE sample_%s (
     id           int,
     sampleName   varchar(255)
-);
+) engine 'MyISAM';
 """ % ( table_base )
 
         for sample in gmatrix.get_sample_list():

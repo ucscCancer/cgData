@@ -59,7 +59,7 @@ class CancerTrack:
 CREATE TABLE genomic_%s_alias (
 \tname varchar(255) default NULL,
 \talias varchar(255) default NULL
-);
+) engine 'MyISAM';
 """ % ( genomeInfo[ 'name' ] ) )
         for row in read:
             for alias in row[5].rstrip().split(','):

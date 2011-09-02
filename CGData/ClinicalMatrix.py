@@ -20,7 +20,7 @@ CREATE TABLE `%s` (
   `groupName` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   KEY `name` (`name`)
-);
+) engine 'MyISAM';
 """
 
 class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
@@ -114,7 +114,7 @@ CREATE TABLE clinical_%s (
             else:
                 yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
         yield """
-    ) ;	
+    ) engine 'MyISAM';
     """
         
         for target in self.row_hash:
