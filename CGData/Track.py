@@ -1,5 +1,7 @@
 
 import CGData
+import binascii
+import struct
 from CGData.SQLUtil import *
 
 CREATE_BED = """
@@ -21,9 +23,7 @@ CREATE TABLE %s (
     expIds longblob not null,
     expScores longblob not null,
     INDEX(name(16)),
-    INDEX(chrom(4),chromStart),
-    INDEX(chrom(4),chromEnd),
-    INDEX(chrom(4),bin)
+    INDEX(chrom(5),bin)
 ) engine 'MyISAM';
 """
 
@@ -87,7 +87,7 @@ CREATE TABLE sample_%s (
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
-        yield CREATE_BED % ( "genomic_" + table_base )
+        yield CREATE_BED % ( "genomic_" + table_base + "_tmp")
         
         sample_ids = []
         for sample in gmatrix.get_sample_list():
@@ -97,14 +97,19 @@ CREATE TABLE sample_%s (
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
+#            exps = ''.join( binascii.hexlify(struct.pack('f', a)) for a in row )
             exps = ','.join( str(a) for a in row )
             probe = pmap.get( probe_name )
             if probe is not None:
+                #istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', x'%s' );\n" % \
                 istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                    ( "genomic_%s" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
+                    ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
                 yield istr
             else:
                 missingProbeCount += 1
+        yield "create table genomic_%s like genomic_%s_tmp;" % (table_base, table_base)
+        yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;" % (table_base, table_base)
+        yield "drop table genomic_%s_tmp;" % table_base
         CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
 
     def unload(self):
