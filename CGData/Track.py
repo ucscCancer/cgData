@@ -97,12 +97,12 @@ CREATE TABLE sample_%s (
         for probe_name in gmatrix.get_probe_list():
             exp_ids = ','.join( sample_ids )
             row = gmatrix.get_row_vals( probe_name )
-#            exps = ''.join( binascii.hexlify(struct.pack('f', a)) for a in row )
-            exps = ','.join( str(a) for a in row )
+            exps = ''.join( binascii.hexlify(struct.pack('f', a)) for a in row )
+#            exps = ','.join( str(a) for a in row )
             probe = pmap.get( probe_name )
             if probe is not None:
-                #istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', x'%s' );\n" % \
-                istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
+                #istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
+                istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', x'%s' );\n" % \
                     ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
                 yield istr
             else:
