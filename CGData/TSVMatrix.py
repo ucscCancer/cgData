@@ -56,8 +56,10 @@ class TSVMatrix(CGData.CGDataMatrixObject):
     def get_cols(self):
         if self.col_list is None:
             self.load( skip_vals=True )
-        return self.col_list.keys()
-    
+        out = self.col_list.keys()
+        out.sort( lambda x,y: self.col_list[x]-self.col_list[y])
+        return out 
+        
     def get_rows(self):
         return self.row_hash.keys()
     
