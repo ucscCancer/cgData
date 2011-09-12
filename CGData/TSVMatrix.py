@@ -5,7 +5,7 @@ import CGData
 class TSVMatrix(CGData.CGDataMatrixObject):
 
     element_type = float
-    
+    null_type = None
     def __init__(self):
         self.col_list = None
         self.row_hash = None    
@@ -28,10 +28,10 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                     pos += 1
             else:
                 if not skip_vals:
-                    self.row_hash[row[0]] = [None] * (len(pos_hash))
+                    self.row_hash[row[0]] = [self.null_type] * (len(pos_hash))
                     for col in pos_hash:
                         i = pos_hash[col] + 1
-                        if row[i] != 'NA' and row[i] != 'null' and len(row[i]):
+                        if row[i] != 'NA' and row[i] != 'null' and row[i] != 'NONE' and row[i] != "N/A" and len(row[i]):
                             self.row_hash[row[0]][i - 1] = self.element_type(row[i])
                 else:
                     self.row_hash[row[0]] = None
