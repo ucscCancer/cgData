@@ -88,7 +88,7 @@ CREATE TABLE sample_%s (
         
         yield "drop table if exists probe_%s;" % ( table_base )
         yield """
-CREATE TABLE probe_%s (
+CREATE TABLE genomic_%s_alias (
     probe        varchar(255),
     gene         varchar(255)
 ) engine 'MyISAM';
