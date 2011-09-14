@@ -85,6 +85,19 @@ CREATE TABLE sample_%s (
         for sample in gmatrix.get_sample_list():
             yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( 'sample_id', sample), sample )
 
+        
+        yield "drop table if exists probe_%s;" % ( table_base )
+        yield """
+CREATE TABLE probe_%s (
+    probe        varchar(255),
+    gene         varchar(255)
+) engine 'MyISAM';
+""" % ( table_base )
+
+        for probe in pmap:
+            for alias in probe.aliases:
+                yield "insert into probe_%s( probe, gene ) values( '%s', '%s' );\n" % (table_base, probe.name, alias)
+
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
         yield CREATE_BED % ( "genomic_" + table_base + "_tmp")
