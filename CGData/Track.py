@@ -96,7 +96,7 @@ CREATE TABLE genomic_%s_alias (
 
         for probe in pmap:
             for alias in probe.aliases:
-                yield "insert into genomic_%s_alias( probe, gene ) values( '%s', '%s' );\n" % (table_base, probe.name, alias)
+                yield "insert into genomic_%s_alias( probe, gene ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )

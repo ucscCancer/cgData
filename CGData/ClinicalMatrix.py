@@ -124,8 +124,8 @@ CREATE TABLE clinical_%s (
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
-                else:				
-                    a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
+                else:
+                    a.append( "'" + sql_fix(val) + "'" )
             yield u"INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sample_id', target ), u",".join(a) )
 
 
