@@ -86,7 +86,7 @@ CREATE TABLE sample_%s (
             yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( 'sample_id', sample), sample )
 
         
-        yield "drop table if exists probe_%s;" % ( table_base )
+        yield "drop table if exists genomic_%s_alias;" % ( table_base )
         yield """
 CREATE TABLE genomic_%s_alias (
     probe        varchar(255),
@@ -96,7 +96,7 @@ CREATE TABLE genomic_%s_alias (
 
         for probe in pmap:
             for alias in probe.aliases:
-                yield "insert into probe_%s( probe, gene ) values( '%s', '%s' );\n" % (table_base, probe.name, alias)
+                yield "insert into genomic_%s_alias( probe, gene ) values( '%s', '%s' );\n" % (table_base, probe.name, alias)
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
