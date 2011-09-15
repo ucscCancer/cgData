@@ -8,8 +8,8 @@ class Segment:
         self.chrom = chrom.lower()
         if not self.chrom.startswith('chr'):
             self.chrom = 'chr' + self.chrom
-        self.chromStart = start
-        self.chromEnd = end
+        self.chrom_start = start
+        self.chrom_end = end
         self.strand = strand
         self.value = value
 

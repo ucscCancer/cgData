@@ -1,24 +1,26 @@
 #!/usr/bin/env python
 
+#note: this script assumes that the first alias in the probeMap aliaslist 
+#is a HUGO gene name...
 
-import cgData
+import CGData
 import sys
 
 # matrixProbeRemap.py <matrixFile> <probeFile>
 
 #load the matrix
-matrix = cgData.load( sys.argv[1] )
+matrix = CGData.load( sys.argv[1] )
 
 #load the probeMap
-probeMap = cgData.load( sys.argv[2] )
+probeMap = CGData.load( sys.argv[2] )
 
 #remove null probes from the matrix
-matrix.removeNullProbes()
+matrix.remove_null_probes()
 
 #remap the matrix using the probe map
-matrix.remap( probeMap, skipMissing=True )
+matrix.remap( probeMap, skip_missing=True )
 
-matrix.addHistory( "Transformed from probespace %s to HUGO" % (probeMap.getName() ) )
-
+matrix.add_history( "Transformed from probespace %s to HUGO" % (probeMap.get_name() ) )
+matrix.attrs[":probeMap"] = "hugo"
 #output the matrix
 matrix.store( sys.argv[1] + ".hugo" )

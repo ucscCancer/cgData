@@ -22,7 +22,7 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
     child_type = Probe
 
     def __init__(self):
-        CGData.CGDataSetObject()
+        CGData.CGDataSetObject.__init__(self)
         self.gene_map = None
         self.chrom_map = None
 
