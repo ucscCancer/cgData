@@ -5,7 +5,7 @@ import math
 
 class TSVMatrix(CGData.CGDataMatrixObject):
 
-    element_type = float
+    element_type = str
     null_type = None
     def __init__(self):
         CGData.CGDataMatrixObject.__init__(self)
@@ -54,7 +54,7 @@ class TSVMatrix(CGData.CGDataMatrixObject):
             out = [probe]
             for sample in sample_list:
                 val = self.row_hash[probe][self.col_list[sample]]
-                if val == self.null_type or val is None or math.isnan(val):
+                if val == self.null_type or val is None or (type(val)==float and math.isnan(val)):
                     val = missing
                 out.append(val)
             write.writerow(out)
@@ -82,7 +82,19 @@ class TSVMatrix(CGData.CGDataMatrixObject):
     def row_rename(self, old_row, new_row):
         self.row_hash[new_row] = self.row_hash[old_row]
         del self.row_hash[old_row]
+    
+    def del_row(self, row):
+        del self.row_hash[row]
         
+    def del_col(self, col):
+        i = self.col_list[col]
+        del self.col_list[col]
+        for a in self.col_list:
+            if self.col_list[a] > i:
+                self.col_list[a] -= 1
+        for row in self.row_hash:
+            del self.row_hash[row][i]
+    
     def add(self, row, col, value):
         if not col in self.col_list:
             self.col_list[col] = len(self.col_list)

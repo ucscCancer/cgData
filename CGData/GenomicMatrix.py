@@ -6,6 +6,7 @@ import CGData.TSVMatrix
 class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
     
     null_type = float('nan')
+    element_type = float
 
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
