@@ -24,10 +24,14 @@ class CGIDTable:
 
 
 class BrowserCompiler:
+    
+    PARAMS = [ "compiler.mode" ]
 
-    def __init__(self):
+    def __init__(self,params={}):
         self.set_hash = {}
         self.out_dir = "out"
+        self.params = params
+        print params
 
 
     def scan_dirs(self, dirs):
@@ -120,7 +124,7 @@ class BrowserCompiler:
                     ready_matrix[ stype ][ sname ] = sobj
         
         for rtype in ready_matrix:
-            log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) ) 
+            log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) )         
 
         for merge_type in CGData.MERGE_OBJECTS:
             mtype = CGData.get_type( merge_type )
@@ -188,6 +192,8 @@ class BrowserCompiler:
         return []
 
     def build_ids(self):
+        if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
+            return
         log( "Building Common ID tables" )
         self.id_table = CGIDTable()        
         for rtype in self.ready_matrix:
@@ -196,6 +202,8 @@ class BrowserCompiler:
                     self.ready_matrix[ rtype ][ rname ].build_ids( self.id_table )
 
     def gen_sql(self):
+        if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
+            return
         log( "Writing SQL" )        
         for rtype in self.ready_matrix:
             if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
