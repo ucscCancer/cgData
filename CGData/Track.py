@@ -67,7 +67,7 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
                 "genomic_" + table_base + "_alias",
                 table_base,
                 len(gmatrix.get_sample_list()),
-                'bed 15',
+                'bed 15b',
                 gmatrix.attrs[':dataSubType'],
                 'localDb',
                 'public',
