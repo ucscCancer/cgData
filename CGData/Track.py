@@ -89,14 +89,14 @@ CREATE TABLE sample_%s (
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
         yield """
 CREATE TABLE genomic_%s_alias (
-    probe        varchar(255),
-    gene         varchar(255)
+    name        varchar(255),
+    alias         varchar(255)
 ) engine 'MyISAM';
 """ % ( table_base )
 
         for probe in pmap:
             for alias in probe.aliases:
-                yield "insert into genomic_%s_alias( probe, gene ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
+                yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
