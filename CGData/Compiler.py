@@ -160,11 +160,42 @@ class BrowserCompiler:
                 cur_key = t
         
         if cur_key is None:
-            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
-            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
-            mergeObj = merge_type()
-            mergeObj.merge( **b )
-            return [ mergeObj ]
+            #make sure selected subgraph is connected
+            #start by building a graph of connections
+            #and map of connected nodes
+            cMap = {}
+            lMap = {}
+            for c in b:
+            	n = "%s:%s" % (c, b[c].get_name())
+            	cMap[ n ] = False
+            	lMap[n] = {}
+            	for d in b[c].get_link_map():
+            		for e in b[c].get_link_map()[d]:
+	            		m = "%s:%s" % (d,e)
+    	        		lMap[n][m] = True
+    	    #add the first node to the connected set
+    	    cMap[ cMap.keys()[0] ] = True
+    	    found = True
+    	    #continue adding nodes to the connected set, until no more can be found
+    	    while found:
+    	    	found = False
+    	    	for c in cMap:
+    	    		if not cMap[c]:
+    	    			for d in cMap:
+    	    				if cMap[d]:
+    	    					if d in lMap[c] or c in lMap[d]:
+    	    						found = True
+    	    						cMap[c] = True
+    	    						cMap[d] = True
+            
+            #if there are no disconnected nodes, then the subset represents a connected grapph,
+            #and is ready to merge
+            if cMap.values().count(False) == 0:
+	            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
+	            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
+	            mergeObj = merge_type()
+	            mergeObj.merge( **b )
+	            return [ mergeObj ]
         else:
             out = []
             for i in a[cur_key]:

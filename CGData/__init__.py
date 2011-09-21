@@ -23,11 +23,12 @@ OBJECT_MAP = {
     'clinicalMatrix': ('ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('DataSubType', 'DataSubType'),
     'track': ('Track', 'Track'),
+    'trackClinical': ('TrackClinical', 'TrackClinical'),
     'assembly': ('Assembly', 'Assembly'),
     'clinicalFeature': ('ClinicalFeature', 'ClinicalFeature')
 }
 
-MERGE_OBJECTS = [ 'track' ]
+MERGE_OBJECTS = [ 'track', 'trackClinical' ]
 
 class FormatException(Exception):
 
@@ -193,6 +194,9 @@ class CGMergeObject:
     
     def merge(self, **kw):
         self.members = kw
+
+    def unload(self):
+		pass
 
 
 
