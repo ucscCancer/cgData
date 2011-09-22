@@ -23,4 +23,4 @@ matrix.remap( probeMap, skip_missing=True )
 matrix.add_history( "Transformed from probespace %s to HUGO" % (probeMap.get_name() ) )
 matrix.attrs[":probeMap"] = "hugo"
 #output the matrix
-matrix.store( sys.argv[1] + ".hugo" )
+matrix.store( sys.argv[3] )
