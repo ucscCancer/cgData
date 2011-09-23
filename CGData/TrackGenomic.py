@@ -28,7 +28,7 @@ CREATE TABLE %s (
 """
 
 
-class Track(CGData.CGMergeObject,CGData.CGSQLObject):
+class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
 
     typeSet = { 
         'clinicalMatrix' : True, 
@@ -44,12 +44,9 @@ class Track(CGData.CGMergeObject,CGData.CGSQLObject):
         return "%s" % ( self.members[ "genomicMatrix" ].get_name() )
 
 
-    def build_ids(self, id_table):
-        
-        for sample in self.members[ 'genomicMatrix' ].get_sample_list():
-            id_table.alloc( 'sample_id', sample)
-
     def gen_sql(self, id_table):
+        CGData.CGMergeObject.gen_sql(self, id_table)
+
         gmatrix = self.members[ 'genomicMatrix' ]
         pmap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
         if pmap is None:

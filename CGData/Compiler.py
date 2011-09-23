@@ -14,13 +14,12 @@ class CGIDTable:
     def __init__(self):
         self.id_table = {}
     
-    def alloc( self, itype, iname ):
+    def get( self, itype, iname ):
         if itype not in self.id_table:
             self.id_table[ itype ] = {}
         if iname not in self.id_table[ itype ]:
             self.id_table[ itype ][ iname ] = len( self.id_table[ itype ] )
-    
-    def get( self, itype, iname ):
+            
         return self.id_table[ itype ][ iname ]
 
 
@@ -140,6 +139,11 @@ class BrowserCompiler:
         for rtype in ready_matrix:
             log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) )         
 
+        for dType in ready_matrix:
+            log("Found %s %d" % (dType, len(ready_matrix[dType])))
+            
+        merge_children = {}
+
         for merge_type in CGData.MERGE_OBJECTS:
             mtype = CGData.get_type( merge_type )
             print mtype
@@ -148,6 +152,8 @@ class BrowserCompiler:
             try:
                 for stype in select_types:
                     select_set[ stype ] = ready_matrix[ stype ] 
+                    if stype not in merge_children:
+                        merge_children[stype] = {}
             except KeyError:
                 error("missing data type %s" % (stype) )
                 continue
@@ -155,11 +161,20 @@ class BrowserCompiler:
             for mobj in mobjlist:
                 if merge_type not in ready_matrix:
                     ready_matrix[ merge_type ] = {}
+                for cType in mobj:
+                    merge_children[cType][mobj[cType].get_name()] = True
                 ready_matrix[ merge_type ][ mobj.get_name() ] = mobj
         
-        self.ready_matrix = ready_matrix
-        for dType in self.ready_matrix:
-            log("Found %s %d" % (dType, len(self.ready_matrix[dType])))
+        self.compile_matrix = {}
+        for sType in ready_matrix:
+            self.compile_matrix[sType] = {}
+            for name in ready_matrix[sType]:
+                if sType not in merge_children or name not in merge_children[sType]:
+                    self.compile_matrix[sType][name] = ready_matrix[sType][name]
+       
+        log("After Merge")
+        for dType in ready_matrix:
+            log("Found %s %d" % (dType, len(self.compile_matrix[dType])))
         
     def set_enumerate( self, merge_type, a, b={} ):
         """
@@ -236,31 +251,22 @@ class BrowserCompiler:
             return out
         return []
 
-    def build_ids(self):
-        if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
-            return
-        log( "Building Common ID tables" )
-        self.id_table = CGIDTable()        
-        for rtype in self.ready_matrix:
-            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.ready_matrix[ rtype ]:
-                    self.ready_matrix[ rtype ][ rname ].build_ids( self.id_table )
-
     def gen_sql(self):
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
             return
-        log( "Writing SQL" )        
-        for rtype in self.ready_matrix:
+        log( "Writing SQL" )     
+        self.id_table = CGIDTable()
+        for rtype in self.compile_matrix:
             if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.ready_matrix[ rtype ]:
-                    shandle = self.ready_matrix[ rtype ][ rname ].gen_sql( self.id_table )
+                for rname in self.compile_matrix[ rtype ]:
+                    shandle = self.compile_matrix[ rtype ][ rname ].gen_sql( self.id_table )
                     if shandle is not None:
                         ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
                         for line in shandle:
                             ohandle.write( line )
                         ohandle.close()
                     #tell the object to unload data, so we don't continually allocate over the compile
-                    self.ready_matrix[ rtype ][ rname ].unload()
+                    self.compile_matrix[ rtype ][ rname ].unload()
     
     
 

@@ -22,13 +22,13 @@ OBJECT_MAP = {
     'sampleMap': ('SampleMap', 'SampleMap'),
     'clinicalMatrix': ('ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('DataSubType', 'DataSubType'),
-    'track': ('Track', 'Track'),
+    'trackGenomic': ('TrackGenomic', 'TrackGenomic'),
     'trackClinical': ('TrackClinical', 'TrackClinical'),
     'assembly': ('Assembly', 'Assembly'),
     'clinicalFeature': ('ClinicalFeature', 'ClinicalFeature')
 }
 
-MERGE_OBJECTS = [ 'track', 'trackClinical' ]
+MERGE_OBJECTS = [ 'trackClinical', 'trackGenomic' ]
 
 class FormatException(Exception):
 
@@ -135,7 +135,7 @@ class CGObjectBase:
             mhandle.close()
 
     def unload(self):
-		pass
+        pass
 
     def is_link_ready(self):
         return True
@@ -194,9 +194,20 @@ class CGMergeObject:
     
     def merge(self, **kw):
         self.members = kw
+    
+    def __iter__(self):
+        return self.members.keys().__iter__()
+    
+    def __getitem__(self, item):
+        return self.members[item]
 
     def unload(self):
-		pass
+        pass
+    
+    def gen_sql(self, id_table):
+        for t in self.members:
+            if issubclass(get_type(t), CGSQLObject):
+                self.members[t].gen_sql(id_table)
 
 
 
