@@ -32,12 +32,18 @@ def log(eStr):
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "p:" )
+    opts, args = getopt( sys.argv[1:], "p:f:" )
     params = {}
     for a,o in opts:
         if a == "-p":
-			tmp = o.split("=")
-			params[tmp[0]] = tmp[1]
+            tmp = o.split("=")
+            params[tmp[0]] = tmp[1]
+        if a == "-f":
+            params["filter"] = {}
+            tmp = o.split(",")
+            for p in tmp:
+                tmp2 = p.split("=")
+                params["filter"][tmp2[0]] = tmp2[1]
 
 
     cg = CGData.Compiler.BrowserCompiler(params)

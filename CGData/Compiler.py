@@ -7,6 +7,7 @@ from copy import copy
 import CGData
 import CGData.CGZ
 from CGData import log, error, warn
+import re
 
 class CGIDTable:
     
@@ -37,28 +38,41 @@ class BrowserCompiler:
     def scan_dirs(self, dirs):
         for dir in dirs:
             log("SCANNING DIR: %s" % (dir))
-            for path in glob(os.path.join(dir, "*.json")):
-                handle = open(path)
-                try:
-                    data = json.loads(handle.read())
-                except ValueError, e:
-                    error("BAD JSON in " + path + " " + str(e) )
-                    data = None
-                handle.close()
+            for path in glob(os.path.join(dir, "*")):
+                if os.path.isfile(path):
+                    if path.endswith(".json"):
+                        handle = open(path)
+                        try:
+                            data = json.loads(handle.read())
+                        except ValueError, e:
+                            error("BAD JSON in " + path + " " + str(e) )
+                            data = None
+                        handle.close()
 
-                if (data is not None and 'name' in data 
-                and data['name'] is not None
-                and 'type' in data):                
-                    self.addFile(data['type'], data['name'], path)
-                
-                
-            
-            for path in glob(os.path.join(dir, "*.cgz")):
-                cgzList = CGData.CGZ.list( path )
-                for type in cgzList:
-                    for zPath in cgzList[type]:
-                        self.addFile(type, cgzList[type][zPath], zPath, path)
+                        if (data is not None and 'name' in data 
+                        and data['name'] is not None
+                        and 'type' in data):                
+                            self.addFile(data['type'], data['name'], path)
                     
+                    if path.endswith("*.cgz"):
+                        cgzList = CGData.CGZ.list( path )
+                        for type in cgzList:
+                            for zPath in cgzList[type]:
+                                self.addFile(type, cgzList[type][zPath], zPath, path)
+                if os.path.isdir(path):
+                    self.scan_dirs([path])
+        
+        if "filter" in self.params:
+            for t in self.params["filter"]:
+                if t in self.set_hash:
+                    removeList = []
+                    for name in self.set_hash[t]:
+                        if not re.search( self.params["filter"][t], name):
+                            removeList.append(name)
+                    
+                    for name in removeList:
+                        del self.set_hash[t][name]
+                
     
     def addFile(self, type, name, path, zipFile=None):
         if CGData.has_type(type):
@@ -188,7 +202,7 @@ class BrowserCompiler:
     	    						cMap[c] = True
     	    						cMap[d] = True
             
-            #if there are no disconnected nodes, then the subset represents a connected grapph,
+            #if there are no disconnected nodes, then the subset represents a connected graph,
             #and is ready to merge
             if cMap.values().count(False) == 0:
 	            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
