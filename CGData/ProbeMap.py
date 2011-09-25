@@ -73,11 +73,15 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         return None
 
     def __iter__(self):
+        if self.gene_map is None:
+            self.load()
         for chrome in self.chrom_map:
             for probe in self.chrom_map[chrome]:
                 yield self.chrom_map[chrome][probe]
     
-	def get(self, item):
-		for chrome in self.chrom_map:
-			if item in self.chrom_map[chrome]:
-				return self.chrom_map[chrome][item]
+    def get(self, item):
+        if self.gene_map is None:
+            self.load()
+        for chrome in self.chrom_map:
+            if item in self.chrom_map[chrome]:
+                return self.chrom_map[chrome][item]

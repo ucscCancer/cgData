@@ -7,4 +7,4 @@ def col_fix( name ):
     return out
 
 def sql_fix( name ):
-    return name.replace("'", "\'")
+    return name.replace("'", "\\'")
