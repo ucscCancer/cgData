@@ -6,6 +6,8 @@ import math
 class TSVMatrix(CGData.CGDataMatrixObject):
 
     element_type = str
+    corner_name = "row"
+    
     null_type = None
     def __init__(self):
         CGData.CGDataMatrixObject.__init__(self)
@@ -49,7 +51,7 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
         sample_list = self.col_list.keys()
         sample_list.sort(lambda x, y: self.col_list[x] - self.col_list[y])
-        write.writerow(["probe"] + sample_list)
+        write.writerow([self.corner_name] + sample_list)
         for probe in self.row_hash:
             out = [probe]
             for sample in sample_list:
@@ -73,6 +75,9 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         if self.row_hash is None or self.row_hash[ row_name ] is None:
             self.load( )
         return self.row_hash[ row_name ]
+    
+    def get(self, col, row):
+        return self.row_hash[row][self.col_list[col]]
 
     def col_rename(self, old_col, new_col):
         if old_col in self.col_list:
@@ -95,7 +100,7 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         for row in self.row_hash:
             del self.row_hash[row][i]
     
-    def add(self, row, col, value):
+    def add(self, col, row, value):
         if not col in self.col_list:
             self.col_list[col] = len(self.col_list)
             for r in self.row_hash:

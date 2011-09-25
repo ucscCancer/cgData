@@ -26,6 +26,7 @@ CREATE TABLE `%s` (
 class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     
     element_type = str
+    corner_name = "#sample"
 
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
