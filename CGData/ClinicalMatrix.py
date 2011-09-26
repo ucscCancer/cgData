@@ -40,32 +40,21 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
 
     def init_schema(self):
-		pass
+        pass
         
     def is_link_ready(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
-        
-    def build_ids(self, id_allocator):
+    
+    def feature_type_setup(self):
         if self.light_mode:
             self.load()
             
-        sample_list = self.get_rows()
-        
-        for sample_id in sample_list:
-            id_allocator.alloc( 'sample_id', sample_id )
-
-        feature_list = self.get_cols()
-        for feature_id in feature_list:
-            id_allocator.alloc( 'feature_id', sample_id )
-
-    def gen_sql(self, id_table):
-        CGData.log( "Gen %s SQL" % (self.attrs['name']))
-        float_map = {}
-        enum_map = {}
+        self.float_map = {}
+        self.enum_map = {}
         for key in self.col_list:
-            col = self.col_list[ key ]
+            col = self.col_list[key]
             is_float = True
             has_val = False
             enum_set = {}
@@ -82,9 +71,9 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
                     is_float = False
             if has_val:
                 if is_float:
-                    float_map[ key ] = True
+                    self.float_map[ key ] = True
                 else:
-                    enum_map[ key ] = enum_set
+                    self.enum_map[ key ] = enum_set
             
         #print float_map
         #print enum_map
@@ -92,22 +81,29 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         id_map = {}
         id_num = 0
         prior = 1
-        col_order = []
-        orig_order = []	
+        self.col_order = []
+        self.orig_order = []    
 
-        for name in float_map:
+        for name in self.float_map:
             id_map[ name ] = id_num
-            id_num += 1	
+            id_num += 1    
             colName = col_fix( name )
-            col_order.append( colName )
-            orig_order.append( name )
+            self.col_order.append( colName )
+            self.orig_order.append( name )
             
-        for name in enum_map:		
+        for name in self.enum_map:        
             id_map[ name ] = id_num
-            id_num += 1	
+            id_num += 1    
             colName = col_fix( name )
-            col_order.append( colName )
-            orig_order.append( name )
+            self.col_order.append( colName )
+            self.orig_order.append( name )
+    
+   
+    def gen_sql(self, id_table, skip_feature_setup=False):
+        CGData.log( "Gen %s SQL" % (self.attrs['name']))
+        
+        if not skip_feature_setup:
+            self.feature_type_setup()
 
         table_name = self.attrs['name']
 
@@ -118,9 +114,9 @@ CREATE TABLE clinical_%s (
 \tsampleID int,
 \tsampleName ENUM ('%s')""" % ( table_name, "','".join(sortedSamples(self.row_hash.keys())) )
 
-        for col in col_order:
-            if ( enum_map.has_key( col ) ):
-                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in enum_map[ col ].keys() ) )
+        for col in self.col_order:
+            if ( self.enum_map.has_key( col ) ):
+                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in self.enum_map[ col ].keys() ) )
             else:
                 yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
         yield """
@@ -129,7 +125,7 @@ CREATE TABLE clinical_%s (
 
         for target in self.row_hash:
             a = []
-            for col in orig_order:
+            for col in self.orig_order:
                 val = self.row_hash[ target ][ self.col_list[ col ] ]
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
@@ -159,8 +155,8 @@ KEY `name` (`name`)
                 ( table_name, 'sampleName', 'sample name', 'sample name', 'sampleName', "clinical_" + table_name, 'coded' )
 
         i = 0;
-        for name in col_order:
-            filter = 'coded' if enum_map.has_key(name) else 'minMax'
+        for name in self.col_order:
+            filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
             yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
                     ( table_name, name, name, name, name, "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
             i += 1

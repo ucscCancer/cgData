@@ -32,22 +32,23 @@ def log(eStr):
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "d:l:" )
+    opts, args = getopt( sys.argv[1:], "p:f:" )
+    params = {}
     for a,o in opts:
-        if a == "-l":
-            handle = open( o )
-            includeList = {}
-            for line in handle:
-                includeList[ line.rstrip() ] = True
-            handle.close()
-        if a == "-d":
-            DATABASE_NAME = o
+        if a == "-p":
+            tmp = o.split("=")
+            params[tmp[0]] = tmp[1]
+        if a == "-f":
+            params["filter"] = {}
+            tmp = o.split(",")
+            for p in tmp:
+                tmp2 = p.split("=")
+                params["filter"][tmp2[0]] = tmp2[1]
 
 
-    cg = CGData.Compiler.BrowserCompiler()
+    cg = CGData.Compiler.BrowserCompiler(params)
     cg.scan_dirs( args )
     
     cg.link_objects()
-    cg.build_ids()
     cg.gen_sql()
 
