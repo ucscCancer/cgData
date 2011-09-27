@@ -11,12 +11,12 @@ from distutils.extension import Extension
 
 
 PACKAGES = [
-	'cgData'
+	'CGData'
 ]
 
 EXTENSIONS = [
-    Extension('cgData.CsegToMatrix',
-              ['cgData/CsegToMatrix.cc']
+    Extension('CGData.CsegToMatrix',
+              ['CGData/CsegToMatrix.cc']
               )
 ]
 
@@ -41,7 +41,7 @@ class test_cgData(Command):
 
 
 setup(
-    name='cgData',
+    name='CGData',
     version=__version__,
     author='Kyle Ellrott',
     author_email='kellrott@soe.ucsc.edu',

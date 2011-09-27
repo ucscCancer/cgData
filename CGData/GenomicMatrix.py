@@ -6,6 +6,8 @@ import CGData.TSVMatrix
 class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
     
     null_type = float('nan')
+    element_type = float
+    corner_name = "#probe"
 
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
@@ -21,6 +23,11 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
     def get_sample_list(self):
         return self.get_cols()
 
+    def add(self, sample, probe, value):
+        """This is just an overload of the TSVMatrix 
+        that changes the parameter names"""
+        CGData.TSVMatrix.TSVMatrix.add(self, sample, probe, value)
+
     def sample_rename(self, old_sample, new_sample):
         self.col_rename( old_sample, new_sample )
 
@@ -31,28 +38,28 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
         valid_map = {}
         for alt in alt_map:
             valid_map[alt.aliases[0]] = True
-            if not skip_missing or alt.name in self.probe_hash:
+            if not skip_missing or alt.name in self.row_hash:
                 self.probe_remap(alt.name, alt.aliases[0])
         if skip_missing:
             remove_list = []
-            for name in self.probe_hash:
+            for name in self.row_hash:
                 if not name in valid_map:
                     remove_list.append(name)
             for name in remove_list:
-                del self.probe_hash[name]
+                del self.row_hash[name]
 
     def remove_null_probes(self, threshold=0.0):
         remove_list = []
-        for probe in self.probe_hash:
+        for probe in self.row_hash:
             null_count = 0.0
-            for val in self.probe_hash[probe]:
+            for val in self.row_hash[probe]:
                 if val is None:
                     null_count += 1.0
-            nullPrec = null_count / float(len(self.probe_hash[probe]))
+            nullPrec = null_count / float(len(self.row_hash[probe]))
             if 1.0 - nullPrec <= threshold:
                 remove_list.append(probe)
         for name in remove_list:
-            del self.probe_hash[name]
+            del self.row_hash[name]
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
