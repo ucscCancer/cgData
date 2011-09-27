@@ -1,0 +1,12 @@
+<table>
+{% for col_name in cols %}
+<td>{{col_name}}</td>
+{% endfor %}
+{% for row in rows %}
+<tr>
+{% for col in row %}
+<td>{{col}}</td>
+{% endfor %}
+</tr>
+{% endfor %}
+</table>

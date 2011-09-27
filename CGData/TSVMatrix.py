@@ -1,14 +1,22 @@
 
 import csv
 import CGData
+import math
 
 class TSVMatrix(CGData.CGDataMatrixObject):
 
-    element_type = float
+    element_type = str
+    corner_name = "row"
+    
     null_type = None
     def __init__(self):
+        CGData.CGDataMatrixObject.__init__(self)
         self.col_list = None
-        self.row_hash = None    
+        self.row_hash = None
+
+    def blank(self):
+        self.col_list = {}
+        self.row_hash = {}    
 
     def read(self, handle, skip_vals=False):
         self.col_list = {}
@@ -41,14 +49,14 @@ class TSVMatrix(CGData.CGDataMatrixObject):
 
     def write(self, handle, missing='NA'):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
-        sample_list = self.get_sample_list()
-        sample_list.sort(lambda x, y: self.sample_list[x] - self.sample_list[y])
-        write.writerow(["probe"] + sample_list)
+        sample_list = self.col_list.keys()
+        sample_list.sort(lambda x, y: self.col_list[x] - self.col_list[y])
+        write.writerow([self.corner_name] + sample_list)
         for probe in self.row_hash:
             out = [probe]
             for sample in sample_list:
-                val = self.row_hash[probe][self.sample_list[sample]]
-                if val is None:
+                val = self.row_hash[probe][self.col_list[sample]]
+                if val == self.null_type or val is None or (type(val)==float and math.isnan(val)):
                     val = missing
                 out.append(val)
             write.writerow(out)
@@ -67,36 +75,51 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         if self.row_hash is None or self.row_hash[ row_name ] is None:
             self.load( )
         return self.row_hash[ row_name ]
+    
+    def get(self, col, row):
+        return self.row_hash[row][self.col_list[col]]
 
     def col_rename(self, old_col, new_col):
         if old_col in self.col_list:
             self.row_list[new_col] = self.row_list[old_col]
             del self.sample_list[old_col]
 
-    def row_remap(self, old_row, new_row):
+    def row_rename(self, old_row, new_row):
         self.row_hash[new_row] = self.row_hash[old_row]
         del self.row_hash[old_row]
+    
+    def del_row(self, row):
+        del self.row_hash[row]
         
-    def add(self, probe, sample, value):
-        if not sample in self.sample_list:
-            self.sample_list[sample] = len(self.sample_list)
-            for probe in self.row_hash:
-                self.row_hash[probe].append(None)
+    def del_col(self, col):
+        i = self.col_list[col]
+        del self.col_list[col]
+        for a in self.col_list:
+            if self.col_list[a] > i:
+                self.col_list[a] -= 1
+        for row in self.row_hash:
+            del self.row_hash[row][i]
+    
+    def add(self, col, row, value):
+        if not col in self.col_list:
+            self.col_list[col] = len(self.col_list)
+            for r in self.row_hash:
+                self.row_hash[r].append(self.null_type)
 
-        if not probe in self.row_hash:
-            self.row_hash[probe] = [None] * (len(self.sample_list))
+        if not row in self.row_hash:
+            self.row_hash[row] = [self.null_type] * (len(self.col_list))
 
-        self.row_hash[probe][self.sample_list[sample]] = value
+        self.row_hash[row][self.col_list[col]] = value
 
     def join(self, matrix):
         for sample in matrix.sample_list:
             if not sample in self.sample_list:
                 self.sample_list[sample] = len(self.sample_list)
                 for probe in self.row_hash:
-                    self.row_hash[probe].append(None)
+                    self.row_hash[probe].append(self.null_type)
             for probe in matrix.row_hash:
                 if not probe in self.row_hash:
-                    self.row_hash[probe] = [None] * (len(self.sample_list))
+                    self.row_hash[probe] = [self.null_type] * (len(self.sample_list))
                 self.row_hash[probe][self.sample_list[sample]] = \
                 matrix.row_hash[probe][matrix.sample_list[sample]]
 

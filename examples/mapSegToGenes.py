@@ -2,30 +2,30 @@
 
 import sys
 
-import cgData.genomicSegment
-import cgData.geneMap
-import cgData.refGene
-import cgData.geneMap 
-import cgData.matrix
+import CGData.GenomicSegment
+import CGData.GeneMap
+import CGData.RefGene
+import CGData.GenomicMatrix
 
 handle = open( sys.argv[1] )
-sg = cgData.genomicSegment.genomicSegment()
+sg = CGData.GenomicSegment.GenomicSegment()
 sg.read( handle )
 handle.close()
 
 handle = open( sys.argv[2] )
-rg = cgData.refGene.refGene()
+rg = CGData.RefGene.RefGene()
 rg.read( handle )
 handle.close()
 
-pm = cgData.geneMap.ProbeMapper('b')
+pm = CGData.GeneMap.ProbeMapper('b')
 
-out = cgData.matrix.GeneMatrix()
+out = CGData.GenomicMatrix.GenomicMatrix()
+out.blank()
 
 for sample in sg:
     sys.stderr.write( sample + "\n" )
     for seg in sg[sample]:
-        for hit in pm.findOverlap( seg, rg ):
+        for hit in pm.find_overlap( seg, rg ):
             out.add( probe=hit, sample=sample, value=seg.value )
 
 out.write( sys.stdout )     
