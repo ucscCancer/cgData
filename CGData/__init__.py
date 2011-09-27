@@ -154,6 +154,12 @@ class CGObjectBase:
             dhandle = open(path, "w")
             self.write(dhandle)
             dhandle.close()            
+            
+    def get_attrs(self):
+        return self.attrs
+    
+    def get_attr(self, name):
+        return self.attrs.get(name,None)
 
     def set_attrs(self, attrs):
         self.attrs = attrs
