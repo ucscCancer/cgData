@@ -45,7 +45,9 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
 
 
     def gen_sql(self, id_table):
-        CGData.CGMergeObject.gen_sql(self, id_table)
+        #scan the children
+        for line in CGData.CGMergeObject.gen_sql(self, id_table):
+            yield line
 
         gmatrix = self.members[ 'genomicMatrix' ]
         pmap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables

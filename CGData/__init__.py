@@ -207,7 +207,8 @@ class CGMergeObject:
     def gen_sql(self, id_table):
         for t in self.members:
             if issubclass(get_type(t), CGSQLObject):
-                self.members[t].gen_sql(id_table)
+                for line in self.members[t].gen_sql(id_table):
+                    yield line
 
 
 
