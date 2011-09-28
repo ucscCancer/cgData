@@ -36,7 +36,8 @@ for bed in bedFile:
 
     bed.aliases = []
     for e in out:
-        bed.aliases.append( e.name )
+        if not e.name in bed.aliases:
+            bed.aliases.append( e.name )
 
     pm.append( bed )
 

@@ -29,7 +29,7 @@ class ProbeMapper:
         out = []
         for gene in chromList:
             if cmp_func(segment.chrom_start,
-            segment.chrom_end, segment.strand, gene):
+                        segment.chrom_end, segment.strand, gene):
                 out.append(gene)
         return out
 

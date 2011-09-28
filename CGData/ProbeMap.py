@@ -48,7 +48,6 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             self.chrom_map = {}
         if not probe.chrom in self.chrom_map:
             self.chrom_map[probe.chrom] = {}
-        #        self.chrom_map[probe.chrom][probe.name] = probe
         if not probe.name in self.chrom_map[probe.chrom]:
             self.chrom_map[probe.chrom][probe.name] = [probe]
         else:
