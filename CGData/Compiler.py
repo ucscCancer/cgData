@@ -33,7 +33,6 @@ class BrowserCompiler:
         self.params = params
         if self.params['binary']:
             CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
-        print params
 
     def scan_dirs(self, dirs):
         for dir in dirs:
