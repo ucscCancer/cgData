@@ -146,7 +146,6 @@ class BrowserCompiler:
 
         for merge_type in CGData.MERGE_OBJECTS:
             mtype = CGData.get_type( merge_type )
-            print mtype
             select_types = mtype.typeSet
             select_set = {}
             try:
