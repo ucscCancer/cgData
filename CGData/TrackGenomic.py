@@ -30,12 +30,14 @@ CREATE TABLE %s (
 
 class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
 
-    typeSet = { 
-        'clinicalMatrix' : True, 
+    typeSet = {
+        'clinicalMatrix' : True,
         'genomicMatrix' : True,
         'sampleMap' : True,
         'probeMap' : True
-    } 
+    }
+
+    format = "bed 15"
 
     def __init__(self):
         CGData.CGMergeObject.__init__(self)
@@ -43,8 +45,10 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
     def get_name( self ):
         return "%s" % ( self.members[ "genomicMatrix" ].get_name() )
 
+    def scores(self, row):
+        return "'%s'" % (','.join( str(a) for a in row ))
 
-    def gen_sql(self, id_table):
+    def gen_sql(self, id_table, binary=False):
         #scan the children
         for line in CGData.CGMergeObject.gen_sql(self, id_table):
             yield line
@@ -67,7 +71,7 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
                 sql_fix(gmatrix.attrs['shortTitle']),
                 sql_fix(gmatrix.attrs['longTitle']),
                 len(gmatrix.get_sample_list()),
-                'bed 15b',
+                self.format,
                 gmatrix.attrs[':dataSubType'],
                 'localDb',
                 'public',
@@ -103,20 +107,26 @@ CREATE TABLE genomic_%s_alias (
         yield CREATE_BED % ( "genomic_" + table_base + "_tmp")
         
         sample_ids = []
-        for sample in gmatrix.get_sample_list():
+        samples = gmatrix.get_sample_list()
+
+        # sort samples by sample_id, and retain the sort order for application to the genomic data, below
+        tmp=sorted(zip(samples, range(len(samples))), cmp=lambda x,y: id_table.get('sample_id', x[0]) - id_table.get( 'sample_id', y[0]))
+        samples, order = map(lambda t: list(t), zip(*tmp))
+
+        for sample in samples:
             sample_ids.append( str( id_table.get( 'sample_id', sample ) ) )
         
+        exp_ids = ','.join( sample_ids )
         missingProbeCount = 0
         for probe_name in gmatrix.get_probe_list():
-            exp_ids = ','.join( sample_ids )
-            row = gmatrix.get_row_vals( probe_name )
-            exps = ''.join( binascii.hexlify(struct.pack('f', a)) for a in row )
-#            exps = ','.join( str(a) for a in row )
+            # get the genomic data and rearrange to match the sample_id order
+            tmp = gmatrix.get_row_vals( probe_name )
+            row = map(lambda i: tmp[order[i]], range(len(tmp)))
+
             probe = pmap.get( probe_name )
             if probe is not None:
-                #istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' );\n" % \
-                istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', x'%s' );\n" % \
-                    ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, exps )
+                istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
+                        ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
                 yield istr
             else:
                 missingProbeCount += 1
@@ -128,3 +138,8 @@ CREATE TABLE genomic_%s_alias (
     def unload(self):
         for t in self.members:
             self.members[t].unload()
+
+class BinaryTrackGenomic(TrackGenomic):
+    format = 'bed 15b'
+    def scores(self, row):
+        return  "x'%s'" % (''.join( binascii.hexlify(struct.pack('f', a)) for a in row ))

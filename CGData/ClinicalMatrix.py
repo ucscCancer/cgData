@@ -124,7 +124,7 @@ CREATE TABLE clinical_%s (
     ) engine 'MyISAM';
     """
 
-        for target in self.row_hash:
+        for target in sortedSamples(self.row_hash.keys()):
             a = []
             for col in self.orig_order:
                 val = self.row_hash[ target ][ self.col_list[ col ] ]

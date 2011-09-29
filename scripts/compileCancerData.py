@@ -32,8 +32,9 @@ def log(eStr):
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "p:f:" )
+    opts, args = getopt( sys.argv[1:], "bp:f:" )
     params = {}
+    params['binary'] = False
     for a,o in opts:
         if a == "-p":
             tmp = o.split("=")
@@ -44,6 +45,8 @@ if __name__ == "__main__":
             for p in tmp:
                 tmp2 = p.split("=")
                 params["filter"][tmp2[0]] = tmp2[1]
+        if a == "-b":
+            params['binary'] = True
 
 
     cg = CGData.Compiler.BrowserCompiler(params)

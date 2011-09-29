@@ -31,8 +31,9 @@ class BrowserCompiler:
         self.set_hash = {}
         self.out_dir = "out"
         self.params = params
+        if self.params['binary']:
+            CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
         print params
-
 
     def scan_dirs(self, dirs):
         for dir in dirs:
@@ -255,6 +256,8 @@ class BrowserCompiler:
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
             return
         log( "Writing SQL" )     
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
         self.id_table = CGIDTable()
         for rtype in self.compile_matrix:
             if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
