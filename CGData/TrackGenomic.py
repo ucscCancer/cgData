@@ -48,7 +48,7 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
     def scores(self, row):
         return "'%s'" % (','.join( str(a) for a in row ))
 
-    def gen_sql(self, id_table, binary=False):
+    def gen_sql(self, id_table):
         #scan the children
         for line in CGData.CGMergeObject.gen_sql(self, id_table):
             yield line
