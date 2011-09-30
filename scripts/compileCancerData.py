@@ -15,25 +15,10 @@ reJson = re.compile( r'.json$' )
 OUT_DIR = "genRA"
 DATABASE_NAME = "hg18_test"
 
-
-errorLogHandle = None
-def error(eStr):
-    sys.stderr.write("ERROR: %s\n" % (eStr) )
-    errorLogHandle.write( "ERROR: %s\n" % (eStr) )
-
-def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr) )
-    errorLogHandle.write( "WARNING: %s\n" % (eStr) )
-
-def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr) )
-    errorLogHandle.write( "LOG: %s\n" % (eStr) )
-
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "p:f:" )
-    params = {}
+    opts, args = getopt( sys.argv[1:], "p:f:v" )
     for a,o in opts:
         if a == "-p":
             tmp = o.split("=")
@@ -44,11 +29,11 @@ if __name__ == "__main__":
             for p in tmp:
                 tmp2 = p.split("=")
                 params["filter"][tmp2[0]] = tmp2[1]
+        if a == "-v":
+            CGData.LOG_LEVEL = 0
 
-
-    cg = CGData.Compiler.BrowserCompiler(params)
-    cg.scan_dirs( args )
-    
+    cg = CGData.Compiler.BrowserCompiler()
+    cg.scan_dirs( args )    
     cg.link_objects()
     cg.gen_sql()
 

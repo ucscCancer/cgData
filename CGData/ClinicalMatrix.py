@@ -47,6 +47,17 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
+
+
+    def get_x_namespace(self):
+        if self.attrs.get(":clinicalFeature", None) is not None:
+            return "clinicalFeature:" + self.attrs[":clinicalFeature"]
+        return None
+
+    def get_y_namespace(self):
+        if self.attrs.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self.attrs[":sampleMap"]
+        return None
     
     def feature_type_setup(self):
         if self.light_mode:
@@ -132,8 +143,10 @@ CREATE TABLE clinical_%s (
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
                 else:
-                    a.append( "'" + sql_fix(val) + "'" )
+                    #a.append( "'" + sql_fix(val) + "'" )
+                    a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
             yield u"INSERT INTO clinical_%s VALUES ( %d, '%s', %s );\n" % ( table_name, id_table.get( 'sample_id', target ), sql_fix(target), u",".join(a) )
+            #yield u"INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sample_id', target ), u",".join(a) )
 
 
         yield "drop table if exists clinical_%s_colDb;" % ( table_name )

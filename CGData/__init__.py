@@ -302,16 +302,19 @@ def light_load(path, zip=None):
     else:
         raise FormatException("%s class not found" % (meta['type']))
 
-
+global LOG_LEVEL
+LOG_LEVEL = 2
 
 def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr))
-    #errorLogHandle.write("LOG: %s\n" % (eStr))
+    if LOG_LEVEL < 2:
+        sys.stderr.write("LOG: %s\n" % (eStr))
+        #errorLogHandle.write("LOG: %s\n" % (eStr))
 
 
 def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr))
-    #errorLogHandle.write("WARNING: %s\n" % (eStr))
+    if LOG_LEVEL < 1:
+        sys.stderr.write("WARNING: %s\n" % (eStr))
+        #errorLogHandle.write("WARNING: %s\n" % (eStr))
 
 
 def error(eStr):

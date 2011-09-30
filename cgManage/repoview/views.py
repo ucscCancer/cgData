@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from CGData.Compiler import BrowserCompiler
 from django.template import Context, loader
 
-repoBase = "../data/"
+repoBase = "../cancerGenomeData/"
 
 def index(request):
     print request.path
