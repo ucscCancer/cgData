@@ -134,7 +134,7 @@ class CGObjectBase:
             mhandle.close()
 
     def unload(self):
-		pass
+        pass
 
     def is_link_ready(self):
         return True
@@ -281,15 +281,18 @@ def light_load(path, zip=None):
         raise FormatException("%s class not found" % (meta['type']))
 
 
+LOG_LEVEL = 2
 
 def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr))
-    #errorLogHandle.write("LOG: %s\n" % (eStr))
+    if LOG_LEVEL < 2:
+        sys.stderr.write("LOG: %s\n" % (eStr))
+        #errorLogHandle.write("LOG: %s\n" % (eStr))
 
 
 def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr))
-    #errorLogHandle.write("WARNING: %s\n" % (eStr))
+    if LOG_LEVEL < 1:
+        sys.stderr.write("WARNING: %s\n" % (eStr))
+        #errorLogHandle.write("WARNING: %s\n" % (eStr))
 
 
 def error(eStr):

@@ -60,7 +60,19 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                     val = missing
                 out.append(val)
             write.writerow(out)
+    
+    def get_x_namespace(self):
+        return self.attrs.get("xNamespace", None)
 
+    def get_y_namespace(self):
+        return self.attrs.get("yNamespace", None)
+        
+    def get_x_names(self):
+        return self.get_cols()
+    
+    def get_y_names(self):
+        return self.get_rows()
+    
     def get_cols(self):
         if self.col_list is None:
             self.load( skip_vals=True )

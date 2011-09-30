@@ -7,54 +7,69 @@ from copy import copy
 import CGData
 import CGData.CGZ
 from CGData import log, error, warn
+import re
 
 class CGIDTable:
     
     def __init__(self):
         self.id_table = {}
     
-    def alloc( self, itype, iname ):
+    def get( self, itype, iname ):
         if itype not in self.id_table:
             self.id_table[ itype ] = {}
         if iname not in self.id_table[ itype ]:
             self.id_table[ itype ][ iname ] = len( self.id_table[ itype ] )
-    
-    def get( self, itype, iname ):
+            
         return self.id_table[ itype ][ iname ]
 
 
 class BrowserCompiler:
+    
+    PARAMS = [ "compiler.mode" ]
 
-    def __init__(self):
+    def __init__(self,params={}):
         self.set_hash = {}
         self.out_dir = "out"
-
+        self.params = params
 
     def scan_dirs(self, dirs):
         for dir in dirs:
             log("SCANNING DIR: %s" % (dir))
-            for path in glob(os.path.join(dir, "*.json")):
-                handle = open(path)
-                try:
-                    data = json.loads(handle.read())
-                except ValueError, e:
-                    error("BAD JSON in " + path + " " + str(e) )
-                    data = None
-                handle.close()
+            for path in glob(os.path.join(dir, "*")):
+                if os.path.isfile(path):
+                    if path.endswith(".json"):
+                        handle = open(path)
+                        try:
+                            data = json.loads(handle.read())
+                        except ValueError, e:
+                            error("BAD JSON in " + path + " " + str(e) )
+                            data = None
+                        handle.close()
 
-                if (data is not None and 'name' in data 
-                and data['name'] is not None
-                and 'type' in data):                
-                    self.addFile(data['type'], data['name'], path)
-                
-                
-            
-            for path in glob(os.path.join(dir, "*.cgz")):
-                cgzList = CGData.CGZ.list( path )
-                for type in cgzList:
-                    for zPath in cgzList[type]:
-                        self.addFile(type, cgzList[type][zPath], zPath, path)
+                        if (data is not None and 'name' in data 
+                        and data['name'] is not None
+                        and 'type' in data):                
+                            self.addFile(data['type'], data['name'], path)
                     
+                    if path.endswith("*.cgz"):
+                        cgzList = CGData.CGZ.list( path )
+                        for type in cgzList:
+                            for zPath in cgzList[type]:
+                                self.addFile(type, cgzList[type][zPath], zPath, path)
+                if os.path.isdir(path):
+                    self.scan_dirs([path])
+        
+        if "filter" in self.params:
+            for t in self.params["filter"]:
+                if t in self.set_hash:
+                    removeList = []
+                    for name in self.set_hash[t]:
+                        if not re.search( self.params["filter"][t], name):
+                            removeList.append(name)
+                    
+                    for name in removeList:
+                        del self.set_hash[t][name]
+                
     
     def addFile(self, type, name, path, zipFile=None):
         if CGData.has_type(type):
@@ -120,7 +135,12 @@ class BrowserCompiler:
                     ready_matrix[ stype ][ sname ] = sobj
         
         for rtype in ready_matrix:
-            log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) ) 
+            log( "READY %s: %s" % ( rtype, ",".join(ready_matrix[rtype].keys()) ) )         
+
+        for dType in ready_matrix:
+            log("Found %s %d" % (dType, len(ready_matrix[dType])))
+            
+        merge_children = {}
 
         for merge_type in CGData.MERGE_OBJECTS:
             mtype = CGData.get_type( merge_type )
@@ -130,6 +150,8 @@ class BrowserCompiler:
             try:
                 for stype in select_types:
                     select_set[ stype ] = ready_matrix[ stype ] 
+                    if stype not in merge_children:
+                        merge_children[stype] = {}
             except KeyError:
                 error("missing data type %s" % (stype) )
                 continue
@@ -137,11 +159,20 @@ class BrowserCompiler:
             for mobj in mobjlist:
                 if merge_type not in ready_matrix:
                     ready_matrix[ merge_type ] = {}
+                for cType in mobj:
+                    merge_children[cType][mobj[cType].get_name()] = True
                 ready_matrix[ merge_type ][ mobj.get_name() ] = mobj
         
-        self.ready_matrix = ready_matrix
-        for dType in self.ready_matrix:
-            log("Found %s %d" % (dType, len(self.ready_matrix[dType])))
+        self.compile_matrix = {}
+        for sType in ready_matrix:
+            self.compile_matrix[sType] = {}
+            for name in ready_matrix[sType]:
+                if sType not in merge_children or name not in merge_children[sType]:
+                    self.compile_matrix[sType][name] = ready_matrix[sType][name]
+       
+        log("After Merge")
+        for dType in ready_matrix:
+            log("Found %s %d" % (dType, len(self.compile_matrix[dType])))
         
     def set_enumerate( self, merge_type, a, b={} ):
         """
@@ -156,11 +187,42 @@ class BrowserCompiler:
                 cur_key = t
         
         if cur_key is None:
-            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
-            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
-            mergeObj = merge_type()
-            mergeObj.merge( **b )
-            return [ mergeObj ]
+            #make sure selected subgraph is connected
+            #start by building a graph of connections
+            #and map of connected nodes
+            cMap = {}
+            lMap = {}
+            for c in b:
+            	n = "%s:%s" % (c, b[c].get_name())
+            	cMap[ n ] = False
+            	lMap[n] = {}
+            	for d in b[c].get_link_map():
+            		for e in b[c].get_link_map()[d]:
+	            		m = "%s:%s" % (d,e)
+    	        		lMap[n][m] = True
+    	    #add the first node to the connected set
+    	    cMap[ cMap.keys()[0] ] = True
+    	    found = True
+    	    #continue adding nodes to the connected set, until no more can be found
+    	    while found:
+    	    	found = False
+    	    	for c in cMap:
+    	    		if not cMap[c]:
+    	    			for d in cMap:
+    	    				if cMap[d]:
+    	    					if d in lMap[c] or c in lMap[d]:
+    	    						found = True
+    	    						cMap[c] = True
+    	    						cMap[d] = True
+            
+            #if there are no disconnected nodes, then the subset represents a connected graph,
+            #and is ready to merge
+            if cMap.values().count(False) == 0:
+	            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
+	            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
+	            mergeObj = merge_type()
+	            mergeObj.merge( **b )
+	            return [ mergeObj ]
         else:
             out = []
             for i in a[cur_key]:
@@ -187,27 +249,22 @@ class BrowserCompiler:
             return out
         return []
 
-    def build_ids(self):
-        log( "Building Common ID tables" )
-        self.id_table = CGIDTable()        
-        for rtype in self.ready_matrix:
-            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.ready_matrix[ rtype ]:
-                    self.ready_matrix[ rtype ][ rname ].build_ids( self.id_table )
-
     def gen_sql(self):
-        log( "Writing SQL" )        
-        for rtype in self.ready_matrix:
+        if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
+            return
+        log( "Writing SQL" )     
+        self.id_table = CGIDTable()
+        for rtype in self.compile_matrix:
             if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.ready_matrix[ rtype ]:
-                    shandle = self.ready_matrix[ rtype ][ rname ].gen_sql( self.id_table )
+                for rname in self.compile_matrix[ rtype ]:
+                    shandle = self.compile_matrix[ rtype ][ rname ].gen_sql( self.id_table )
                     if shandle is not None:
                         ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
                         for line in shandle:
                             ohandle.write( line )
                         ohandle.close()
                     #tell the object to unload data, so we don't continually allocate over the compile
-                    self.ready_matrix[ rtype ][ rname ].unload()
+                    self.compile_matrix[ rtype ][ rname ].unload()
     
     
 

@@ -32,13 +32,23 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
 
     def init_schema(self):
-		pass
+        pass
         
     def is_link_ready(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
-        
+    
+    def get_x_namespace(self):
+        if self.attrs.get(":clinicalFeature", None) is not None:
+            return "clinicalFeature:" + self.attrs[":clinicalFeature"]
+        return None
+
+    def get_y_namespace(self):
+        if self.attrs.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self.attrs[":sampleMap"]
+        return None
+
     def build_ids(self, id_allocator):
         if self.light_mode:
             self.load()
@@ -85,21 +95,21 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         id_num = 0
         prior = 1
         col_order = []
-        orig_order = []	
+        orig_order = [] 
 
         for name in float_map:
             id_map[ name ] = id_num
-            id_num += 1	
+            id_num += 1 
             colName = col_fix( name )
             col_order.append( colName )
             orig_order.append( name )
             
-        for name in enum_map:		
+        for name in enum_map:       
             id_map[ name ] = id_num
-            id_num += 1	
+            id_num += 1 
             colName = col_fix( name )
             col_order.append( colName )
-            orig_order.append( name )		
+            orig_order.append( name )       
         
         table_name = self.attrs['name']
         
@@ -125,7 +135,7 @@ CREATE TABLE clinical_%s (
                 #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
-                else:				
+                else:               
                     a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
             yield u"INSERT INTO clinical_%s VALUES ( %d, %s );\n" % ( table_name, id_table.get( 'sample_id', target ), u",".join(a) )
 
