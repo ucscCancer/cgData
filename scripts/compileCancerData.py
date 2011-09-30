@@ -15,24 +15,10 @@ reJson = re.compile( r'.json$' )
 OUT_DIR = "genRA"
 DATABASE_NAME = "hg18_test"
 
-
-errorLogHandle = None
-def error(eStr):
-    sys.stderr.write("ERROR: %s\n" % (eStr) )
-    errorLogHandle.write( "ERROR: %s\n" % (eStr) )
-
-def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr) )
-    errorLogHandle.write( "WARNING: %s\n" % (eStr) )
-
-def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr) )
-    errorLogHandle.write( "LOG: %s\n" % (eStr) )
-
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "d:l:" )
+    opts, args = getopt( sys.argv[1:], "d:l:v" )
     for a,o in opts:
         if a == "-l":
             handle = open( o )
@@ -42,6 +28,8 @@ if __name__ == "__main__":
             handle.close()
         if a == "-d":
             DATABASE_NAME = o
+        if a == "-v":
+            CGData.LOG_LEVEL = 0
 
 
     cg = CGData.Compiler.BrowserCompiler()

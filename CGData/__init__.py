@@ -280,7 +280,7 @@ def light_load(path, zip=None):
     else:
         raise FormatException("%s class not found" % (meta['type']))
 
-
+global LOG_LEVEL
 LOG_LEVEL = 2
 
 def log(eStr):
