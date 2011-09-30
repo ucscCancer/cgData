@@ -51,18 +51,23 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             self.chrom_map = {}
         if not probe.chrom in self.chrom_map:
             self.chrom_map[probe.chrom] = {}
-        self.chrom_map[probe.chrom][probe.name] = probe
+        if not probe.name in self.chrom_map[probe.chrom]:
+            self.chrom_map[probe.chrom][probe.name] = [probe]
+        else:
+            self.chrom_map[probe.chrom][probe.name].append(probe)
 
     def write(self, handle):
         for chrom in self.chrom_map:
-            for probe in self.chrom_map[chrom]:
-                handle.write("%s\n" % ("\t".join([
-                    self.chrom_map[chrom][probe].name,
-                    ",".join(self.chrom_map[chrom][probe].aliases),
-                    self.chrom_map[chrom][probe].chrom,
-                    str(self.chrom_map[chrom][probe].chrom_start),
-                    str(self.chrom_map[chrom][probe].chrom_end),
-                    self.chrom_map[chrom][probe].strand])))
+            for probeName in self.chrom_map[chrom]:
+                probes = self.chrom_map[chrom][probeName]
+                for probe in probes:
+                    handle.write("%s\n" % ("\t".join([
+                        probe.name,
+                        ",".join(probe.aliases),
+                        probe.chrom,
+                        str(probe.chrom_start),
+                        str(probe.chrom_end),
+                        probe.strand])))
     
     def get(self, item):
         if self.gene_map is None:
