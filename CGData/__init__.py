@@ -16,16 +16,16 @@ function which will parse the contents of a file from a passed file handle.
 
 
 OBJECT_MAP = {
-    'genomicSegment': ('GenomicSegment', 'GenomicSegment'),
-    'genomicMatrix': ('GenomicMatrix', 'GenomicMatrix'),
-    'probeMap': ('ProbeMap', 'ProbeMap'),
-    'sampleMap': ('SampleMap', 'SampleMap'),
-    'clinicalMatrix': ('ClinicalMatrix', 'ClinicalMatrix'),
-    'dataSubType': ('DataSubType', 'DataSubType'),
-    'trackGenomic': ('TrackGenomic', 'TrackGenomic'),
-    'trackClinical': ('TrackClinical', 'TrackClinical'),
-    'assembly': ('Assembly', 'Assembly'),
-    'clinicalFeature': ('ClinicalFeature', 'ClinicalFeature')
+    'genomicSegment': ('CGData.GenomicSegment', 'GenomicSegment'),
+    'genomicMatrix': ('CGData.GenomicMatrix', 'GenomicMatrix'),
+    'probeMap': ('CGData.ProbeMap', 'ProbeMap'),
+    'sampleMap': ('CGData.SampleMap', 'SampleMap'),
+    'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
+    'dataSubType': ('CGData.DataSubType', 'DataSubType'),
+    'trackGenomic': ('CGData.TrackGenomic', 'TrackGenomic'),
+    'trackClinical': ('CGData.TrackClinical', 'TrackClinical'),
+    'assembly': ('CGData.Assembly', 'Assembly'),
+    'clinicalFeature': ('CGData.ClinicalFeature', 'ClinicalFeature')
 }
 
 MERGE_OBJECTS = [ 'trackClinical', 'trackGenomic' ]
@@ -41,11 +41,9 @@ def has_type(type_str):
 
 def get_type(type_str):
     mod_name, cls_name = OBJECT_MAP[type_str]
-    module = __import__("CGData." + mod_name)
-    submodule = getattr(module, mod_name)
-    cls = getattr(submodule, cls_name)
+    module = __import__(mod_name, globals(), locals(), [ cls_name ])
+    cls = getattr(module, cls_name)
     return cls
-
 
 class CGGroupMember:
     pass
@@ -191,7 +189,7 @@ class CGObjectBase:
         self.attrs[ 'history' ].append( desc )
 
 
-class CGMergeObject:
+class CGMergeObject(object):
     
     typeSet = {}
     
@@ -231,7 +229,7 @@ class CGDataMatrixObject(CGObjectBase):
 
 
 
-class CGSQLObject:
+class CGSQLObject(object):
     
     def init_schema(self):
         pass
@@ -245,9 +243,8 @@ class CGSQLObject:
 
 def cg_new(type_str):
     mod_name, cls_name = OBJECT_MAP[type_str]
-    module = __import__("CGData." + mod_name)
-    submodule = getattr(module, mod_name)
-    cls = getattr(submodule, cls_name)
+    module = __import__(mod_name, globals(), locals(), [ cls_name ])
+    cls = getattr(module, cls_name)
     out = cls()
     return out
 

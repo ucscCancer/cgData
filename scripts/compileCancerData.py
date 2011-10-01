@@ -18,7 +18,9 @@ DATABASE_NAME = "hg18_test"
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "p:f:v" )
+    opts, args = getopt( sys.argv[1:], "bp:f:v" )
+    params = {}
+    params['binary'] = False
     for a,o in opts:
         if a == "-p":
             tmp = o.split("=")
@@ -31,8 +33,10 @@ if __name__ == "__main__":
                 params["filter"][tmp2[0]] = tmp2[1]
         if a == "-v":
             CGData.LOG_LEVEL = 0
+        if a == "-b":
+            params['binary'] = True
 
-    cg = CGData.Compiler.BrowserCompiler()
+    cg = CGData.Compiler.BrowserCompiler(params)
     cg.scan_dirs( args )    
     cg.link_objects()
     cg.gen_sql()
