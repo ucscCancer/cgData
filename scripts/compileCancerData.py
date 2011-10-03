@@ -7,6 +7,7 @@ import json
 import re
 import CGData
 import CGData.Compiler
+import CGData.DataSet
 
 import csv
 from getopt import getopt
@@ -35,9 +36,10 @@ if __name__ == "__main__":
             CGData.LOG_LEVEL = 0
         if a == "-b":
             params['binary'] = True
-
-    cg = CGData.Compiler.BrowserCompiler(params)
-    cg.scan_dirs( args )    
+            
+    ds = CGData.DataSet.DataSet(params)
+    ds.scan_dirs(args)
+    cg = CGData.Compiler.BrowserCompiler(ds, params)
     cg.link_objects()
     cg.gen_sql()
 
