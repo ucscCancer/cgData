@@ -135,36 +135,36 @@ class BrowserCompiler:
             cMap = {}
             lMap = {}
             for c in b:
-            	n = "%s:%s" % (c, b[c].get_name())
-            	cMap[ n ] = False
-            	lMap[n] = {}
-            	for d in b[c].get_link_map():
-            		for e in b[c].get_link_map()[d]:
-	            		m = "%s:%s" % (d,e)
-    	        		lMap[n][m] = True
-    	    #add the first node to the connected set
-    	    cMap[ cMap.keys()[0] ] = True
-    	    found = True
-    	    #continue adding nodes to the connected set, until no more can be found
-    	    while found:
-    	    	found = False
-    	    	for c in cMap:
-    	    		if not cMap[c]:
-    	    			for d in cMap:
-    	    				if cMap[d]:
-    	    					if d in lMap[c] or c in lMap[d]:
-    	    						found = True
-    	    						cMap[c] = True
-    	    						cMap[d] = True
+                n = "%s:%s" % (c, b[c].get_name())
+                cMap[ n ] = False
+                lMap[n] = {}
+                for d in b[c].get_link_map():
+                    for e in b[c].get_link_map()[d]:
+                        m = "%s:%s" % (d,e)
+                        lMap[n][m] = True
+            #add the first node to the connected set
+            cMap[ cMap.keys()[0] ] = True
+            found = True
+            #continue adding nodes to the connected set, until no more can be found
+            while found:
+                found = False
+                for c in cMap:
+                    if not cMap[c]:
+                        for d in cMap:
+                            if cMap[d]:
+                                if d in lMap[c] or c in lMap[d]:
+                                    found = True
+                                    cMap[c] = True
+                                    cMap[d] = True
             
             #if there are no disconnected nodes, then the subset represents a connected graph,
             #and is ready to merge
             if cMap.values().count(False) == 0:
-	            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
-	            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
-	            mergeObj = merge_type()
-	            mergeObj.merge( **b )
-	            return [ mergeObj ]
+                #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
+                log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
+                mergeObj = merge_type()
+                mergeObj.merge( **b )
+                return [ mergeObj ]
         else:
             out = []
             for i in a[cur_key]:
@@ -191,17 +191,19 @@ class BrowserCompiler:
             return out
         return []
 
-    def gen_sql(self):
+    def gen_sql(self, mode="heatmap"):
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
             return
-        log( "Writing SQL" )     
+        log( "Writing SQL " + mode  )     
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
         self.id_table = CGIDTable()
         for rtype in self.compile_matrix:
             if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
                 for rname in self.compile_matrix[ rtype ]:
-                    shandle = self.compile_matrix[ rtype ][ rname ].gen_sql( self.id_table )
+                    sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
+                    print "func call", rtype, rname, sql_func
+                    shandle = sql_func(self.id_table)
                     if shandle is not None:
                         ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
                         for line in shandle:

@@ -2,6 +2,7 @@
 import os
 import re
 import json
+import functools
 from zipfile import ZipFile
 import sys
 """
@@ -45,10 +46,10 @@ def get_type(type_str):
     cls = getattr(module, cls_name)
     return cls
 
-class CGGroupMember:
+class CGGroupMember(object):
     pass
 
-class CGGroupBase:
+class CGGroupBase(object):
 
     def __init__(self, group_name):
         self.members = {}
@@ -101,7 +102,7 @@ class CGGroupBase:
         return out
     
 
-class CGObjectBase:
+class CGObjectBase(object):
 
     def __init__(self):
         self.attrs = {}
@@ -188,6 +189,7 @@ class CGObjectBase:
             self.attrs[ 'history' ] = []
         self.attrs[ 'history' ].append( desc )
 
+    
 
 class CGMergeObject(object):
     
@@ -207,11 +209,12 @@ class CGMergeObject(object):
 
     def unload(self):
         pass
-    
-    def gen_sql(self, id_table):
+        
+    def sql_pass(self, id_table, method):
         for t in self.members:
             if issubclass(get_type(t), CGSQLObject):
-                for line in self.members[t].gen_sql(id_table):
+                f = getattr(self.members[t], "gen_sql_" + method)
+                for line in f(id_table):
                     yield line
 
 
@@ -233,10 +236,7 @@ class CGSQLObject(object):
     
     def init_schema(self):
         pass
-    
-    def gen_sql(self, id_table):
-        pass
-    
+        
     def build_ids(self, id_allocator):
         pass
     
@@ -317,3 +317,10 @@ def warn(eStr):
 def error(eStr):
     sys.stderr.write("ERROR: %s\n" % (eStr))
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
+
+
+#####################
+
+
+MATRIX = "matrix"
+
