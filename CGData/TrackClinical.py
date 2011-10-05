@@ -3,7 +3,7 @@ import CGData
 import re
 
 
-class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
+class TrackClinical(CGData.CGMergeObject):
 
     typeSet = { 
         'clinicalMatrix' : True, 

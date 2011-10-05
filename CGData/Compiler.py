@@ -199,8 +199,8 @@ class BrowserCompiler:
             os.makedirs(self.out_dir)
         self.id_table = CGIDTable()
         for rtype in self.compile_matrix:
-            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.compile_matrix[ rtype ]:
+            for rname in self.compile_matrix[ rtype ]:
+                if hasattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode):
                     sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
                     print "func call", rtype, rname, sql_func
                     shandle = sql_func(self.id_table)

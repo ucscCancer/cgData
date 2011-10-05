@@ -212,7 +212,7 @@ class CGMergeObject(object):
         
     def sql_pass(self, id_table, method):
         for t in self.members:
-            if issubclass(get_type(t), CGSQLObject):
+            if hasattr(self.members[t], "gen_sql_" + method):
                 f = getattr(self.members[t], "gen_sql_" + method)
                 for line in f(id_table):
                     yield line
@@ -230,16 +230,6 @@ class CGDataMatrixObject(CGObjectBase):
     def __init__(self):
         CGObjectBase.__init__(self)
 
-
-
-class CGSQLObject(object):
-    
-    def init_schema(self):
-        pass
-        
-    def build_ids(self, id_allocator):
-        pass
-    
 
 def cg_new(type_str):
     mod_name, cls_name = OBJECT_MAP[type_str]

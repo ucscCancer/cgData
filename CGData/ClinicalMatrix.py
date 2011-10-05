@@ -32,7 +32,7 @@ def sortedSamples(samples):
     else:
         return sorted(samples)
 
-class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
+class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
 
     FORM = CGData.MATRIX
     
