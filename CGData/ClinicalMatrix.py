@@ -34,8 +34,6 @@ def sortedSamples(samples):
 
 class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
 
-    FORM = CGData.MATRIX
-    
     element_type = str
     corner_name = "#sample"
 

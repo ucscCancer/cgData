@@ -4,6 +4,8 @@ import CGData
 
 class SampleMap(CGData.CGDataSetObject):
 
+    DATA_FORM = CGData.TABLE
+
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)
         self.mhash = {}

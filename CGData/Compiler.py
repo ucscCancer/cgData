@@ -190,6 +190,12 @@ class BrowserCompiler:
                     out.extend( self.set_enumerate( merge_type, a, c ) )
             return out
         return []
+    
+    def __iter__(self):
+        return self.compile_matrix.__iter__()
+        
+    def __getitem__(self, item):
+        return self.compile_matrix[item]
 
     def gen_sql(self, mode="heatmap"):
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":

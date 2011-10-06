@@ -51,6 +51,8 @@ class CGGroupMember(object):
 
 class CGGroupBase(object):
 
+    DATA_FORM = None
+
     def __init__(self, group_name):
         self.members = {}
         self.name = group_name
@@ -312,5 +314,6 @@ def error(eStr):
 #####################
 
 
+TABLE = "table"
 MATRIX = "matrix"
 

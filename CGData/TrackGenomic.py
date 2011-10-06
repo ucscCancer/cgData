@@ -30,6 +30,8 @@ CREATE TABLE %s (
 
 class TrackGenomic(CGData.CGMergeObject):
 
+    DATA_FORM = None
+
     typeSet = {
         'clinicalMatrix' : True,
         'genomicMatrix' : True,

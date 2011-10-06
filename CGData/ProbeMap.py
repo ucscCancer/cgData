@@ -20,6 +20,8 @@ class Probe:
 class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
 
     child_type = Probe
+    
+    DATA_FORM = CGData.TABLE
 
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)

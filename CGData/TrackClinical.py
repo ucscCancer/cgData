@@ -5,6 +5,8 @@ import re
 
 class TrackClinical(CGData.CGMergeObject):
 
+    DATA_FORM = None
+
     typeSet = { 
         'clinicalMatrix' : True, 
         'clinicalFeature' : True
