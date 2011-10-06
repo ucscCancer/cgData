@@ -30,17 +30,27 @@ class Session(object):
             if col is not None:
                 a.append(col)
         obj.table = sqlalchemy.Table( *a )
-        obj.row_class = type('row_class', (object,), {} )
-        sqlalchemy.orm.mapper(obj.row_class, obj.table) 
+        obj.row_class = type( 'row_class', (object,), {} )
+        #sqlalchemy.orm.mapper(obj.row_class, obj.table) 
     
     def write(self, obj):
         if obj.DATA_FORM == CGData.TABLE:
             self.factory(obj)
-            self.metadata.create_all(self.engine)
+            obj.table.create()
+            #self.metadata.create_all(self.engine)
             print obj.table
-            
+            Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
+            sess = Session()
             for row in obj.row_iter():
-                print row
+                a = {}
+                i = 0
+                for c in obj.COLS:
+                    a[c.name] = row[i]
+                    i += 1
+                #print a
+                sess.execute( obj.table.insert(a) )
+            sess.commit()
+            
             
         """
         print obj.get_name(), obj.DATA_FORM
