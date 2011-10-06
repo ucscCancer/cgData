@@ -5,6 +5,12 @@ import CGData
 class SampleMap(CGData.CGDataSetObject):
 
     DATA_FORM = CGData.TABLE
+    
+    COLS = [
+        CGData.Column('node_name', str, primary_key=True),
+        CGData.Column('parent', str),
+        CGData.Column('child', str)
+    ]
 
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)

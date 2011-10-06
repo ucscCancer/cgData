@@ -40,6 +40,6 @@ if __name__ == "__main__":
     #cg.link_objects()
     sess = CGData.ORM.get_session()
     for t in ds:
-    	for name in ds[t]:
-		    sess.write( ds[t][name] )
-    
+        for name in ds[t]:
+            sess.write( ds[t][name] )
+    sess.commit()
