@@ -23,7 +23,8 @@ EXTENSIONS = [
 __version__="undefined"
 
 class test_cgData(Command):
-    user_options = []
+    tests = None
+    user_options = [('tests=', 't', 'comma separated list of tests to run')]
 
     def initialize_options(self):
         pass
@@ -35,8 +36,8 @@ class test_cgData(Command):
     def run(self):
         os.chdir("tests")
         sys.path.insert(0, '')
-        import runTests 
-        runTests.main([])
+        import runTests
+        runTests.main([] if self.tests == None else self.tests.split(','))
 
 
 
