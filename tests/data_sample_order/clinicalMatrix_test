@@ -1,1 +1,6 @@
-../data_basic/clinicalMatrix_test
+Sample	age	status
+sample1	3	Negative
+sample101	30	Negative
+sample4	56	Positive
+sample63	67	Negative
+sample17	89	Positive

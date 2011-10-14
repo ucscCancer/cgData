@@ -86,8 +86,9 @@ CREATE TABLE sample_%s (
 ) engine 'MyISAM';
 """ % ( table_base )
 
-        for sample in gmatrix.get_sample_list():
-            yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( 'sample_id', sample), sample )
+        from CGData.ClinicalMatrix import sortedSamples
+        for sample in sortedSamples(gmatrix.get_sample_list()):
+	    yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sample )
 
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
@@ -110,11 +111,11 @@ CREATE TABLE genomic_%s_alias (
         samples = gmatrix.get_sample_list()
 
         # sort samples by sample_id, and retain the sort order for application to the genomic data, below
-        tmp=sorted(zip(samples, range(len(samples))), cmp=lambda x,y: id_table.get('sample_id', x[0]) - id_table.get( 'sample_id', y[0]))
+        tmp=sorted(zip(samples, range(len(samples))), cmp=lambda x,y: id_table.get(clinical_table_base + ':sample_id', x[0]) - id_table.get( clinical_table_base + ':sample_id', y[0]))
         samples, order = map(lambda t: list(t), zip(*tmp))
 
         for sample in samples:
-            sample_ids.append( str( id_table.get( 'sample_id', sample ) ) )
+            sample_ids.append( str( id_table.get( clinical_table_base + ':sample_id', sample ) ) )
         
         exp_ids = ','.join( sample_ids )
         missingProbeCount = 0

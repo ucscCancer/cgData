@@ -131,7 +131,7 @@ CREATE TABLE clinical_%s (
                     a.append("\\N")
                 else:
                     a.append( "'" + sql_fix(val) + "'" )
-            yield u"INSERT INTO clinical_%s VALUES ( %d, '%s', %s );\n" % ( table_name, id_table.get( 'sample_id', target ), sql_fix(target), u",".join(a) )
+            yield u"INSERT INTO clinical_%s VALUES ( %d, '%s', %s );\n" % ( table_name, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
 
 
         yield "drop table if exists clinical_%s_colDb;" % ( table_name )

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import unittest
 import os
 
@@ -9,6 +7,7 @@ import MySQLdb
 import MySQLSandbox
 
 class TestCase(unittest.TestCase):
+    """Test sample ordering in output tables"""
     tolerance = 0.001 # floating point tolerance
 
     @classmethod
@@ -56,7 +55,7 @@ CREATE TABLE raDb (
         cls.sandbox.shutdown()
 
     def test_sample(self):
-        self.c.execute("""select id, sampleName from sample_test order by sampleName""")
+        self.c.execute("""select id, sampleName from sample_test order by id""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 5)          # one sample
         self.assertEqual(rows[0][0], 0)         # sample id is zero
@@ -73,6 +72,30 @@ CREATE TABLE raDb (
 
         self.assertEqual(rows[4][0], 4)
         self.assertEqual(rows[4][1], 'sample101')
+
+    def test_clinical(self):
+        """Test sample order in the clinical table"""
+        self.c.execute("""select sampleName from clinical_test order by sampleName""")
+        rows = self.c.fetchall()
+        self.assertEqual(len(rows), 5)          # five samples
+        self.assertEqual(rows[0][0], 'sample1') # sample name is sample1
+        self.assertEqual(rows[1][0], 'sample4')
+        self.assertEqual(rows[2][0], 'sample17')
+        self.assertEqual(rows[3][0], 'sample63')
+        self.assertEqual(rows[4][0], 'sample101')
+
+    def test_genomic(self):
+        """Test sample order in the genomic table"""
+        self.c.execute("""select expIds,expScores from genomic_test""")
+        rows = self.c.fetchall()
+        self.assertEqual(len(rows), 1)                          # one probe
+        self.assertEqual(rows[0][0], '0,1,2,3,4')               # ordered by sample id
+        values = map(lambda x: float(x), rows[0][1].split(',')) # scores are in correct order
+        self.assertTrue(values[0] - 0.479005065149792 < self.tolerance)
+        self.assertTrue(values[1] - 25.1 < self.tolerance)
+        self.assertTrue(values[2] - 5.3 < self.tolerance)
+        self.assertTrue(values[3] - 3.1 < self.tolerance)
+        self.assertTrue(values[4] - -1.23 < self.tolerance)
 
 def main():
     sys.argv = sys.argv[:1]
