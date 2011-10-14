@@ -8,7 +8,6 @@ from CGData.SQLUtil import *
 
 CREATE_COL_DB = """
 CREATE TABLE `%s` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) default NULL,
   `shortLabel` varchar(255) default NULL,
   `longLabel` varchar(255) default NULL,
@@ -18,8 +17,7 @@ CREATE TABLE `%s` (
   `filterType` varchar(255) default NULL,
   `visibility` varchar(255) default NULL,
   `groupName` varchar(255) default NULL,
-  PRIMARY KEY  (`id`),
-  KEY `name` (`name`)
+  PRIMARY KEY  (`name`)
 ) engine 'MyISAM';
 """
 
@@ -137,21 +135,8 @@ CREATE TABLE clinical_%s (
 
 
         yield "drop table if exists clinical_%s_colDb;" % ( table_name )
-        yield CREATE_COL_DB % ( "clinical_" + table_name + "_colDb" ) 
-        """
-`id` int(10) unsigned NOT NULL default '0',
-`name` varchar(255) default NULL,
-`shortLabel` varchar(255) default NULL,
-`longLabel` varchar(255) default NULL,
-`valField` varchar(255) default NULL,
-`clinicalTable` varchar(255) default NULL,
-`priority` float default NULL,
-`filterType` varchar(255) default NULL,
-`visibility` varchar(255) default NULL,
-`groupName` varchar(255) default NULL,
-PRIMARY KEY  (`id`),
-KEY `name` (`name`)
-"""
+        yield CREATE_COL_DB % ( "clinical_" + table_name + "_colDb" )
+
         yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
                 ( table_name, 'sampleName', 'sample name', 'sample name', 'sampleName', "clinical_" + table_name, 'coded' )
 
@@ -161,6 +146,3 @@ KEY `name` (`name`)
             yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
                     ( table_name, name, name, name, name, "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
             i += 1
-
-
-
