@@ -2,6 +2,7 @@
 import os
 import re
 import json
+import functools
 from zipfile import ZipFile
 import sys
 """
@@ -45,10 +46,12 @@ def get_type(type_str):
     cls = getattr(module, cls_name)
     return cls
 
-class CGGroupMember:
+class CGGroupMember(object):
     pass
 
-class CGGroupBase:
+class CGGroupBase(object):
+
+    DATA_FORM = None
 
     def __init__(self, group_name):
         self.members = {}
@@ -104,8 +107,7 @@ class UnimplementedException(Exception):
     def __init__(self, str):
         Exception.__init__(self, str)
 
-
-class CGObjectBase:
+class CGObjectBase(object):
     """
     This is the base object for CGData loadable objects.
     The methods covered in the base case cover usage meta-information
@@ -217,6 +219,7 @@ class CGObjectBase:
             self.attrs[ 'history' ] = []
         self.attrs[ 'history' ].append( desc )
 
+    
 
 class CGMergeObject(object):
     
@@ -236,11 +239,12 @@ class CGMergeObject(object):
 
     def unload(self):
         pass
-    
-    def gen_sql(self, id_table):
+        
+    def sql_pass(self, id_table, method):
         for t in self.members:
-            if issubclass(get_type(t), CGSQLObject):
-                for line in self.members[t].gen_sql(id_table):
+            if hasattr(self.members[t], "gen_sql_" + method):
+                f = getattr(self.members[t], "gen_sql_" + method)
+                for line in f(id_table):
                     yield line
 
 
@@ -256,14 +260,6 @@ class CGDataMatrixObject(CGObjectBase):
     def __init__(self):
         CGObjectBase.__init__(self)
 
-
-
-class CGSQLObject(object):
-    
-    
-    def gen_sql(self, id_table):
-        pass
-        
 
 def cg_new(type_str):
     """
@@ -363,3 +359,17 @@ def warn(eStr):
 def error(eStr):
     sys.stderr.write("ERROR: %s\n" % (eStr))
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
+
+
+#####################
+
+
+TABLE = "table"
+MATRIX = "matrix"
+
+class Column:
+    def __init__(self, name, type, primary_key=False):
+        self.name = name
+        self.type = type
+        self.primary_key = primary_key
+

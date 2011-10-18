@@ -5,6 +5,7 @@ import math
 
 class TSVMatrix(CGData.CGDataMatrixObject):
 
+    DATA_FORM = CGData.MATRIX
     element_type = str
     corner_name = "row"
     

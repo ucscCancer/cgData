@@ -32,8 +32,8 @@ def sortedSamples(samples):
     else:
         return sorted(samples)
 
-class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
-    
+class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
+
     element_type = str
     corner_name = "#sample"
 
@@ -108,8 +108,8 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
             self.orig_order.append( name )
     
    
-    def gen_sql(self, id_table, skip_feature_setup=False):
-        CGData.log( "Gen %s SQL" % (self.attrs['name']))
+    def gen_sql_heatmap(self, id_table, skip_feature_setup=False):
+        CGData.log( "Writing Clinical %s SQL" % (self.attrs['name']))
         
         if not skip_feature_setup:
             self.feature_type_setup()

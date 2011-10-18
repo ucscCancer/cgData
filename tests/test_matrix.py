@@ -3,7 +3,7 @@
 
 import unittest
 
-import cgData.genomicMatrix
+import CGData.GenomicMatrix
 
 class TestCase(unittest.TestCase):
     

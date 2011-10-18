@@ -28,7 +28,9 @@ CREATE TABLE %s (
 """
 
 
-class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
+class TrackGenomic(CGData.CGMergeObject):
+
+    DATA_FORM = None
 
     typeSet = {
         'clinicalMatrix' : True,
@@ -48,9 +50,9 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
     def scores(self, row):
         return "'%s'" % (','.join( str(a) for a in row ))
 
-    def gen_sql(self, id_table):
+    def gen_sql_heatmap(self, id_table):
         #scan the children
-        for line in CGData.CGMergeObject.gen_sql(self, id_table):
+        for line in CGData.CGMergeObject.sql_pass(self, id_table, method="heatmap"):
             yield line
 
         gmatrix = self.members[ 'genomicMatrix' ]

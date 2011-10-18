@@ -20,6 +20,15 @@ class Probe:
 class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
 
     child_type = Probe
+    
+    DATA_FORM = CGData.TABLE
+    COLS = [
+        CGData.Column('name', str, primary_key=True),
+        CGData.Column('chrom', str),
+        CGData.Column('chrom_start', str),
+        CGData.Column('chrom_end', int),
+        CGData.Column('strand', str)
+    ]
 
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)
@@ -76,6 +85,16 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             if item in self.chrom_map[chrome]:
                 return self.chrom_map[chrome][item]
         return None
+    
+    def row_iter(self):
+        if self.gene_map is None:
+            self.load()
+        for chrome in self.chrom_map:
+            for probe in self.chrom_map[chrome]:
+                pset = self.chrom_map[chrome][probe]
+                for p in pset:
+	                yield (p.name, p.chrom, p.chrom_start, p.chrom_end, p.strand)
+    
 
     def __iter__(self):
         if self.gene_map is None:
