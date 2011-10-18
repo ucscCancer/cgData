@@ -62,16 +62,16 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                 out.append(val)
             write.writerow(out)
     
-    def get_x_namespace(self):
-        return self.attrs.get("xNamespace", None)
+    def get_col_namespace(self):
+        return self.attrs.get("colNamespace", None)
 
-    def get_y_namespace(self):
-        return self.attrs.get("yNamespace", None)
+    def get_row_namespace(self):
+        return self.attrs.get("rowNamespace", None)
         
-    def get_x_names(self):
+    def get_col_names(self):
         return self.get_cols()
     
-    def get_y_names(self):
+    def get_row_names(self):
         return self.get_rows()
     
     def get_cols(self):
