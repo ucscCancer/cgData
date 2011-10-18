@@ -40,9 +40,6 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     def __init__(self):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
 
-    def init_schema(self):
-        pass
-        
     def is_link_ready(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False

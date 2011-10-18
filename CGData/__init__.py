@@ -100,9 +100,19 @@ class CGGroupBase:
                         out[ltype].append( lname )
         return out
     
+class UnimplementedException(Exception):
+    def __init__(self, str):
+        Exception.__init__(self, str)
+
 
 class CGObjectBase:
-
+    """
+    This is the base object for CGData loadable objects.
+    The methods covered in the base case cover usage meta-information
+    loading/unloading and manipulation as well as zip (cgz) file access.
+    
+    
+    """
     def __init__(self):
         self.attrs = {}
         self.path = None
@@ -152,7 +162,26 @@ class CGObjectBase:
             dhandle = open(path, "w")
             self.write(dhandle)
             dhandle.close()            
-            
+    
+    def read(self, handle):
+        """
+        The read method is implemented by the subclass that 
+        inherits from CGObjectBase. It is passed a handle 
+        to a file (which may be on file, in a compressed object, or
+        from a network source). The implementing class then uses his handle
+        to populate it's data structures. 
+        """
+        raise UnimplementedException()
+    
+    def write(self, handle):
+        """
+        The write method is implemented by the subclass that 
+        inherits from CGObjectBase. It is passed a handle to an 
+        output file, which it can use 'write' method calls to emit
+        it's data.
+        """
+        raise UnimplementedException()
+    
     def get_attrs(self):
         return self.attrs
     
@@ -231,17 +260,20 @@ class CGDataMatrixObject(CGObjectBase):
 
 class CGSQLObject(object):
     
-    def init_schema(self):
-        pass
     
     def gen_sql(self, id_table):
         pass
-    
-    def build_ids(self, id_allocator):
-        pass
-    
+        
 
 def cg_new(type_str):
+    """
+    cg_new takes a type string and creates a new object from the 
+    class named, it uses an internally defined map to find all
+    official CGData data types. So if a 'genomicMatrix' is requested
+    a CGData.GenomicMatrix.GenomicMatrix is initialized.
+    
+    type_str -- A string name of a CGData type, ie 'genomicMatrix'
+    """
     mod_name, cls_name = OBJECT_MAP[type_str]
     module = __import__(mod_name, globals(), locals(), [ cls_name ])
     cls = getattr(module, cls_name)
@@ -249,6 +281,20 @@ def cg_new(type_str):
     return out
 
 def load(path, zip=None):
+    """
+    load is a the automatic CGData loading function. There has to 
+    be a '.json' file for this function to work. It inspects the 
+    '.json' file and uses the 'type' field to determine the 
+    appropriate object loader to use. The object is created 
+    (using the cg_new function) and the 'read' method is passed
+    a handle to the data file. If the 'zip' parameter is not None, 
+    then it is used as the path to a zipfile, and the path parameter 
+    is used as an path inside the zip file to the object data
+    
+    path -- path to file (in file system space if zip is None, otherwise
+    it is the location in the zip file)
+    zip -- path to zip file (None by default)
+    """
     if not path.endswith(".json"):
         path = path + ".json"
 
