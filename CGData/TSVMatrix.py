@@ -62,19 +62,34 @@ class TSVMatrix(CGData.CGDataMatrixObject):
                 out.append(val)
             write.writerow(out)
     
-    def get_x_namespace(self):
-        return self.attrs.get("xNamespace", None)
+    def get_col_namespace(self):
+        """
+        Return the name of the column namespace
+        """
+        return self.attrs.get("colNamespace", None)
 
-    def get_y_namespace(self):
-        return self.attrs.get("yNamespace", None)
+    def get_row_namespace(self):
+        """
+        Return the name of the row namespace
+        """
+        return self.attrs.get("rowNamespace", None)
         
-    def get_x_names(self):
+    def get_col_names(self):
+        """
+        Alias to get_cols, returns names of columns
+        """
         return self.get_cols()
     
-    def get_y_names(self):
+    def get_row_names(self):
+        """
+        Alias to get_rows, returns names of rows
+        """
         return self.get_rows()
     
     def get_cols(self):
+        """
+        Returns names of columns
+        """
         if self.col_list is None:
             self.load( skip_vals=True )
         out = self.col_list.keys()
@@ -82,6 +97,9 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         return out 
         
     def get_rows(self):
+        """
+        Returns names of rows
+        """
         return self.row_hash.keys()
     
     def get_row_vals(self, row_name):
@@ -93,18 +111,30 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         return self.row_hash[row][self.col_list[col]]
 
     def col_rename(self, old_col, new_col):
+        """
+        Rename a column
+        """
         if old_col in self.col_list:
             self.row_list[new_col] = self.row_list[old_col]
             del self.sample_list[old_col]
 
     def row_rename(self, old_row, new_row):
+        """
+        Rename a column
+        """
         self.row_hash[new_row] = self.row_hash[old_row]
         del self.row_hash[old_row]
     
     def del_row(self, row):
+        """
+        Delete a row from the matrix
+        """
         del self.row_hash[row]
         
     def del_col(self, col):
+        """
+        Delete a column from the matrix
+        """
         i = self.col_list[col]
         del self.col_list[col]
         for a in self.col_list:
@@ -114,6 +144,14 @@ class TSVMatrix(CGData.CGDataMatrixObject):
             del self.row_hash[row][i]
     
     def add(self, col, row, value):
+        """
+        Put a value into particular cell, adding new 
+        columns or rows if needed
+        
+        col -- name of column
+        row -- name of column
+        value -- value to be inserted
+        """
         if not col in self.col_list:
             self.col_list[col] = len(self.col_list)
             for r in self.row_hash:
@@ -125,6 +163,9 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         self.row_hash[row][self.col_list[col]] = value
 
     def join(self, matrix):
+        """
+        Insert values from matrix into the current matrix
+        """
         for sample in matrix.sample_list:
             if not sample in self.sample_list:
                 self.sample_list[sample] = len(self.sample_list)
