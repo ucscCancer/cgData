@@ -24,10 +24,8 @@ class TrackClinical(CGData.CGMergeObject):
         matrix = self.members["clinicalMatrix"]        
         matrix.feature_type_setup()        
         features = self.members["clinicalFeature"]
-        #print features
         for a in features:
             if "stateOrder" in features[a]:
-                #print features[a]["stateOrder"][0]
                 
                 #this weird bit of code is to split on ',', but respect \,
                 #if you can think of a better way, please replace this

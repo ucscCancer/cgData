@@ -23,12 +23,10 @@ class ClinicalFeature(CGData.CGObjectBase):
                 self.data[tmp[0]][tmp[1]].append(tmp[2])
     
     def __iter__(self):
-        print "loading"
         
         if self.data is None:
             self.load()
         
-        print self.data
         return self.data.keys().__iter__()
         
     def __getitem__(self, item):

@@ -68,7 +68,6 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             enum_set = {}
             for row in self.row_hash:
                 try:
-                    #print colHash[ key ][ sample ]
                     value = self.row_hash[ row ][ col ]
                     if value not in ["null", "None", "NA"] and value is not None and len(value):
                         has_val = True
@@ -82,10 +81,6 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
                     self.float_map[ key ] = True
                 else:
                     self.enum_map[ key ] = enum_set
-            
-        #print float_map
-        #print enum_map
-        
         id_map = {}
         id_num = 0
         prior = 1
@@ -135,7 +130,6 @@ CREATE TABLE clinical_%s (
             a = []
             for col in self.orig_order:
                 val = self.row_hash[ target ][ self.col_list[ col ] ]
-                #print target, col, val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
                 else:

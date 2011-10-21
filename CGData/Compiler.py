@@ -128,7 +128,6 @@ class BrowserCompiler:
         a is a map of types ('probeMap', 'clinicalMatrix', ...), each of those is a map
         of cgBaseObjects that report get_link_map requests
         """
-        #print "Enter", " ".join( (b[c].get_name() for c in b) )
         cur_key = None
         for t in a:
             if not t in b:
@@ -166,7 +165,6 @@ class BrowserCompiler:
             #if there are no disconnected nodes, then the subset represents a connected graph,
             #and is ready to merge
             if cMap.values().count(False) == 0:
-                #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
                 log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
                 mergeObj = merge_type()
                 mergeObj.merge( **b )
@@ -174,7 +172,6 @@ class BrowserCompiler:
         else:
             out = []
             for i in a[cur_key]:
-                #print "Trying", cur_key, i
                 c = copy(b)
                 sobj = a[cur_key][i] #the object selected to be added next
                 lmap = sobj.get_link_map()
@@ -182,14 +179,12 @@ class BrowserCompiler:
                 for ltype in lmap:
                     if ltype in c:
                         if c[ltype].get_name() not in lmap[ltype]:
-                            #print c[ltype].get_name(), "not in", lmap[ltype]
                             valid = False
                 for stype in c:
                     slmap = c[stype].get_link_map()
                     for sltype in slmap:
                         if cur_key == sltype:
                             if sobj.get_name() not in slmap[sltype]:
-                                #print a[cur_key][i].get_name(), "not in",  slmap[sltype]
                                 valid = False
                 if valid:
                     c[ cur_key ] = sobj
@@ -214,7 +209,6 @@ class BrowserCompiler:
             for rname in self.compile_matrix[ rtype ]:
                 if hasattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode):
                     sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
-                    print "func call", rtype, rname, sql_func
                     shandle = sql_func(self.id_table)
                     if shandle is not None:
                         ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )

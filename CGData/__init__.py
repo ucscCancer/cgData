@@ -156,7 +156,6 @@ class CGObjectBase(object):
         mHandle = open(path + ".json", "w")
         mHandle.write(json.dumps(self.attrs))
         mHandle.close()
-        print path
         if not self.light_mode:
             self.path = path
             dhandle = open(path, "w")
