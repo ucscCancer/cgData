@@ -11,7 +11,12 @@ def main( names ):
     	for path in glob( "test_*.py" ):
     		names.append( path.replace( ".py", "" ) )
 
-        
+
+    # clear log file.
+    # XXX should have a way to pass this to the tests, so
+    # the file name isn't duplicated everywhere.
+    f = open("test.log", "w")
+    f.close()
     test_path = sys.path[0] or "."
     sys.path.insert(1, os.path.dirname( os.path.realpath( __file__ ) ) )
     build_path = os.path.abspath("%s/../build/lib.%s-%s" % (
