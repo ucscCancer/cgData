@@ -29,11 +29,15 @@ class BrowserCompiler:
 
     def __init__(self,data_set,params={}):
         import CGData.ClinicalFeature
-        # Create a default null clinicalFeature, to coerce creation of a TrackClinical merge object.
-        self.set_hash = {'clinicalFeature': {'__null__': CGData.ClinicalFeature.NullClinicalFeature() }}
         self.out_dir = "out"
         self.params = params
         self.set_hash = data_set
+
+        # Create a default null clinicalFeature, to coerce creation of a TrackClinical merge object.
+        if not 'clinicalFeature' in self.set_hash:
+            self.set_hash['clinicalFeature'] = {}
+        self.set_hash['clinicalFeature']['__null__'] = CGData.ClinicalFeature.NullClinicalFeature()
+
         if 'binary' in self.params and self.params['binary']:
             CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
 
