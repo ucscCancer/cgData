@@ -9,7 +9,7 @@ import csv
 import os
 import json
 
-class GEOQuery:
+class GEOQuery(object):
 
     def __init__(self):
         robjects.r('library(GEOquery)')

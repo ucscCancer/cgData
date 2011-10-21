@@ -5,7 +5,7 @@ import sys
 import re
 
 
-class ProbeMapper:
+class ProbeMapper(object):
     """
     Class to map the probes. Expects handle to the refGene_hg18.table file
     """

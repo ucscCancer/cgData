@@ -19,7 +19,7 @@ COL_HUGO = 12
 re_comma_end = re.compile(r',$')
 
 
-class GeneInfo:
+class GeneInfo(object):
     """
     Class to hold information about gene, including exon start/stops
     """

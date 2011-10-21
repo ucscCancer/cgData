@@ -22,7 +22,7 @@ GAF_VARS = [
 re_composite = re.compile(r'chr(\w+):(\w+)-(\w+):(.)')
 
 
-class GafLine:
+class GafLine(object):
 
     def __init__(
         self, entry_number, feature_id, feature_type, feature_db_source,

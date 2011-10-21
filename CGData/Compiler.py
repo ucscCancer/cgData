@@ -9,7 +9,7 @@ import CGData.CGZ
 from CGData import log, error, warn
 import re
 
-class CGIDTable:
+class CGIDTable(object):
     
     def __init__(self):
         self.id_table = {}
@@ -23,7 +23,7 @@ class CGIDTable:
         return self.id_table[ itype ][ iname ]
 
 
-class BrowserCompiler:
+class BrowserCompiler(object):
     
     PARAMS = [ "compiler.mode" ]
 

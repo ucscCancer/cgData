@@ -19,7 +19,7 @@ class RepoError(Exception):
         Exception.__init__(self, text)
 
 
-class RepoElemFile:
+class RepoElemFile(object):
 
     def __init__(self, base, path):
         self.base = base
@@ -95,7 +95,7 @@ class RepoElemFile:
         handle.close()
 
 
-class RepoType:
+class RepoType(object):
 
     def __init__(self, type_name):
         self.type_name = type_name
@@ -124,7 +124,7 @@ class RepoType:
             self.elems[name].write_digest()
 
 
-class Repo:
+class Repo(object):
 
     def __init__(self):
         self.meta_hash = {}

@@ -4,7 +4,7 @@ import json
 import CGData
 
 
-class Probe:
+class Probe(object):
 
     core_attr = ['name', 'chrom', 'chrom_start', 'chrom_end', 'strand']
 

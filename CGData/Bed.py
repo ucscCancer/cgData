@@ -3,7 +3,7 @@
 import CGData
 
 
-class BedLine:
+class BedLine(object):
 
     def __init__(self, chrom, chrom_start, chrom_end, name,
         score=None, strand=None, thick_start=None, thick_end=None,

@@ -2,7 +2,7 @@
 import CGData
 
 
-class Segment:
+class Segment(object):
 
     def __init__(self, chrom, start, end, strand, value):
         self.chrom = chrom.lower()

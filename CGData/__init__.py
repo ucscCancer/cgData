@@ -364,7 +364,7 @@ def error(eStr):
 TABLE = "table"
 MATRIX = "matrix"
 
-class Column:
+class Column(object):
     def __init__(self, name, type, primary_key=False):
         self.name = name
         self.type = type
