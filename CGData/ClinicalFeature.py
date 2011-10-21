@@ -4,6 +4,9 @@ import CGData
 
 
 class ClinicalFeature(CGData.CGObjectBase):
+
+    DATA_FORM = CGData.MATRIX
+
     def __init__(self):
         self.data = None
         super(ClinicalFeature, self).__init__()

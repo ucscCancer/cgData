@@ -3,7 +3,9 @@ import CGData
 import re
 
 
-class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
+class TrackClinical(CGData.CGMergeObject):
+
+    DATA_FORM = None
 
     typeSet = { 
         'clinicalMatrix' : True, 
@@ -16,7 +18,7 @@ class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
     def get_name( self ):
         return "%s" % ( self.members[ "clinicalMatrix" ].get_name() )
     
-    def gen_sql(self, id_table):
+    def gen_sql_heatmap(self, id_table):
         CGData.log("ClincalTrack SQL " + self.get_name())
                 
         matrix = self.members["clinicalMatrix"]        
@@ -58,6 +60,6 @@ class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
                     else:
                         matrix.enum_map[a][e] = len(enums) + i
                         i += 1
-        for a in matrix.gen_sql(id_table, skip_feature_setup=True):
+        for a in matrix.gen_sql_heatmap(id_table, skip_feature_setup=True):
             yield a
     

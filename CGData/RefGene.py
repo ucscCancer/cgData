@@ -34,9 +34,9 @@ class GeneInfo:
         self.ex_start = []
         for p in re_comma_end.sub("", ex_start).split(','):
             self.ex_start.append(int(p))
-        self.ex_End = []
+        self.ex_end = []
         for p in re_comma_end.sub("", ex_end).split(','):
-            self.ex_End.append(int(p))
+            self.ex_end.append(int(p))
         self.name = hugo
 
     def __repr__(self):
@@ -63,13 +63,17 @@ class RefGene(CGData.CGDataSetObject):
                 row[COL_EXSTART],
                 row[COL_EXEND],
                 row[COL_HUGO])
-            self.hugo_map[row[COL_HUGO]] = gene
-
+            if not row[COL_HUGO] in self.hugo_map:
+                self.hugo_map[row[COL_HUGO]] = [gene]
+            else:
+                self.hugo_map[row[COL_HUGO]].append(gene)
         self.chrom_map = {}
         for hugo in self.hugo_map:
-            if not self.hugo_map[hugo].chrom in self.chrom_map:
-                self.chrom_map[self.hugo_map[hugo].chrom] = []
-            self.chrom_map[self.hugo_map[hugo].chrom].append(self.hugo_map[hugo])
+            genes = self.hugo_map[hugo]
+            for gene in genes:
+                if not gene.chrom in self.chrom_map:
+                    self.chrom_map[gene.chrom] = []
+                self.chrom_map[gene.chrom].append(gene)
 
         for chrom in self.chrom_map:
             self.chrom_map[chrom].sort(

@@ -29,7 +29,7 @@ class ProbeMapper:
         out = []
         for gene in chromList:
             if cmp_func(segment.chrom_start,
-            segment.chrom_end, segment.strand, gene):
+                        segment.chrom_end, segment.strand, gene):
                 out.append(gene)
         return out
 
@@ -56,7 +56,7 @@ def block_overlap(start, end, strand, gene):
 def exon_overlap(start, end, strand, gene):
     if gene.strand != strand and gene.strand != '.' and strand != '.':
         return False
-    for i in range(gene.ex_count):
+    for i in range(int(gene.ex_count)):
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
             return True
     return False

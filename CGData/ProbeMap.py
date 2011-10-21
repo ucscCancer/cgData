@@ -20,6 +20,15 @@ class Probe:
 class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
 
     child_type = Probe
+    
+    DATA_FORM = CGData.TABLE
+    COLS = [
+        CGData.Column('name', str, primary_key=True),
+        CGData.Column('chrom', str),
+        CGData.Column('chrom_start', str),
+        CGData.Column('chrom_end', int),
+        CGData.Column('strand', str)
+    ]
 
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)
@@ -51,18 +60,23 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             self.chrom_map = {}
         if not probe.chrom in self.chrom_map:
             self.chrom_map[probe.chrom] = {}
-        self.chrom_map[probe.chrom][probe.name] = probe
+        if not probe.name in self.chrom_map[probe.chrom]:
+            self.chrom_map[probe.chrom][probe.name] = [probe]
+        else:
+            self.chrom_map[probe.chrom][probe.name].append(probe)
 
     def write(self, handle):
         for chrom in self.chrom_map:
-            for probe in self.chrom_map[chrom]:
-                handle.write("%s\n" % ("\t".join([
-                    self.chrom_map[chrom][probe].name,
-                    ",".join(self.chrom_map[chrom][probe].aliases),
-                    self.chrom_map[chrom][probe].chrom,
-                    str(self.chrom_map[chrom][probe].chrom_start),
-                    str(self.chrom_map[chrom][probe].chrom_end),
-                    self.chrom_map[chrom][probe].strand])))
+            for probeName in self.chrom_map[chrom]:
+                probes = self.chrom_map[chrom][probeName]
+                for probe in probes:
+                    handle.write("%s\n" % ("\t".join([
+                        probe.name,
+                        ",".join(probe.aliases),
+                        probe.chrom,
+                        str(probe.chrom_start),
+                        str(probe.chrom_end),
+                        probe.strand])))
     
     def get(self, item):
         if self.gene_map is None:
@@ -71,6 +85,16 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
             if item in self.chrom_map[chrome]:
                 return self.chrom_map[chrome][item]
         return None
+    
+    def row_iter(self):
+        if self.gene_map is None:
+            self.load()
+        for chrome in self.chrom_map:
+            for probe in self.chrom_map[chrome]:
+                pset = self.chrom_map[chrome][probe]
+                for p in pset:
+	                yield (p.name, p.chrom, p.chrom_start, p.chrom_end, p.strand)
+    
 
     def __iter__(self):
         if self.gene_map is None:

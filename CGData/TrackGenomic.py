@@ -28,7 +28,9 @@ CREATE TABLE %s (
 """
 
 
-class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
+class TrackGenomic(CGData.CGMergeObject):
+
+    DATA_FORM = None
 
     typeSet = {
         'clinicalMatrix' : True,
@@ -48,14 +50,14 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
     def scores(self, row):
         return "'%s'" % (','.join( str(a) for a in row ))
 
-    def gen_sql(self, id_table):
+    def gen_sql_heatmap(self, id_table):
         #scan the children
         # XXX Handling of sql for children is broken if the child may appear
         # as part of multiple merge objects, such as TrackGenomic and TrackClinical.
         # A disgusting workaround for clinicalMatrix is to prevent the TrackGenomic from calling
         # it for gen_sql.
         clinical = self.members.pop("clinicalMatrix")
-        for line in CGData.CGMergeObject.gen_sql(self, id_table):
+        for line in CGData.CGMergeObject.sql_pass(self, id_table, method="heatmap"):
             yield line
         self.members["clinicalMatrix"] = clinical
 
@@ -105,9 +107,10 @@ CREATE TABLE genomic_%s_alias (
 ) engine 'MyISAM';
 """ % ( table_base )
 
-        for probe in pmap:
-            for alias in probe.aliases:
-                yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
+        for pset in pmap:
+            for probe in pset:
+                for alias in probe.aliases:
+                    yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
@@ -130,11 +133,12 @@ CREATE TABLE genomic_%s_alias (
             tmp = gmatrix.get_row_vals( probe_name )
             row = map(lambda i: tmp[order[i]], range(len(tmp)))
 
-            probe = pmap.get( probe_name )
-            if probe is not None:
-                istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
-                        ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
-                yield istr
+            pset = pmap.get( probe_name )
+            if pset is not None:
+                for probe in pset:
+                    istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
+                            ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
+                    yield istr
             else:
                 missingProbeCount += 1
         yield "create table genomic_%s like genomic_%s_tmp;" % (table_base, table_base)

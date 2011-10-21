@@ -4,4 +4,12 @@ import CGData
 
 
 class Assembly(CGData.CGObjectBase):
-        pass
+    """
+    Blank Class to represent Genome Assemblies
+    """
+
+    DATA_FORM = CGData.TABLE
+
+    COLS = [
+        CGData.Column('name', str, primary_key=True),
+    ]

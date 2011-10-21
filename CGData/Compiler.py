@@ -27,75 +27,16 @@ class BrowserCompiler:
     
     PARAMS = [ "compiler.mode" ]
 
-    def __init__(self,params={}):
+    def __init__(self,data_set,params={}):
         import CGData.ClinicalFeature
         # Create a default null clinicalFeature, to coerce creation of a TrackClinical merge object.
         self.set_hash = {'clinicalFeature': {'__null__': CGData.ClinicalFeature.NullClinicalFeature() }}
         self.out_dir = "out"
         self.params = params
-        if self.params['binary']:
+        self.set_hash = data_set
+        if 'binary' in self.params and self.params['binary']:
             CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
 
-    def scan_dirs(self, dirs):
-        for dir in dirs:
-            log("SCANNING DIR: %s" % (dir))
-            for path in glob(os.path.join(dir, "*")):
-                if os.path.isfile(path):
-                    if path.endswith(".json"):
-                        handle = open(path)
-                        try:
-                            data = json.loads(handle.read())
-                        except ValueError, e:
-                            error("BAD JSON in " + path + " " + str(e) )
-                            data = None
-                        handle.close()
-
-                        if (data is not None and 'name' in data 
-                        and data['name'] is not None
-                        and 'type' in data):                
-                            self.addFile(data['type'], data['name'], path)
-                    
-                    if path.endswith("*.cgz"):
-                        cgzList = CGData.CGZ.list( path )
-                        for type in cgzList:
-                            for zPath in cgzList[type]:
-                                self.addFile(type, cgzList[type][zPath], zPath, path)
-                if os.path.isdir(path):
-                    self.scan_dirs([path])
-        
-        if "filter" in self.params:
-            for t in self.params["filter"]:
-                if t in self.set_hash:
-                    removeList = []
-                    for name in self.set_hash[t]:
-                        if not re.search( self.params["filter"][t], name):
-                            removeList.append(name)
-                    
-                    for name in removeList:
-                        del self.set_hash[t][name]
-                
-    
-    def addFile(self, type, name, path, zipFile=None):
-        if CGData.has_type(type):
-            if not type in self.set_hash:
-                self.set_hash[ type ] = {}
-                        
-            if name in self.set_hash[type]:
-                error("Duplicate %s file %s" % (
-                type, name))
-            self.set_hash[type][name] = CGData.light_load( path, zipFile )
-            log("FOUND: " + type +
-                "\t" + name + "\t" + path)
-        else:
-            warn("Unknown file type: %s" % (path))
-            
-    
-    
-    def __iter__(self):
-        return self.set_hash.__iter__()
-    
-    def __getitem__(self, i):
-        return self.set_hash[ i ]
     
     def link_objects(self):
         """
@@ -196,36 +137,36 @@ class BrowserCompiler:
             cMap = {}
             lMap = {}
             for c in b:
-            	n = "%s:%s" % (c, b[c].get_name())
-            	cMap[ n ] = False
-            	lMap[n] = {}
-            	for d in b[c].get_link_map():
-            		for e in b[c].get_link_map()[d]:
-	            		m = "%s:%s" % (d,e)
-    	        		lMap[n][m] = True
-    	    #add the first node to the connected set
-    	    cMap[ cMap.keys()[0] ] = True
-    	    found = True
-    	    #continue adding nodes to the connected set, until no more can be found
-    	    while found:
-    	    	found = False
-    	    	for c in cMap:
-    	    		if not cMap[c]:
-    	    			for d in cMap:
-    	    				if cMap[d]:
-    	    					if d in lMap[c] or c in lMap[d]:
-    	    						found = True
-    	    						cMap[c] = True
-    	    						cMap[d] = True
+                n = "%s:%s" % (c, b[c].get_name())
+                cMap[ n ] = False
+                lMap[n] = {}
+                for d in b[c].get_link_map():
+                    for e in b[c].get_link_map()[d]:
+                        m = "%s:%s" % (d,e)
+                        lMap[n][m] = True
+            #add the first node to the connected set
+            cMap[ cMap.keys()[0] ] = True
+            found = True
+            #continue adding nodes to the connected set, until no more can be found
+            while found:
+                found = False
+                for c in cMap:
+                    if not cMap[c]:
+                        for d in cMap:
+                            if cMap[d]:
+                                if d in lMap[c] or c in lMap[d]:
+                                    found = True
+                                    cMap[c] = True
+                                    cMap[d] = True
             
             #if there are no disconnected nodes, then the subset represents a connected graph,
             #and is ready to merge
             if cMap.values().count(False) == 0:
-	            #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
-	            log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
-	            mergeObj = merge_type()
-	            mergeObj.merge( **b )
-	            return [ mergeObj ]
+                #print " ".join( ( "%s:%s:%s" % (c, b[c].get_name(), str(b[c].get_link_map()) ) for c in b) )
+                log( "Merging %s" % ",".join( ( "%s:%s" %(c,b[c].get_name()) for c in b) ) )  
+                mergeObj = merge_type()
+                mergeObj.merge( **b )
+                return [ mergeObj ]
         else:
             out = []
             for i in a[cur_key]:
@@ -251,18 +192,26 @@ class BrowserCompiler:
                     out.extend( self.set_enumerate( merge_type, a, c ) )
             return out
         return []
+    
+    def __iter__(self):
+        return self.compile_matrix.__iter__()
+        
+    def __getitem__(self, item):
+        return self.compile_matrix[item]
 
-    def gen_sql(self):
+    def gen_sql(self, mode="heatmap"):
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
             return
-        log( "Writing SQL" )     
+        log( "Writing SQL " + mode  )     
         if not os.path.exists(self.out_dir):
             os.makedirs(self.out_dir)
         self.id_table = CGIDTable()
         for rtype in self.compile_matrix:
-            if issubclass( CGData.get_type( rtype ), CGData.CGSQLObject ):
-                for rname in self.compile_matrix[ rtype ]:
-                    shandle = self.compile_matrix[ rtype ][ rname ].gen_sql( self.id_table )
+            for rname in self.compile_matrix[ rtype ]:
+                if hasattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode):
+                    sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
+                    print "func call", rtype, rname, sql_func
+                    shandle = sql_func(self.id_table)
                     if shandle is not None:
                         ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
                         for line in shandle:

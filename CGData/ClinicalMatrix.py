@@ -30,8 +30,8 @@ def sortedSamples(samples):
     else:
         return sorted(samples)
 
-class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
-    
+class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
+
     element_type = str
     corner_name = "#sample"
 
@@ -39,13 +39,21 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
         super(ClinicalMatrix, self).__init__()
         self.attrs = { ':clinicalFeature': '__null__' }
 
-    def init_schema(self):
-        pass
-        
     def is_link_ready(self):
         if self.attrs.get( ":sampleMap", None ) == None:
             return False
         return True
+
+
+    def get_col_namespace(self):
+        if self.attrs.get(":clinicalFeature", None) is not None:
+            return "clinicalFeature:" + self.attrs[":clinicalFeature"]
+        return None
+
+    def get_row_namespace(self):
+        if self.attrs.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self.attrs[":sampleMap"]
+        return None
     
     def feature_type_setup(self):
         if self.light_mode:
@@ -99,8 +107,8 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
             self.orig_order.append( name )
     
    
-    def gen_sql(self, id_table, skip_feature_setup=False):
-        CGData.log( "Gen %s SQL" % (self.attrs['name']))
+    def gen_sql_heatmap(self, id_table, skip_feature_setup=False):
+        CGData.log( "Writing Clinical %s SQL" % (self.attrs['name']))
         
         if not skip_feature_setup:
             self.feature_type_setup()
@@ -131,7 +139,7 @@ CREATE TABLE clinical_%s (
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
                 else:
-                    a.append( "'" + sql_fix(val) + "'" )
+                    a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
             yield u"INSERT INTO clinical_%s VALUES ( %d, '%s', %s );\n" % ( table_name, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
 
 

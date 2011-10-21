@@ -2,6 +2,7 @@
 import os
 import re
 import json
+import functools
 from zipfile import ZipFile
 import sys
 """
@@ -45,10 +46,12 @@ def get_type(type_str):
     cls = getattr(module, cls_name)
     return cls
 
-class CGGroupMember:
+class CGGroupMember(object):
     pass
 
-class CGGroupBase:
+class CGGroupBase(object):
+
+    DATA_FORM = None
 
     def __init__(self, group_name):
         self.members = {}
@@ -100,9 +103,16 @@ class CGGroupBase:
                         out[ltype].append( lname )
         return out
     
+class UnimplementedException(Exception):
+    def __init__(self, str):
+        Exception.__init__(self, str)
 
 class CGObjectBase(object):
-
+    """
+    This is the base object for CGData loadable objects.
+    The methods covered in the base case cover usage meta-information
+    loading/unloading and manipulation as well as zip (cgz) file access.
+    """
     def __init__(self):
         self.attrs = {}
         self.path = None
@@ -152,7 +162,26 @@ class CGObjectBase(object):
             dhandle = open(path, "w")
             self.write(dhandle)
             dhandle.close()            
-            
+    
+    def read(self, handle):
+        """
+        The read method is implemented by the subclass that 
+        inherits from CGObjectBase. It is passed a handle 
+        to a file (which may be on file, in a compressed object, or
+        from a network source). The implementing class then uses his handle
+        to populate it's data structures. 
+        """
+        raise UnimplementedException()
+    
+    def write(self, handle):
+        """
+        The write method is implemented by the subclass that 
+        inherits from CGObjectBase. It is passed a handle to an 
+        output file, which it can use 'write' method calls to emit
+        it's data.
+        """
+        raise UnimplementedException()
+    
     def get_attrs(self):
         return self.attrs
     
@@ -188,6 +217,7 @@ class CGObjectBase(object):
             self.attrs[ 'history' ] = []
         self.attrs[ 'history' ].append( desc )
 
+    
 
 class CGMergeObject(object):
     
@@ -207,11 +237,12 @@ class CGMergeObject(object):
 
     def unload(self):
         pass
-    
-    def gen_sql(self, id_table):
+        
+    def sql_pass(self, id_table, method):
         for t in self.members:
-            if issubclass(get_type(t), CGSQLObject):
-                for line in self.members[t].gen_sql(id_table):
+            if hasattr(self.members[t], "gen_sql_" + method):
+                f = getattr(self.members[t], "gen_sql_" + method)
+                for line in f(id_table):
                     yield line
 
 
@@ -228,20 +259,15 @@ class CGDataMatrixObject(CGObjectBase):
         CGObjectBase.__init__(self)
 
 
-
-class CGSQLObject(object):
-    
-    def init_schema(self):
-        pass
-    
-    def gen_sql(self, id_table):
-        pass
-    
-    def build_ids(self, id_allocator):
-        pass
-    
-
 def cg_new(type_str):
+    """
+    cg_new takes a type string and creates a new object from the 
+    class named, it uses an internally defined map to find all
+    official CGData data types. So if a 'genomicMatrix' is requested
+    a CGData.GenomicMatrix.GenomicMatrix is initialized.
+    
+    type_str -- A string name of a CGData type, ie 'genomicMatrix'
+    """
     mod_name, cls_name = OBJECT_MAP[type_str]
     module = __import__(mod_name, globals(), locals(), [ cls_name ])
     cls = getattr(module, cls_name)
@@ -249,6 +275,20 @@ def cg_new(type_str):
     return out
 
 def load(path, zip=None):
+    """
+    load is a the automatic CGData loading function. There has to 
+    be a '.json' file for this function to work. It inspects the 
+    '.json' file and uses the 'type' field to determine the 
+    appropriate object loader to use. The object is created 
+    (using the cg_new function) and the 'read' method is passed
+    a handle to the data file. If the 'zip' parameter is not None, 
+    then it is used as the path to a zipfile, and the path parameter 
+    is used as an path inside the zip file to the object data
+    
+    path -- path to file (in file system space if zip is None, otherwise
+    it is the location in the zip file)
+    zip -- path to zip file (None by default)
+    """
     if not path.endswith(".json"):
         path = path + ".json"
 
@@ -299,18 +339,35 @@ def light_load(path, zip=None):
     else:
         raise FormatException("%s class not found" % (meta['type']))
 
-
+global LOG_LEVEL
+LOG_LEVEL = 2
 
 def log(eStr):
-    sys.stderr.write("LOG: %s\n" % (eStr))
-    #errorLogHandle.write("LOG: %s\n" % (eStr))
+    if LOG_LEVEL < 2:
+        sys.stderr.write("LOG: %s\n" % (eStr))
+        #errorLogHandle.write("LOG: %s\n" % (eStr))
 
 
 def warn(eStr):
-    sys.stderr.write("WARNING: %s\n" % (eStr))
-    #errorLogHandle.write("WARNING: %s\n" % (eStr))
+    if LOG_LEVEL < 1:
+        sys.stderr.write("WARNING: %s\n" % (eStr))
+        #errorLogHandle.write("WARNING: %s\n" % (eStr))
 
 
 def error(eStr):
     sys.stderr.write("ERROR: %s\n" % (eStr))
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
+
+
+#####################
+
+
+TABLE = "table"
+MATRIX = "matrix"
+
+class Column:
+    def __init__(self, name, type, primary_key=False):
+        self.name = name
+        self.type = type
+        self.primary_key = primary_key
+

@@ -17,6 +17,17 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
             return False
         return True
 
+    def get_row_namespace(self):
+        if self.attrs.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self.attrs[":sampleMap"]
+        return None
+
+    def get_col_namespace(self):
+        if self.attrs.get(":probeMap", None) is not None:
+            return "probeMap:" + self.attrs[":probeMap"]
+        return None
+
+
     def get_probe_list(self):
         return self.get_rows()
 

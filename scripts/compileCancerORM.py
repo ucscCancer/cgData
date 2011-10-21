@@ -8,13 +8,10 @@ import re
 import CGData
 import CGData.Compiler
 import CGData.DataSet
+import CGData.ORM
 
 import csv
 from getopt import getopt
-reJson = re.compile( r'.json$' )
-
-OUT_DIR = "genRA"
-DATABASE_NAME = "hg18_test"
 
 includeList = None
 
@@ -39,7 +36,10 @@ if __name__ == "__main__":
             
     ds = CGData.DataSet.DataSet(params)
     ds.scan_dirs(args)
-    cg = CGData.Compiler.BrowserCompiler(ds, params)
-    cg.link_objects()
-    cg.gen_sql()
-
+    #cg = CGData.Compiler.BrowserCompiler(ds, params)
+    #cg.link_objects()
+    sess = CGData.ORM.get_session()
+    for t in ds:
+        for name in ds[t]:
+            sess.write( ds[t][name] )
+    sess.commit()
