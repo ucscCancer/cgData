@@ -96,7 +96,8 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
 	                yield (p.name, p.chrom, p.chrom_start, p.chrom_end, p.strand)
     
 
-    def __iter__(self):
+    # XXX I have no idea what this is returning. What is a pset?
+    def psets(self):
         if self.gene_map is None:
             self.load()
         for chrome in self.chrom_map:

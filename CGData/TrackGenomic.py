@@ -107,7 +107,7 @@ CREATE TABLE genomic_%s_alias (
 ) engine 'MyISAM';
 """ % ( table_base )
 
-        for pset in pmap:
+        for pset in pmap.psets():
             for probe in pset:
                 for alias in probe.aliases:
                     yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
