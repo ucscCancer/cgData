@@ -101,7 +101,7 @@ class CGGroupBase:
         return out
     
 
-class CGObjectBase:
+class CGObjectBase(object):
 
     def __init__(self):
         self.attrs = {}
@@ -160,7 +160,7 @@ class CGObjectBase:
         return self.attrs.get(name,None)
 
     def set_attrs(self, attrs):
-        self.attrs = attrs
+        self.attrs.update(attrs)
     
     def is_group_member(self):
         if 'group' in self.attrs:

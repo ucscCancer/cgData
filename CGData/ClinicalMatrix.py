@@ -36,7 +36,8 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix,CGData.CGSQLObject):
     corner_name = "#sample"
 
     def __init__(self):
-        CGData.TSVMatrix.TSVMatrix.__init__(self)
+        super(ClinicalMatrix, self).__init__()
+        self.attrs = { ':clinicalFeature': '__null__' }
 
     def init_schema(self):
         pass
@@ -115,7 +116,7 @@ CREATE TABLE clinical_%s (
 
         for col in self.col_order:
             if ( self.enum_map.has_key( col ) ):
-                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in self.enum_map[ col ].keys() ) )
+                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]) ) )
             else:
                 yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
         yield """

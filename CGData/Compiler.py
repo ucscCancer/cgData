@@ -28,7 +28,9 @@ class BrowserCompiler:
     PARAMS = [ "compiler.mode" ]
 
     def __init__(self,params={}):
-        self.set_hash = {}
+        import CGData.ClinicalFeature
+        # Create a default null clinicalFeature, to coerce creation of a TrackClinical merge object.
+        self.set_hash = {'clinicalFeature': {'__null__': CGData.ClinicalFeature.NullClinicalFeature() }}
         self.out_dir = "out"
         self.params = params
         if self.params['binary']:

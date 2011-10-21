@@ -45,8 +45,10 @@ CREATE TABLE raDb (
         while cls.c.nextset() is not None: pass
 
         cmd = '../scripts/compileCancerData.py data_sample_order; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, errors = p.communicate()
+        f = open('test.log', 'a')
+        p = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
+        p.communicate()
+        f.close()
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, cmd)
 

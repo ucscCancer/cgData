@@ -50,8 +50,14 @@ class TrackGenomic(CGData.CGMergeObject,CGData.CGSQLObject):
 
     def gen_sql(self, id_table):
         #scan the children
+        # XXX Handling of sql for children is broken if the child may appear
+        # as part of multiple merge objects, such as TrackGenomic and TrackClinical.
+        # A disgusting workaround for clinicalMatrix is to prevent the TrackGenomic from calling
+        # it for gen_sql.
+        clinical = self.members.pop("clinicalMatrix")
         for line in CGData.CGMergeObject.gen_sql(self, id_table):
             yield line
+        self.members["clinicalMatrix"] = clinical
 
         gmatrix = self.members[ 'genomicMatrix' ]
         pmap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables

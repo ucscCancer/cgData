@@ -51,9 +51,6 @@ class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
                         word = True
                     e += 1
                 
-                #print tmp
-                #print enums
-                #print matrix.enum_map[a]
                 i = 0
                 for e in matrix.enum_map[a]:
                     if e in enums:
@@ -61,8 +58,6 @@ class TrackClinical(CGData.CGMergeObject,CGData.CGSQLObject):
                     else:
                         matrix.enum_map[a][e] = len(enums) + i
                         i += 1
-                #print matrix.enum_map[a]
-                #print "-=-=-=-=-"
         for a in matrix.gen_sql(id_table, skip_feature_setup=True):
             yield a
     

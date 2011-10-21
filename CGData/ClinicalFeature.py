@@ -6,7 +6,8 @@ import CGData
 class ClinicalFeature(CGData.CGObjectBase):
     def __init__(self):
         self.data = None
-        
+        super(ClinicalFeature, self).__init__()
+
     def read(self,handle):
         self.data = {}
         for line in handle:
@@ -29,3 +30,11 @@ class ClinicalFeature(CGData.CGObjectBase):
         
     def __getitem__(self, item):
         return self.data[item]
+
+class NullClinicalFeature(ClinicalFeature):
+    def __init__(self):
+        super(NullClinicalFeature, self).__init__()
+        self.set_attrs({'type': 'clinicalFeature', 'name': '__null__'})
+        self.data = {}
+    def load(self):
+        pass
