@@ -79,13 +79,12 @@ class CGGroupBase(object):
         for name in self.members:
             self.members[name].unload()
     
-    def get(self, **kw):
+    def lookup(self, **kw):
         for elem in self.members:
             found = True
             obj = self.members[ elem ]
             for key in kw:
-                if obj.attrs.get( key, None ) != kw[key]\
-                and obj.attrs.get( ":" + key, None ) != kw[key]:
+                if obj.get( key, None ) != kw[key] and obj.get( ":" + key, None ) != kw[key]:
                     found = False
             if found:
                 return obj
@@ -107,17 +106,17 @@ class UnimplementedException(Exception):
     def __init__(self, str):
         Exception.__init__(self, str)
 
-class CGObjectBase(object):
+class CGObjectBase(dict):
     """
     This is the base object for CGData loadable objects.
     The methods covered in the base case cover usage meta-information
     loading/unloading and manipulation as well as zip (cgz) file access.
     """
     def __init__(self):
-        self.attrs = {}
         self.path = None
         self.zip = None
         self.light_mode = False
+        super(CGObjectBase,self).__init__()
 
     def load(self, path=None, **kw):
         if path is None and self.path is not None:
@@ -139,7 +138,7 @@ class CGObjectBase(object):
         self.path = path
         if (os.path.exists(path + ".json")):
             mhandle = open(path + ".json")
-            self.set_attrs(json.loads(mhandle.read()))
+            self.update(json.loads(mhandle.read()))
             mhandle.close()
 
     def unload(self):
@@ -154,7 +153,7 @@ class CGObjectBase(object):
         if path is None:
             raise OSError( "Path not defined" ) 
         mHandle = open(path + ".json", "w")
-        mHandle.write(json.dumps(self.attrs))
+        mHandle.write(json.dumps(self))
         mHandle.close()
         if not self.light_mode:
             self.path = path
@@ -181,40 +180,31 @@ class CGObjectBase(object):
         """
         raise UnimplementedException()
     
-    def get_attrs(self):
-        return self.attrs
-    
-    def get_attr(self, name):
-        return self.attrs.get(name,None)
-
-    def set_attrs(self, attrs):
-        self.attrs.update(attrs)
-    
     def is_group_member(self):
-        if 'group' in self.attrs:
+        if 'group' in self:
             return True
         return False
     
     def get_group(self):
-        return self.attrs.get( 'group', self.attrs.get('name', None))
+        return self.get( 'group', self.get('name', None))
 
     def get_name(self):
-        return self.attrs.get( 'name', None )
+        return self.get( 'name', None )
     
     def get_link_map(self):
         out = {}
-        for key in self.attrs:
+        for key in self:
             if key.startswith(':'):
-                if isinstance( self.attrs[ key ], list ):
-                    out[ key[1:] ] = self.attrs[ key ]
-                elif self.attrs[ key ] is not None:
-                    out[ key[1:] ] = [ self.attrs[ key ] ]
+                if isinstance( self[ key ], list ):
+                    out[ key[1:] ] = self[ key ]
+                elif self[ key ] is not None:
+                    out[ key[1:] ] = [ self[ key ] ]
         return out
 
     def add_history(self, desc):
-        if not 'history' in self.attrs:
-            self.attrs[ 'history' ] = []
-        self.attrs[ 'history' ].append( desc )
+        if not 'history' in self:
+            self[ 'history' ] = []
+        self[ 'history' ].append( desc )
 
     
 
@@ -301,7 +291,7 @@ def load(path, zip=None):
 
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
-        out.set_attrs( meta )
+        out.update( meta )
         out.path = data_path
         out.load(data_path)
         return out
@@ -330,7 +320,7 @@ def light_load(path, zip=None):
         
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
-        out.set_attrs( meta )
+        out.update( meta )
         out.path = data_path
         out.zip = zip
         out.light_mode = True

@@ -13,18 +13,18 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
         CGData.TSVMatrix.TSVMatrix.__init__(self)
         
     def is_link_ready(self):
-        if self.attrs.get( ':sampleMap', None ) is None:
+        if self.get( ':sampleMap', None ) is None:
             return False
         return True
 
     def get_row_namespace(self):
-        if self.attrs.get(":sampleMap", None) is not None:
-            return "sampleMap:" + self.attrs[":sampleMap"]
+        if self.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self[":sampleMap"]
         return None
 
     def get_col_namespace(self):
-        if self.attrs.get(":probeMap", None) is not None:
-            return "probeMap:" + self.attrs[":probeMap"]
+        if self.get(":probeMap", None) is not None:
+            return "probeMap:" + self[":probeMap"]
         return None
 
 

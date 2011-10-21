@@ -22,7 +22,7 @@ def write_probe_map(h5, probe_map):
     pm_count = len(probes)
 
     ds = h5.create_dataset(
-    "/probe_map/%s" % (probe_map.attrs['name']), [pm_count], dtype=h_probe_type)
+    "/probe_map/%s" % (probe_map['name']), [pm_count], dtype=h_probe_type)
 
     i = 0
     val = numpy.zeros(1, dtype=probe_type)
@@ -33,7 +33,7 @@ def write_probe_map(h5, probe_map):
 
 def write_gene_matrix(h5, gm):
     ds = h5.create_dataset(
-    "%s" % (gm.attrs['name']),
+    "%s" % (gm['name']),
     [len(gm.probe_hash), len(gm.sample_list)],
     dtype=float)
     i = 0

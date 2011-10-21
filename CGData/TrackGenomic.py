@@ -62,7 +62,7 @@ class TrackGenomic(CGData.CGMergeObject):
         self.members["clinicalMatrix"] = clinical
 
         gmatrix = self.members[ 'genomicMatrix' ]
-        pmap = self.members[ 'probeMap' ].get( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
+        pmap = self.members[ 'probeMap' ].lookup( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
         if pmap is None:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
@@ -76,11 +76,11 @@ class TrackGenomic(CGData.CGMergeObject):
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + clinical_table_base, "clinical_" + clinical_table_base + "_colDb",
                 "genomic_" + table_base + "_alias",
-                sql_fix(gmatrix.attrs['shortTitle']),
-                sql_fix(gmatrix.attrs['longTitle']),
+                sql_fix(gmatrix['shortTitle']),
+                sql_fix(gmatrix['longTitle']),
                 len(gmatrix.get_sample_list()),
                 self.format,
-                gmatrix.attrs[':dataSubType'],
+                gmatrix[':dataSubType'],
                 'localDb',
                 'public',
                 )
@@ -133,7 +133,7 @@ CREATE TABLE genomic_%s_alias (
             tmp = gmatrix.get_row_vals( probe_name )
             row = map(lambda i: tmp[order[i]], range(len(tmp)))
 
-            pset = pmap.get( probe_name )
+            pset = pmap.lookup( probe_name )
             if pset is not None:
                 for probe in pset:
                     istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \

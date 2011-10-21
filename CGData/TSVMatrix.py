@@ -66,13 +66,13 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         """
         Return the name of the column namespace
         """
-        return self.attrs.get("colNamespace", None)
+        return self.get("colNamespace", None)
 
     def get_row_namespace(self):
         """
         Return the name of the row namespace
         """
-        return self.attrs.get("rowNamespace", None)
+        return self.get("rowNamespace", None)
         
     def get_col_names(self):
         """
@@ -107,7 +107,7 @@ class TSVMatrix(CGData.CGDataMatrixObject):
             self.load( )
         return self.row_hash[ row_name ]
     
-    def get(self, col, row):
+    def get_val(self, col, row):
         return self.row_hash[row][self.col_list[col]]
 
     def col_rename(self, old_col, new_col):

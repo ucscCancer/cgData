@@ -35,7 +35,8 @@ class ClinicalFeature(CGData.CGObjectBase):
 class NullClinicalFeature(ClinicalFeature):
     def __init__(self):
         super(NullClinicalFeature, self).__init__()
-        self.set_attrs({'type': 'clinicalFeature', 'name': '__null__'})
+        self['type'] = 'clinicalFeature'
+        self['name'] = '__null__'
         self.data = {}
     def load(self):
         pass

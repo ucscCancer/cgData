@@ -36,7 +36,7 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         self.chrom_map = None
 
     def read_meta(self, handle):
-        self.attrs = json.loads(handle.read())
+        self.update(json.loads(handle.read()))
 
     def read(self, handle):
         self.gene_map = {}
@@ -78,7 +78,8 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
                         str(probe.chrom_end),
                         probe.strand])))
     
-    def get(self, item):
+    # XXX need a better name. What does this return?
+    def lookup(self, item):
         if self.gene_map is None:
             self.load()
         for chrome in self.chrom_map:
@@ -103,10 +104,3 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         for chrome in self.chrom_map:
             for probe in self.chrom_map[chrome]:
                 yield self.chrom_map[chrome][probe]
-    
-    def get(self, item):
-        if self.gene_map is None:
-            self.load()
-        for chrome in self.chrom_map:
-            if item in self.chrom_map[chrome]:
-                return self.chrom_map[chrome][item]

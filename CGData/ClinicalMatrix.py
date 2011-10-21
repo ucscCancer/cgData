@@ -37,22 +37,22 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
 
     def __init__(self):
         super(ClinicalMatrix, self).__init__()
-        self.attrs = { ':clinicalFeature': '__null__' }
+        self[':clinicalFeature'] = '__null__'
 
     def is_link_ready(self):
-        if self.attrs.get( ":sampleMap", None ) == None:
+        if self.get( ":sampleMap", None ) == None:
             return False
         return True
 
 
     def get_col_namespace(self):
-        if self.attrs.get(":clinicalFeature", None) is not None:
+        if self.get(":clinicalFeature", None) is not None:
             return "clinicalFeature:" + self.attrs[":clinicalFeature"]
         return None
 
     def get_row_namespace(self):
-        if self.attrs.get(":sampleMap", None) is not None:
-            return "sampleMap:" + self.attrs[":sampleMap"]
+        if self.get(":sampleMap", None) is not None:
+            return "sampleMap:" + self[":sampleMap"]
         return None
     
     def feature_type_setup(self):
@@ -103,12 +103,12 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
     
    
     def gen_sql_heatmap(self, id_table, skip_feature_setup=False):
-        CGData.log( "Writing Clinical %s SQL" % (self.attrs['name']))
+        CGData.log( "Writing Clinical %s SQL" % (self['name']))
         
         if not skip_feature_setup:
             self.feature_type_setup()
 
-        table_name = self.attrs['name']
+        table_name = self['name']
 
         yield "drop table if exists clinical_%s;" % ( table_name )
 
