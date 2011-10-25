@@ -289,6 +289,9 @@ def load(path, zip=None):
     except IOError:
         raise FormatException("Meta-info (%s) file not found" % (path))
 
+    # Throw away empty values
+    meta = dict((k, v) for k, v in meta.iteritems() if v != None)
+
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
         out.update( meta )
@@ -317,7 +320,10 @@ def light_load(path, zip=None):
         meta = json.loads(handle.read())
         handle.close()
         z.close()
-        
+
+    # Throw away empty values
+    meta = dict((k, v) for k, v in meta.iteritems() if v != None)
+
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
         out.update( meta )

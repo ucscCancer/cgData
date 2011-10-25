@@ -35,9 +35,6 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
         self.gene_map = None
         self.chrom_map = None
 
-    def read_meta(self, handle):
-        self.update(json.loads(handle.read()))
-
     def read(self, handle):
         self.gene_map = {}
         self.chrom_map = {}
