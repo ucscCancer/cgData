@@ -23,7 +23,7 @@ class TrackClinical(CGData.CGMergeObject):
                 
         matrix = self.members["clinicalMatrix"]        
         matrix.feature_type_setup()        
-        features = self.members["clinicalFeature"]
+        features = self.members["clinicalFeature"].features
         for a in features:
             if "stateOrder" in features[a]:
                 
