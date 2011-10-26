@@ -54,33 +54,40 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
         if self.get(":sampleMap", None) is not None:
             return "sampleMap:" + self[":sampleMap"]
         return None
-    
-    def feature_type_setup(self):
+
+    def column(self, name):
+        return [ self.row_hash[row][self.col_list[name]] for row in self.row_hash ]
+
+    def __guess_type__(self, values):
+        type = 'float'
+        for value in values:
+            try:
+                a = float(value)
+            except ValueError:
+                type = 'category'
+                break
+        return type
+
+    def feature_type_setup(self, types = {}):
         if self.light_mode:
             self.load()
-            
+
         self.float_map = {}
         self.enum_map = {}
         for key in self.col_list:
-            col = self.col_list[key]
-            is_float = True
-            has_val = False
-            enum_set = {}
-            for row in self.row_hash:
-                try:
-                    value = self.row_hash[ row ][ col ]
-                    if value not in ["null", "None", "NA"] and value is not None and len(value):
-                        has_val = True
-                        if not enum_set.has_key( value ):
-                            enum_set[ value ] = len( enum_set )
-                        a = float(value)
-                except ValueError:
-                    is_float = False
-            if has_val:
-                if is_float:
-                    self.float_map[ key ] = True
+            # get unique list of values by converting to a set & back.
+            # also, drop null values.
+            values = list(set([v for v in self.column(key) if v not in ["null", "None", "NA"] and v is not None and len(v)]))
+
+            if not key in types:
+                types[key] = self.__guess_type__(values)
+
+            if len(values) > 0: # drop empty columns. XXX is this correct behavior?
+                if types[key] == 'float':
+                    self.float_map[key] = True
                 else:
-                    self.enum_map[ key ] = enum_set
+                    self.enum_map[key] = dict((enum, order) for enum, order in zip(sorted(values), range(len(values))))
+
         id_map = {}
         id_num = 0
         prior = 1

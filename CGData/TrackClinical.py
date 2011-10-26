@@ -20,13 +20,17 @@ class TrackClinical(CGData.CGMergeObject):
     
     def gen_sql_heatmap(self, id_table):
         CGData.log("ClincalTrack SQL " + self.get_name())
-                
-        matrix = self.members["clinicalMatrix"]        
-        matrix.feature_type_setup()        
+
         features = self.members["clinicalFeature"].features
+        matrix = self.members["clinicalMatrix"]
+
+        # e.g. { 'HER2+': 'category', ...}
+        explicit_types = dict((f, features[f]['valueType']) for f in features if 'valueType' in features[f])
+
+        matrix.feature_type_setup(explicit_types)
         for a in features:
             if "stateOrder" in features[a]:
-                
+
                 #this weird bit of code is to split on ',', but respect \,
                 #if you can think of a better way, please replace this
                 tmp = re.split(r'([^,]),', features[a]["stateOrder"][0])

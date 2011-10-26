@@ -44,7 +44,7 @@ CREATE TABLE raDb (
 );""")
         while cls.c.nextset() is not None: pass
 
-        cmd = '../scripts/compileCancerData.py data_enum_order; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
+        cmd = '../scripts/compileCancerData.py data_numeric_enum; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
         f = open('test.log', 'a')
         p = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
         p.communicate()
@@ -58,15 +58,15 @@ CREATE TABLE raDb (
 
     def test_clinical(self):
         """Test enum order in the clinical table"""
-        self.c.execute("""select sampleName, color from clinical_test order by color,sampleName""")
+        self.c.execute("""select sampleName, `HER2+` from clinical_test order by `HER2+`, sampleName""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 6)          # six samples
-        self.assertEqual(rows[0][0], 'sample4') # sample name is sample4
-        self.assertEqual(rows[1][0], 'sample1')
-        self.assertEqual(rows[2][0], 'sample3')
-        self.assertEqual(rows[3][0], 'sample2')
-        self.assertEqual(rows[4][0], 'sample6')
-        self.assertEqual(rows[5][0], 'sample5')
+        self.assertEqual(rows[0], ( 'sample1', '0' ) ) # sample name is sample1
+        self.assertEqual(rows[1], ( 'sample2', '0' ) )
+        self.assertEqual(rows[2], ( 'sample4', '0' ) )
+        self.assertEqual(rows[3], ( 'sample3', '1' ) )
+        self.assertEqual(rows[4], ( 'sample5', '1' ) )
+        self.assertEqual(rows[5], ( 'sample6', '1' ) )
 
 def main():
     sys.argv = sys.argv[:1]
