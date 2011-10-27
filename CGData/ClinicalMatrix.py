@@ -8,7 +8,8 @@ from CGData.SQLUtil import *
 
 CREATE_COL_DB = """
 CREATE TABLE `%s` (
-  `name` varchar(255) default NULL,
+  `id` int(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL UNIQUE,
   `shortLabel` varchar(255) default NULL,
   `longLabel` varchar(255) default NULL,
   `valField` varchar(255) default NULL,
@@ -16,8 +17,7 @@ CREATE TABLE `%s` (
   `priority` float default NULL,
   `filterType` varchar(255) default NULL,
   `visibility` varchar(255) default NULL,
-  `groupName` varchar(255) default NULL,
-  PRIMARY KEY  (`name`)
+  `groupName` varchar(255) default NULL
 ) engine 'MyISAM';
 """
 
