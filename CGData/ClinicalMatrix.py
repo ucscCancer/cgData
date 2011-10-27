@@ -66,7 +66,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             except ValueError:
                 type = 'category'
                 break
-        return type
+        return [type]
 
     def feature_type_setup(self, types = {}):
         if self.light_mode:
@@ -83,7 +83,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
                 types[key] = self.__guess_type__(values)
 
             if len(values) > 0: # drop empty columns. XXX is this correct behavior?
-                if types[key] == 'float':
+                if types[key] == ['float']:
                     self.float_map[key] = True
                 else:
                     self.enum_map[key] = dict((enum, order) for enum, order in zip(sorted(values), range(len(values))))
