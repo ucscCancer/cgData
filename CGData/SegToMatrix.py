@@ -4,10 +4,18 @@ import ctypes
 import os
 
 base = os.path.dirname(os.path.abspath(__file__))
-segLib = ctypes.cdll.LoadLibrary(base + "/CsegToMatrix.so")
+libFile = base + "/CsegToMatrix.so"
+if os.path.exists(libFile):
+    segLib = ctypes.cdll.LoadLibrary(libFile)
 
 
 def seg_to_matrix(seg_handle, out_handle):
+    """
+    Turn a segment file into a segmented matrix.
+    
+    seg_handle -- CGData.GenomicSegment object
+    out_handle -- File handle to write to
+    """
     s = segLib.new_segment()
     t = segLib.new_target_set()
     for line in seg_handle:

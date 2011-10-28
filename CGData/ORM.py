@@ -4,6 +4,12 @@ import CGData
 import sqlalchemy
 import sqlalchemy.orm
 
+"""
+This is an experimental module, to test design concepts 
+related to treating CGData modules like ORM operators
+"""
+
+
 def get_session():
     return Session()
     
