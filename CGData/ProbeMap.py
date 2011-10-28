@@ -95,9 +95,10 @@ class ProbeMap(CGData.CGDataSetObject,CGData.CGGroupMember):
     
 
     # XXX I have no idea what this is returning. What is a pset?
-    def psets(self):
+    def get_probes(self):
         if self.gene_map is None:
             self.load()
         for chrome in self.chrom_map:
-            for probe in self.chrom_map[chrome]:
-                yield self.chrom_map[chrome][probe]
+            for probeSet in self.chrom_map[chrome]:
+                for probe in self.chrom_map[chrome][probeSet]:
+                    yield probe

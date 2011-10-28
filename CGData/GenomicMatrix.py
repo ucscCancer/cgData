@@ -47,7 +47,7 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
 
     def remap(self, alt_map, skip_missing=False):
         valid_map = {}
-        for alt in alt_map:
+        for alt in alt_map.get_probes():
             valid_map[alt.aliases[0]] = True
             if not skip_missing or alt.name in self.row_hash:
                 self.probe_remap(alt.name, alt.aliases[0])
@@ -64,7 +64,7 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
         for probe in self.row_hash:
             null_count = 0.0
             for val in self.row_hash[probe]:
-                if val is None:
+                if val is None or val == self.null_type:
                     null_count += 1.0
             nullPrec = null_count / float(len(self.row_hash[probe]))
             if 1.0 - nullPrec <= threshold:
