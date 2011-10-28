@@ -72,7 +72,7 @@ class TrackGenomic(CGData.CGMergeObject):
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
 
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s');\n" % \
+        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %d, %d, '%s');\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + clinical_table_base, "clinical_" + clinical_table_base + "_colDb",
                 "genomic_" + table_base + "_alias",
@@ -83,6 +83,9 @@ class TrackGenomic(CGData.CGMergeObject):
                 gmatrix[':dataSubType'],
                 'localDb',
                 'public',
+                float(gmatrix.get('priority', 1.0)),
+                float(gmatrix.get('gain', 1.0)),
+                gmatrix.get('groupTitle', 'Misc.')
                 )
         
         # write out the sample table
