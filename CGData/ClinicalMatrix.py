@@ -118,8 +118,9 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             self.feature_type_setup()
 
         table_name = self['name']
+        clinical_table = 'clinical_' + table_name
+        yield "drop table if exists %s;" % ( clinical_table )
 
-        yield "drop table if exists clinical_%s;" % ( table_name )
 
         yield """
 CREATE TABLE clinical_%s (
@@ -143,18 +144,17 @@ CREATE TABLE clinical_%s (
                     a.append("\\N")
                 else:
                     a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
-            yield u"INSERT INTO clinical_%s VALUES ( %d, '%s', %s );\n" % ( table_name, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
+            yield u"INSERT INTO %s VALUES ( %d, '%s', %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
 
 
-        yield "drop table if exists clinical_%s_colDb;" % ( table_name )
-        yield CREATE_COL_DB % ( "clinical_" + table_name + "_colDb" )
+        yield "DELETE from colDb where clinicalTable = '%s';" % clinical_table
 
-        yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
-                ( table_name, 'sampleName', 'sample name', 'sample name', 'sampleName', "clinical_" + table_name, 'coded' )
+        yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
+                ( 'sampleName', 'sample name', 'sample name', 'sampleName', clinical_table, 'coded' )
 
         i = 0;
         for name in self.col_order:
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
-            yield "INSERT INTO clinical_%s_colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
-                    ( table_name, name, name, name, name, "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
+            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
+                    ( name, name, name, name, "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
             i += 1

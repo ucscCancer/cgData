@@ -72,9 +72,10 @@ class TrackGenomic(CGData.CGMergeObject):
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
 
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %d, %d, '%s');\n" % \
+	yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
+        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s);\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
-                "clinical_" + clinical_table_base, "clinical_" + clinical_table_base + "_colDb",
+                "clinical_" + clinical_table_base, "colDb",
                 "genomic_" + table_base + "_alias",
                 sql_fix(gmatrix['shortTitle']),
                 sql_fix(gmatrix['longTitle']),
@@ -85,7 +86,13 @@ class TrackGenomic(CGData.CGMergeObject):
                 'public',
                 float(gmatrix.get('priority', 1.0)),
                 float(gmatrix.get('gain', 1.0)),
-                gmatrix.get('groupTitle', 'Misc.')
+                gmatrix.get('groupTitle', 'Misc.'),
+                "'%s'"%gmatrix['wrangler'] if 'wrangler' in gmatrix else '\N',
+                "'%s'"%gmatrix['url'] if 'url' in gmatrix else '\N',
+                "'%s'"%gmatrix['articleTitle'] if 'article_title' in gmatrix else '\N',
+                "'%s'"%gmatrix['citation'] if 'citation' in gmatrix else '\N',
+                "'%s'"%gmatrix['authorList'] if 'author_list' in gmatrix else '\N',
+                "'%s'"%gmatrix['notes'] if 'wrangling_procedure' in gmatrix else '\N',
                 )
         
         # write out the sample table

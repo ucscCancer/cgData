@@ -25,24 +25,47 @@ class TestCase(unittest.TestCase):
 create database hg18;
 use hg18;
 
+CREATE TABLE colDb (
+    `id` int(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    name varchar(255),	# Column name
+    shortLabel varchar(255),	# Short label
+    longLabel varchar(255),	# Long label
+    valField varchar(255),	# Val field name
+    clinicalTable varchar(255),	# Table of clinical data
+    priority float,	# Priority
+    filterType varchar(255),	# Filter Type - minMax or coded
+    visibility varchar(255),	# Visibility
+    groupName varchar(255)	# Group Name
+) engine 'MyISAM';
+
 CREATE TABLE raDb (
-    name varchar(255),  # Table name for genomic data
-    downSampleTable varchar(255),       # Down-sampled table
-    sampleTable varchar(255),   # Sample table
-    clinicalTable varchar(255), # Clinical table
-    columnTable varchar(255),   # Column table
-    shortLabel varchar(255),    # Short label
-    longLabel varchar(255),     # Long label
-    expCount int unsigned,      # Number of samples
-    groupName varchar(255),     # Group name
-    microscope varchar(255),    # hgMicroscope on/off flag
-    aliasTable varchar(255),    # Probe to gene mapping
-    dataType varchar(255),      # data type (bed 15)
-    platform varchar(255),      # Expression, SNP, etc.
-    security varchar(255),      # Security setting (public, private)
-    profile varchar(255),       # Database profile
+    name varchar(255),	# Table name for genomic data
+    downSampleTable varchar(255),	# Down-sampled table
+    sampleTable varchar(255),	# Sample table
+    clinicalTable varchar(255),	# Clinical table
+    columnTable varchar(255),	# Column table
+    shortLabel varchar(255),	# Short label
+    longLabel varchar(255),	# Long label
+    expCount int unsigned,	# Number of samples
+    groupName varchar(255),	# Group name
+    microscope varchar(255),	# hgMicroscope on/off flag
+    aliasTable varchar(255),	# Probe to gene mapping
+    dataType varchar(255),	# data type (bed 15)
+    platform varchar(255),	# Expression, SNP, etc.
+    security varchar(255),	# Security setting (public, private)
+    profile varchar(255),	# Database profile
+    gain float,	# Gain
+    priority float,	# Priority for sorting
+    url varchar(255),	# Pubmed URL
+    wrangler varchar(255),	# Wrangler
+    citation varchar(255),	# Citation
+    article_title longblob,	# Title of publication
+    author_list longblob,	# Author list
+    wrangling_procedure longblob,	# Wrangling
+              #Indices
     PRIMARY KEY(name)
-);""")
+);
+""")
         while cls.c.nextset() is not None: pass
 
         cmd = '../scripts/compileCancerData.py data_basic; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
@@ -84,7 +107,7 @@ CREATE TABLE raDb (
                 ['name', 'alias'])
 
     def test_colDb(self):
-        self.c.execute("""select name, shortLabel, longLabel, valField, clinicalTable, priority, filterType, visibility, groupName from clinical_test_colDb""")
+        self.c.execute("""select name, shortLabel, longLabel, valField, clinicalTable, priority, filterType, visibility, groupName from colDb""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 3)                  # three features (sampleName plus two in the matrix)
         self.assertEqual(rows[0][0], 'sampleName')      # name
@@ -116,12 +139,6 @@ CREATE TABLE raDb (
         self.assertEqual(rows[2][6], 'coded')           # filterType
         self.assertEqual(rows[2][7], 'on')              # visibility
         self.assertEqual(rows[2][8], None)              # groupName
-
-    def test_colDb_order(self):
-        self.c.execute("""select * from clinical_test_colDb""")
-        rows = self.c.fetchall()
-        self.assertEqual([d[0] for d in self.c.description],
-            ['name', 'shortLabel', 'longLabel', 'valField', 'clinicalTable', 'priority', 'filterType', 'visibility', 'groupName'])
 
     def test_clinical(self):
         self.c.execute("""select sampleID,sampleName,age,status from clinical_test""")
@@ -160,24 +177,17 @@ CREATE TABLE raDb (
         self.assertEqual(rows[0][1], None)                      # downSampleTable
         self.assertEqual(rows[0][2], 'sample_test')             # sampleTable
         self.assertEqual(rows[0][3], 'clinical_test')           # clinical
-        self.assertEqual(rows[0][4], 'clinical_test_colDb')     # colDb
+        self.assertEqual(rows[0][4], 'colDb')                   # colDb
         self.assertEqual(rows[0][5], 'test1')                   # short
         self.assertEqual(rows[0][6], 'test One')                # long
         self.assertEqual(rows[0][7], 1)                         # count
-        self.assertEqual(rows[0][8], None)                      # group
+        self.assertEqual(rows[0][8], 'test1 group')             # group
         self.assertEqual(rows[0][9], None)                      # microscope
         self.assertEqual(rows[0][10], 'genomic_test_alias')     # alias
-        self.assertEqual(rows[0][11], 'bed 15')                  # datatype
+        self.assertEqual(rows[0][11], 'bed 15')                 # datatype
         self.assertEqual(rows[0][12], 'geneExp')                # platform
         self.assertEqual(rows[0][13], 'public')                 # security
         self.assertEqual(rows[0][14], 'localDb')                # profile
-
-    def test_raDb_order(self):
-        self.c.execute("""select * from raDb""")
-        rows = self.c.fetchall()
-        self.assertEqual([d[0] for d in self.c.description],
-            ['name','downSampleTable','sampleTable','clinicalTable','columnTable','shortLabel','longLabel',
-                'expCount','groupName','microscope','aliasTable','dataType','platform','security','profile'])
 
 def main():
     sys.argv = sys.argv[:1]
