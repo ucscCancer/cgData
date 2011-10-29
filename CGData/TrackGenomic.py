@@ -117,10 +117,9 @@ CREATE TABLE genomic_%s_alias (
 ) engine 'MyISAM';
 """ % ( table_base )
 
-        for pset in pmap.psets():
-            for probe in pset:
-                for alias in probe.aliases:
-                    yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
+        for probe in pmap.get_probes():
+            for alias in probe.aliases:
+                yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
