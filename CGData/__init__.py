@@ -118,6 +118,10 @@ class CGObjectBase(dict):
         self.light_mode = False
         super(CGObjectBase,self).__init__()
 
+    # XXX There are no less than three different code paths for
+    # loading the json data, that get hit at different points during
+    # the compile. This is really messed up. There's this routine, plus
+    # the load and light_load methods, below.
     def load(self, path=None, **kw):
         if path is None and self.path is not None:
             path = self.path
@@ -138,7 +142,9 @@ class CGObjectBase(dict):
         self.path = path
         if (os.path.exists(path + ".json")):
             mhandle = open(path + ".json")
-            self.update(json.loads(mhandle.read()))
+            meta = json.loads(mhandle.read())
+            meta = dict((k, v) for k, v in meta.iteritems() if v != None)
+            self.update(meta)
             mhandle.close()
 
     def unload(self):

@@ -72,7 +72,7 @@ class TrackGenomic(CGData.CGMergeObject):
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
 
-	yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
+        yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %d, %d, '%s', %s, %s, %s, %s, %s, %s);\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + clinical_table_base, "colDb",
