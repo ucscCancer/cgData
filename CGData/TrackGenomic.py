@@ -27,6 +27,12 @@ CREATE TABLE %s (
 ) engine 'MyISAM';
 """
 
+dataSubTypeMap = {
+    'cna': 'CNV',
+    'geneExp': 'expression',
+    'SNP': 'SNP',
+    }
+
 
 class TrackGenomic(CGData.CGMergeObject):
 
@@ -81,7 +87,7 @@ class TrackGenomic(CGData.CGMergeObject):
                 sql_fix(gmatrix['longTitle']),
                 len(gmatrix.get_sample_list()),
                 self.format,
-                gmatrix[':dataSubType'],
+                dataSubTypeMap[gmatrix[':dataSubType']],
                 'localDb',
                 'public',
                 float(gmatrix.get('priority', 1.0)),

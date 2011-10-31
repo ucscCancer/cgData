@@ -185,7 +185,7 @@ CREATE TABLE raDb (
         self.assertEqual(rows[0][9], None)                      # microscope
         self.assertEqual(rows[0][10], 'genomic_test_alias')     # alias
         self.assertEqual(rows[0][11], 'bed 15')                 # datatype
-        self.assertEqual(rows[0][12], 'geneExp')                # platform
+        self.assertEqual(rows[0][12], 'expression')             # platform
         self.assertEqual(rows[0][13], 'public')                 # security
         self.assertEqual(rows[0][14], 'localDb')                # profile
         self.assertEqual(rows[0][15], 'wrangler')               # wrangler
