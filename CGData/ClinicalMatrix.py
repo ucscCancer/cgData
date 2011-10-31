@@ -125,7 +125,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
         yield """
 CREATE TABLE clinical_%s (
 \tsampleID int,
-\tsampleName ENUM ('%s')""" % ( table_name, "','".join(sortedSamples(self.row_hash.keys())) )
+\tsampleName ENUM ('%s')""" % ( table_name, "','".join(map(lambda s: sql_fix(s), sortedSamples(self.row_hash.keys()))) )
 
         for col in self.col_order:
             if ( self.enum_map.has_key( col ) ):
@@ -143,7 +143,7 @@ CREATE TABLE clinical_%s (
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
                 else:
-                    a.append( "'" + sql_fix( val.encode('string_escape') ) + "'" )
+                    a.append( "'" + sql_fix(val) + "'" )
             yield u"INSERT INTO %s VALUES ( %d, '%s', %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
 
 
@@ -156,5 +156,5 @@ CREATE TABLE clinical_%s (
         for name in self.col_order:
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
             yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
-                    ( name, name, name, name, "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
+                    ( sql_fix(name), sql_fix(name), sql_fix(name), sql_fix(name), "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
             i += 1

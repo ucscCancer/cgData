@@ -86,13 +86,13 @@ class TrackGenomic(CGData.CGMergeObject):
                 'public',
                 float(gmatrix.get('priority', 1.0)),
                 float(gmatrix.get('gain', 1.0)),
-                gmatrix.get('groupTitle', 'Misc.'),
-                "'%s'"%gmatrix['wrangler'] if 'wrangler' in gmatrix else '\N',
-                "'%s'"%gmatrix['url'] if 'url' in gmatrix else '\N',
-                "'%s'"%gmatrix['articleTitle'] if 'article_title' in gmatrix else '\N',
-                "'%s'"%gmatrix['citation'] if 'citation' in gmatrix else '\N',
-                "'%s'"%gmatrix['authorList'] if 'author_list' in gmatrix else '\N',
-                "'%s'"%gmatrix['notes'] if 'wrangling_procedure' in gmatrix else '\N',
+                sql_fix(gmatrix.get('groupTitle', 'Misc.')),
+                "'%s'"%sql_fix(gmatrix['wrangler']) if 'wrangler' in gmatrix else '\N',
+                "'%s'"%sql_fix(gmatrix['url']) if 'url' in gmatrix else '\N',
+                "'%s'"%sql_fix(gmatrix['articleTitle']) if 'articleTitle' in gmatrix else '\N',
+                "'%s'"%sql_fix(gmatrix['citation']) if 'citation' in gmatrix else '\N',
+                "'%s'"%sql_fix(gmatrix['dataProducer']) if 'dataProducer' in gmatrix else '\N',
+                "'%s'"%sql_fix(gmatrix['wrangling_procedure']) if 'wrangling_procedure' in gmatrix else '\N',
                 )
         
         # write out the sample table
@@ -106,7 +106,7 @@ CREATE TABLE sample_%s (
 
         from CGData.ClinicalMatrix import sortedSamples
         for sample in sortedSamples(gmatrix.get_sample_list()):
-	    yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sample )
+	    yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
 
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
