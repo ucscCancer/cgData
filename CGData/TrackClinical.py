@@ -1,6 +1,6 @@
-
 import CGData
 import re
+import csv
 
 
 class TrackClinical(CGData.CGMergeObject):
@@ -31,30 +31,7 @@ class TrackClinical(CGData.CGMergeObject):
         for a in features:
             if "stateOrder" in features[a]:
 
-                #this weird bit of code is to split on ',', but respect \,
-                #if you can think of a better way, please replace this
-                tmp = re.split(r'([^,]),', features[a]["stateOrder"][0])
-                enums = []
-                word = True
-                appending = False
-                e = 0
-                while e < len(tmp): 
-                    if word:
-                        if appending:
-                            enums[-1] += tmp[e]
-                        else:
-                            enums.append(tmp[e])
-                        word = False
-                    else:
-                        if tmp[e] != "\\":
-                            enums[-1] += tmp[e]
-                            appending = False
-                        else:
-                            enums[-1] += ","
-                            appending = True
-                        word = True
-                    e += 1
-                
+                enums = [x for x in csv.reader(features[a]["stateOrder"], skipinitialspace=True)][0]
                 i = 0
                 for e in matrix.enum_map[a]:
                     if e in enums:
@@ -64,4 +41,3 @@ class TrackClinical(CGData.CGMergeObject):
                         i += 1
         for a in matrix.gen_sql_heatmap(id_table, features=features):
             yield a
-    
