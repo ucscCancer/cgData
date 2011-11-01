@@ -111,10 +111,10 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             self.orig_order.append( name )
     
    
-    def gen_sql_heatmap(self, id_table, skip_feature_setup=False):
+    def gen_sql_heatmap(self, id_table, features=None):
         CGData.log( "Writing Clinical %s SQL" % (self['name']))
         
-        if not skip_feature_setup:
+        if features == None:
             self.feature_type_setup()
 
         table_name = self['name']
@@ -154,7 +154,9 @@ CREATE TABLE clinical_%s (
 
         i = 0;
         for name in self.col_order:
+            shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0]
+            longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0]
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
             yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
-                    ( sql_fix(name), sql_fix(name), sql_fix(name), sql_fix(name), "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
+                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
             i += 1

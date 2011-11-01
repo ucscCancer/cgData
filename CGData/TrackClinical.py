@@ -62,6 +62,6 @@ class TrackClinical(CGData.CGMergeObject):
                     else:
                         matrix.enum_map[a][e] = len(enums) + i
                         i += 1
-        for a in matrix.gen_sql_heatmap(id_table, skip_feature_setup=True):
+        for a in matrix.gen_sql_heatmap(id_table, features=features):
             yield a
     
