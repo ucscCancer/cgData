@@ -6,7 +6,7 @@ from CGData.SQLUtil import *
 
 CREATE_BED = """
 CREATE TABLE %s (
-    bin smallint unsigned not null,
+    id int unsigned not null primary key auto_increment,
     chrom varchar(255) not null,
     chromStart int unsigned not null,
     chromEnd int unsigned not null,
@@ -23,7 +23,7 @@ CREATE TABLE %s (
     expIds longblob not null,
     expScores longblob not null,
     INDEX(name(16)),
-    INDEX(chrom(5),bin)
+    INDEX(chrom(5),id)
 ) engine 'MyISAM';
 """
 
@@ -156,9 +156,10 @@ CREATE TABLE genomic_%s_alias (
                     yield istr
             else:
                 missingProbeCount += 1
-        yield "create table genomic_%s like genomic_%s_tmp;" % (table_base, table_base)
-        yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;" % (table_base, table_base)
-        yield "drop table genomic_%s_tmp;" % table_base
+        yield "# sort file by chrom position\n"
+        yield "create table genomic_%s like genomic_%s_tmp;\n" % (table_base, table_base)
+        yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;\n" % (table_base, table_base)
+        yield "drop table genomic_%s_tmp;\n" % table_base
         CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
 
     def unload(self):

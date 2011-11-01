@@ -166,7 +166,7 @@ CREATE TABLE raDb (
         rows = self.c.fetchall()
         # this is bed15
         self.assertEqual([d[0] for d in self.c.description],
-            ['bin', 'chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart',
+            ['id', 'chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart',
                 'thickEnd', 'reserved', 'blockCount', 'blockSizes', 'chromStarts', 'expCount', 'expIds', 'expScores'])
 
     def test_raDb(self):
