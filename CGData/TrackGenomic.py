@@ -31,6 +31,7 @@ dataSubTypeMap = {
     'cna': 'CNV',
     'geneExp': 'expression',
     'SNP': 'SNP',
+    'RPPA': 'RPPA',
     }
 
 
