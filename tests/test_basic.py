@@ -170,7 +170,7 @@ CREATE TABLE raDb (
                 'thickEnd', 'reserved', 'blockCount', 'blockSizes', 'chromStarts', 'expCount', 'expIds', 'expScores'])
 
     def test_raDb(self):
-        self.c.execute("""select name,downSampleTable,sampleTable,clinicalTable,columnTable,shortLabel,longLabel,expCount,groupName,microscope,aliasTable,dataType,platform,security,profile,wrangler,url,article_title,citation,author_list,wrangling_procedure from raDb""")
+        self.c.execute("""select name,downSampleTable,sampleTable,clinicalTable,columnTable,shortLabel,longLabel,expCount,groupName,microscope,aliasTable,dataType,platform,security,profile,wrangler,url,article_title,citation,author_list,wrangling_procedure,gain from raDb""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 1)                          # one track
         self.assertEqual(rows[0][0], 'genomic_test')            # name
@@ -194,6 +194,7 @@ CREATE TABLE raDb (
         self.assertEqual(rows[0][18], 'track cite')             # citation
         self.assertEqual(rows[0][19], 'author1,author2')        # author_list
         self.assertEqual(rows[0][20], 'wrangling procedure')    # wrangling_procedure
+        self.assertEqual(rows[0][21], 1.25)                     # gain
 
 def main():
     sys.argv = sys.argv[:1]
