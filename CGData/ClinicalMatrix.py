@@ -157,6 +157,8 @@ CREATE TABLE clinical_%s (
             shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0]
             longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0]
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
-            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s',1);\n" % \
-                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, 'on' if i < 10 else 'off')
+            visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0]
+            priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0])
+            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);\n" % \
+                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, visibility, priority)
             i += 1

@@ -127,7 +127,7 @@ CREATE TABLE raDb (
         self.assertEqual(rows[1][4], 'clinical_test')   # table
         self.assertEqual(rows[1][5], 1)                 # priority
         self.assertEqual(rows[1][6], 'minMax')          # filterType
-        self.assertEqual(rows[1][7], 'on')              # visibility
+        self.assertEqual(rows[1][7], 'off')             # visibility
         self.assertEqual(rows[1][8], None)              # groupName
 
         self.assertEqual(rows[2][0], 'status')          # name
@@ -135,7 +135,7 @@ CREATE TABLE raDb (
         self.assertEqual(rows[2][2], 'Status of something')# long
         self.assertEqual(rows[2][3], 'status')          # field
         self.assertEqual(rows[2][4], 'clinical_test')   # table
-        self.assertEqual(rows[2][5], 1)                 # priority
+        self.assertEqual(rows[2][5], 5.1)               # priority
         self.assertEqual(rows[2][6], 'coded')           # filterType
         self.assertEqual(rows[2][7], 'on')              # visibility
         self.assertEqual(rows[2][8], None)              # groupName
