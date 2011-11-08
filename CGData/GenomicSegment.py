@@ -27,10 +27,7 @@ class GenomicSegment(CGData.CGDataSetObject):
                 self.sample_hash[tmp[0]] = []
             self.sample_hash[tmp[0]].append(
             Segment(tmp[1], int(tmp[2]), int(tmp[3]), tmp[4], float(tmp[5])))
-
-    def __iter__(self):
+            
+    def getSegments(self):
         for key in self.sample_hash:
-            yield key
-
-    def __getitem__(self, i):
-        return self.sample_hash[i]
+            yield key, self.sample_hash

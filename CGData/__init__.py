@@ -26,7 +26,8 @@ OBJECT_MAP = {
     'trackGenomic': ('CGData.TrackGenomic', 'TrackGenomic'),
     'trackClinical': ('CGData.TrackClinical', 'TrackClinical'),
     'assembly': ('CGData.Assembly', 'Assembly'),
-    'clinicalFeature': ('CGData.ClinicalFeature', 'ClinicalFeature')
+    'clinicalFeature': ('CGData.ClinicalFeature', 'ClinicalFeature'),
+    'refGene' : ('CGData.RefGene', 'RefGene')
 }
 
 MERGE_OBJECTS = [ 'trackClinical', 'trackGenomic' ]
