@@ -30,8 +30,6 @@ CREATE TABLE %s (
 dataSubTypeMap = {
     'cna': 'CNV',
     'geneExp': 'expression',
-    'SNP': 'SNP',
-    'RPPA': 'RPPA',
     }
 
 
@@ -88,7 +86,7 @@ class TrackGenomic(CGData.CGMergeObject):
                 sql_fix(gmatrix['longTitle']),
                 len(gmatrix.get_sample_list()),
                 self.format,
-                dataSubTypeMap[gmatrix[':dataSubType']],
+                dataSubTypeMap[gmatrix[':dataSubType']] if gmatrix[':dataSubType'] in dataSubTypeMap else gmatrix[':dataSubType'],
                 'localDb',
                 'public',
                 float(gmatrix.get('priority', 1.0)),
