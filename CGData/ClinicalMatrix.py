@@ -21,6 +21,8 @@ CREATE TABLE `%s` (
 ) engine 'MyISAM';
 """
 
+NULL_VALUES = ['NULL', 'NONE', 'NA', '']
+
 def sortedSamples(samples):
     import os, re
     # Check for numeric sample ids. Allow for a common prefix
@@ -76,10 +78,13 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
 
         self.float_map = {}
         self.enum_map = {}
+
+        self.enum_map['sampleName'] = dict((k,v) for k,v in zip(sortedSamples(self.row_hash.keys()), range(0,len(self.row_hash.keys()))))
+
         for key in self.col_list:
             # get unique list of values by converting to a set & back.
             # also, drop null values.
-            values = list(set([v for v in self.column(key) if v not in ["null", "None", "NA"] and v is not None and len(v)]))
+            values = list(set([v for v in self.column(key) if v is not None and v.upper() not in NULL_VALUES]))
 
             if not key in types:
                 types[key] = self.__guess_type__(values)
@@ -94,7 +99,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
         id_num = 0
         prior = 1
         self.col_order = []
-        self.orig_order = []    
+        self.orig_order = []
 
         for name in self.float_map:
             id_map[ name ] = id_num
@@ -102,8 +107,8 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             colName = col_fix( name )
             self.col_order.append( colName )
             self.orig_order.append( name )
-            
-        for name in self.enum_map:        
+
+        for name in self.enum_map:
             id_map[ name ] = id_num
             id_num += 1    
             colName = col_fix( name )
@@ -116,42 +121,18 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
         
         if features == None:
             self.feature_type_setup()
+            features = {}
+
+        features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
 
         table_name = self['name']
         clinical_table = 'clinical_' + table_name
-        yield "drop table if exists %s;" % ( clinical_table )
 
+        yield "DROP TABLE IF EXISTS %s;\n" % ( clinical_table )
+        yield "DELETE codes FROM codes, colDb WHERE codes.feature = colDb.id AND colDb.clinicalTable = '%s';\n" % clinical_table
+        yield "DELETE FROM colDb WHERE clinicalTable = '%s';\n" % clinical_table
 
-        yield """
-CREATE TABLE clinical_%s (
-\tsampleID int,
-\tsampleName ENUM ('%s')""" % ( table_name, "','".join(map(lambda s: sql_fix(s), sortedSamples(self.row_hash.keys()))) )
-
-        for col in self.col_order:
-            if ( self.enum_map.has_key( col ) ):
-                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]) ) )
-            else:
-                yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
-        yield """
-    ) engine 'MyISAM';
-    """
-
-        for target in sortedSamples(self.row_hash.keys()):
-            a = []
-            for col in self.orig_order:
-                val = self.row_hash[ target ][ self.col_list[ col ] ]
-                if val is None or val == "null" or len(val) == 0 :
-                    a.append("\\N")
-                else:
-                    a.append( "'" + sql_fix(val) + "'" )
-            yield u"INSERT INTO %s VALUES ( %d, '%s', %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
-
-
-        yield "DELETE from colDb where clinicalTable = '%s';" % clinical_table
-
-        yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
-                ( 'sampleName', 'sample name', 'sample name', 'sampleName', clinical_table, 'coded' )
-
+        # colDb
         i = 0;
         for name in self.col_order:
             shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0]
@@ -159,6 +140,53 @@ CREATE TABLE clinical_%s (
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
             visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0]
             priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0])
-            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);\n" % \
-                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, visibility, priority)
+            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);" % \
+                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), clinical_table, filter, visibility, priority)
+            yield "SET @col%d=LAST_INSERT_ID();\n" % i
             i += 1
+
+        # codes
+        i = 0;
+        values = {}
+        for col in self.col_order:
+            if ( self.enum_map.has_key( col ) ):
+                values[col] = {}
+                j = 0
+                for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]):
+                    yield "INSERT INTO codes(feature,ordering,value) VALUES (@col%d, %d, '%s'); SET @val%d_%d=LAST_INSERT_ID();\n" % (i, j, sql_fix(a), i, j)
+                    values[col][a] = "@val%d_%d" % (i, j)
+                    j += 1
+            i += 1
+
+
+        yield "CREATE TABLE %s (sampleID INT NOT NULL UNIQUE" % clinical_table
+
+        for col in self.col_order:
+            if col == 'sampleName':
+                yield ",\n\tsampleName INT UNSIGNED NOT NULL UNIQUE"
+            else:
+                if self.enum_map.has_key(col):
+                    yield ",\n\t`%s` INT UNSIGNED DEFAULT NULL" % (col.strip())
+                else:
+                    yield ",\n\t`%s` FLOAT DEFAULT NULL" % (col.strip())
+        yield """
+    ) engine 'MyISAM';
+    """
+
+        for target in sortedSamples(self.row_hash.keys()):
+            a = []
+            for col,orig in zip(self.col_order, self.orig_order):
+                if col == 'sampleName':
+                    val = target
+                else:
+                    val = self.row_hash[ target ][ self.col_list[ orig ] ]
+                if col == 'chemical_exposure_text':
+                    print col
+                if val is None or val.upper() in NULL_VALUES:
+                    a.append("\\N")
+                else:
+                    if col in self.enum_map:
+                        a.append(values[col][val])
+                    else:
+                        a.append(val)
+            yield u"INSERT INTO %s VALUES ( %d, %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), u",".join(a) )

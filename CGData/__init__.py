@@ -5,6 +5,7 @@ import json
 import functools
 from zipfile import ZipFile
 import sys
+import hashlib
 """
 CGData object style:
 
@@ -145,6 +146,10 @@ class CGObjectBase(dict):
             meta = json.loads(mhandle.read())
             meta = dict((k, v) for k, v in meta.iteritems() if v != None)
             self.update(meta)
+            for key in self:
+                if key.startswith(':') or key == 'name':
+                    if len(self[key]) > 30:
+                        self[key] = hashlib.md5(self[key]).hexdigest()
             mhandle.close()
 
     def unload(self):
@@ -297,6 +302,10 @@ def load(path, zip=None):
 
     # Throw away empty values
     meta = dict((k, v) for k, v in meta.iteritems() if v != None)
+    for key in meta:
+        if key.startswith(':') or key == 'name':
+            if len(meta[key]) > 30:
+                meta[key] = hashlib.md5(meta[key]).hexdigest()
 
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
@@ -329,6 +338,10 @@ def light_load(path, zip=None):
 
     # Throw away empty values
     meta = dict((k, v) for k, v in meta.iteritems() if v != None)
+    for key in meta:
+        if key.startswith(':') or key == 'name':
+            if len(meta[key]) > 30:
+                meta[key] = hashlib.md5(meta[key]).hexdigest()
 
     if meta['type'] in OBJECT_MAP:
         out = cg_new(meta['type'])
