@@ -7,7 +7,9 @@ class TestCase(CGDataTestCase):
 
     def test_clinical(self):
         """Test enum order in the clinical table"""
-        self.c.execute("""select sampleName, `HER2+` from clinical_test order by `HER2+`, sampleName""")
+        self.c.execute("""SELECT c1.value, c2.value FROM codes AS c1, clinical_test"""
+                + """ LEFT JOIN codes AS c2 ON `HER2+` = c2.id"""
+                + """ WHERE c1.id = clinical_test.sampleName ORDER BY c2.ordering,c1.ordering;""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 6)          # six samples
         self.assertEqual(rows[0], ( 'sample1', '0' ) ) # sample name is sample1

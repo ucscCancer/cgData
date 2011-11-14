@@ -27,7 +27,7 @@ class TestCase(CGDataTestCase):
 
     def test_clinical(self):
         """Test sample order in the clinical table"""
-        self.c.execute("""select sampleName from clinical_test order by sampleName""")
+        self.c.execute("""select codes.value from codes, clinical_test where codes.id = clinical_test.sampleName order by codes.ordering""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 5)          # five samples
         self.assertEqual(rows[0][0], '1') # sample name is sample1

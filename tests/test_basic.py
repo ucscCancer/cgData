@@ -37,30 +37,30 @@ class TestCase(CGDataTestCase):
         self.c.execute("""select name, shortLabel, longLabel, valField, clinicalTable, priority, filterType, visibility, groupName from colDb""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 3)                  # three features (sampleName plus two in the matrix)
-        self.assertEqual(rows[0][0], 'sampleName')      # name
-        self.assertEqual(rows[0][1], 'sample name')     # short
-        self.assertEqual(rows[0][2], 'sample name')     # long
-        self.assertEqual(rows[0][3], 'sampleName')      # field
+        self.assertEqual(rows[0][0], 'age')             # name
+        self.assertEqual(rows[0][1], 'age')             # short
+        self.assertEqual(rows[0][2], 'age')             # long
+        self.assertEqual(rows[0][3], 'age')             # field
         self.assertEqual(rows[0][4], 'clinical_test')   # table
         self.assertEqual(rows[0][5], 1)                 # priority
-        self.assertEqual(rows[0][6], 'coded')           # filterType
+        self.assertEqual(rows[0][6], 'minMax')          # filterType
         self.assertEqual(rows[0][7], 'on')              # visibility
         self.assertEqual(rows[0][8], None)              # groupName
 
-        self.assertEqual(rows[1][0], 'age')             # name
-        self.assertEqual(rows[1][1], 'age')             # short
-        self.assertEqual(rows[1][2], 'age')             # long
-        self.assertEqual(rows[1][3], 'age')             # field
+        self.assertEqual(rows[1][0], 'status')          # name
+        self.assertEqual(rows[1][1], 'status')          # short
+        self.assertEqual(rows[1][2], 'status')          # long
+        self.assertEqual(rows[1][3], 'status')          # field
         self.assertEqual(rows[1][4], 'clinical_test')   # table
         self.assertEqual(rows[1][5], 1)                 # priority
-        self.assertEqual(rows[1][6], 'minMax')          # filterType
+        self.assertEqual(rows[1][6], 'coded')           # filterType
         self.assertEqual(rows[1][7], 'on')              # visibility
         self.assertEqual(rows[1][8], None)              # groupName
 
-        self.assertEqual(rows[2][0], 'status')          # name
-        self.assertEqual(rows[2][1], 'status')          # short
-        self.assertEqual(rows[2][2], 'status')          # long
-        self.assertEqual(rows[2][3], 'status')          # field
+        self.assertEqual(rows[2][0], 'sampleName')      # name
+        self.assertEqual(rows[2][1], 'Sample name')     # short
+        self.assertEqual(rows[2][2], 'Sample name')     # long
+        self.assertEqual(rows[2][3], 'sampleName')      # field
         self.assertEqual(rows[2][4], 'clinical_test')   # table
         self.assertEqual(rows[2][5], 1)                 # priority
         self.assertEqual(rows[2][6], 'coded')           # filterType
@@ -68,7 +68,10 @@ class TestCase(CGDataTestCase):
         self.assertEqual(rows[2][8], None)              # groupName
 
     def test_clinical(self):
-        self.c.execute("""select sampleID,sampleName,age,status from clinical_test""")
+        self.c.execute("""SELECT sampleID, c1.value, age, c2.value FROM codes AS c1, clinical_test"""
+                + """ LEFT JOIN codes AS c2 ON `status` = c2.id"""
+                + """ WHERE c1.id = clinical_test.sampleName;""")
+
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 1)          # one sample x one probe
         self.assertEqual(rows[0][0], 0)         # id

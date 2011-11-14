@@ -7,7 +7,9 @@ class TestCase(CGDataTestCase):
 
     def test_clinical(self):
         """Test value type in the clinical feature"""
-        self.c.execute("""select sampleName, age, color from clinical_test order by color,sampleName""")
+        self.c.execute("""SELECT c1.value, age, c2.value FROM codes AS c1, clinical_test"""
+                + """ LEFT JOIN codes AS c2 ON `color` = c2.id"""
+                + """ WHERE c1.id = clinical_test.sampleName ORDER BY c2.ordering,c1.ordering;""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 6)          # six samples
         self.assertEqual(rows[0][0], 'sample4') # sample name is sample4

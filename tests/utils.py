@@ -61,6 +61,14 @@ CREATE TABLE raDb (
               #Indices
     PRIMARY KEY(name)
 );
+
+CREATE TABLE codes (
+    id int unsigned primary key not null auto_increment,
+    feature int unsigned,
+    ordering int unsigned,
+    value varchar(255),
+    index(feature)
+) engine='MyISAM';
 """)
         while cls.c.nextset() is not None: pass
 
