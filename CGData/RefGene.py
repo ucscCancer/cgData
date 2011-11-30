@@ -49,6 +49,7 @@ class RefGene(CGData.CGDataSetObject):
     def __init__(self):
         CGData.CGDataSetObject.__init__(self)
         self.hugo_map = {}
+        self.chrom_map = {}
 
     def read(self, handle):
         read = csv.reader(handle, delimiter="\t")
@@ -80,11 +81,26 @@ class RefGene(CGData.CGDataSetObject):
             self.chrom_map[chrom].sort(
             lambda x, y: x.chrom_start - y.chrom_start)
 
+    def add(self, gene):
+        if gene.chrom not in self.chrom_map:
+            self.chrom_map[gene.chrom] = []
+        self.chrom_map[gene.chrom].append(gene)
+        if gene.name not in self.hugo_map:
+            self.hugo_map[gene.name] = []
+        self.hugo_map[gene.name].append(gene)
+        
+
+    def get_chrom_list(self):
+        return self.chrom_map.keys()
+
     def has_chrom(self, chrom):
         return chrom in self.chrom_map
 
     def get_chrom(self, chrom):
         return self.chrom_map[chrom]
+    
+    def get_gene_list(self):
+        return self.hugo_map.keys()
     
     def get_gene(self, gene):
         return self.hugo_map[gene]
