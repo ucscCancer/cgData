@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import csv
 
 import CGData.GenomicSegment
 import CGData.GeneMap
@@ -38,51 +39,64 @@ def filter_longest_form(refgene):
 
 ng = filter_longest_form(rg)
 
-geneHash = {}
-out = {}
 
 #enumerate the col order of the sample ids
 idList = {}
 for num, id in enumerate(sg.get_id_list()):
     idList[id] = num
 
+
+geneList = {}
+for num, id in enumerate(ng.get_gene_list()):
+    geneList[id] = num
+
+out = numpy.empty((len(geneList),len(idList)))
+out.fill(numpy.nan)
+    
 #read through the segment one sample id at a time
 for id in idList:   
     print id
     segmentMap = {}
     for segment in sg.get_id(id):
         for hit in pm.find_overlap( segment, ng ):
-            if hit.name not in segmentMap:
-                segmentMap[hit.name] = []
-        
-            if hit.name not in geneHash:
-                geneHash[hit.name] = len(geneHash)
-            
             span = float(min(segment.chrom_end, hit.chrom_end) - max(segment.chrom_start, hit.chrom_start)) / float(hit.chrom_end - hit.chrom_start)
-        
-            segmentMap[hit.name].append(
-                ( span, segment.value )
-            )
-
-    o = numpy.empty(len(geneHash))  
-    o.fill(numpy.nan)
+            #if hit.name not in segmentMap:
+            #    segmentMap[hit.name] = []
+            try:
+                segmentMap[hit.name].append(
+                    ( span, segment.value )
+                )
+            except KeyError:
+                segmentMap[hit.name] = [
+                    ( span, segment.value )
+                ]
+    
     for gene in segmentMap:
         mapInfo = segmentMap[gene]
         coverage = sum( i[0] for i in mapInfo )
         assert coverage <= 1.0
         value = sum( i[0]*i[1] for i in mapInfo )
         #print coverage, value, value/coverage, segmentMap[gene]
-        o[geneHash[gene]] = value/coverage
-    out[id] = o
+        out[geneList[gene]][idList[id]] = value/coverage
     #print id
+    
+handle = open(sys.argv[3], "w")
+writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
 
+row = ["NA"] * len(idList)
+for id in idList:
+    row[ idList[id] ] = id
+writer.writerow( ["probe"] + row )
 
-for gene in geneHash:
-    row = ["NA"]
-    for id in idList:
-        if len(out[id]) > geneHash[gene]:
-            row[idList[id]] = out[id][geneHash[gene]]
-    print row
+for gene in geneList:
+    row = ["NA"] * (len(idList))
+    found = False
+    geneRow = out[geneList[gene]]
+    for j,val in enumerate(geneRow):
+        if val != numpy.nan:
+            row[j] = str(val)
+            found = True
+    writer.writerow( [gene] + row )
         
 #for segment in out:
 #   print segment, out[segment]
