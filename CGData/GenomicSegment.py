@@ -35,7 +35,13 @@ class GenomicSegment(CGData.CGDataSetObject):
                 stop = int(float(tmp[3]))
             self.sample_hash[tmp[0]].append(
             Segment(tmp[0], tmp[1], start, stop, tmp[4], float(tmp[5])))
-            
+    
+    def get_id_list(self):
+        return self.sample_hash.keys()
+    
+    def get_id(self, id):
+        return self.sample_hash[id]
+    
     def get_segments(self):
         for sample in self.sample_hash:
             for segment in self.sample_hash[sample]:
