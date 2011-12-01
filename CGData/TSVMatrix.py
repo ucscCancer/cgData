@@ -24,6 +24,8 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         self.row_hash = {}
         pos_hash = None
         for row in csv.reader(handle, delimiter="\t"):
+            if len(row) == 0: # tolerate empty rows
+                continue
             if pos_hash is None:
                 pos_hash = {}
                 pos = 0
