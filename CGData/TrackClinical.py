@@ -28,8 +28,8 @@ class TrackClinical(CGData.CGMergeObject):
         explicit_types = dict((f, features[f]['valueType']) for f in features if 'valueType' in features[f])
 
         matrix.feature_type_setup(explicit_types)
-        for a in features:
-            if "stateOrder" in features[a]:
+        for a in self.members['clinicalMatrix'].col_list:
+            if a in features and "stateOrder" in features[a]:
 
                 enums = [x for x in csv.reader(features[a]["stateOrder"], skipinitialspace=True)][0]
                 i = 0
