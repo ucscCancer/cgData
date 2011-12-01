@@ -180,8 +180,6 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
                     val = target
                 else:
                     val = self.row_hash[ target ][ self.col_list[ orig ] ]
-                if col == 'chemical_exposure_text':
-                    print col
                 if val is None or val.upper() in NULL_VALUES:
                     a.append("\\N")
                 else:
