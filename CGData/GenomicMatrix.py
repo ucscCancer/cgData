@@ -5,7 +5,7 @@ import CGData.BaseMatrix
 
 class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
 
-	__format__ = {
+    __format__ = {
             "name" : "genomicMatrix",
             "type" : "type",
             "form" : "matrix",

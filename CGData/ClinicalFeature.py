@@ -2,20 +2,20 @@
 import CGData.BaseTable
 
 
-class ClinicalFeature(CGData.BaseTable):
+class ClinicalFeature(CGData.BaseTable.BaseTable):
 
-	__format__ =  {
-		"name" : "clinicalFeature",
-		"type" : "type",
-		"form" : "table",
-		"columnDef" : [
-			"featureName",
-			"predicate",
-			"value"
-		],
-		"groupKey" : "featureName"
-	}
-	
+    __format__ =  {
+        "name" : "clinicalFeature",
+        "type" : "type",
+        "form" : "table",
+        "columnDef" : [
+            "featureName",
+            "predicate",
+            "value"
+        ],
+        "groupKey" : "featureName"
+    }
+    
     def __init__(self):
         self._features = None
         super(ClinicalFeature, self).__init__()

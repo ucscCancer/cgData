@@ -27,7 +27,7 @@ class BaseTable(CGObjectBase):
         #setup the map for groupKeys
         if 'groupKey' in self.__format__:
             self.groupKey = self.__format__['groupKey']
-            setattr(self, self.__format__['groupKey'] + "_group", {} )
+            setattr(self, self.__format__['groupKey'] + "_map", {} )
     
     def read(self, handle):
         cols = self.__format__['columnDef']
@@ -39,7 +39,7 @@ class BaseTable(CGObjectBase):
 
         groupMap = None
         if 'groupKey' in self.__format__:
-            primaryMap = getattr(self, self.__format__['groupKey'] + "_group")
+            primaryMap = getattr(self, self.__format__['groupKey'] + "_map")
 
         
         for row in read:
@@ -68,3 +68,17 @@ class BaseTable(CGObjectBase):
                 return getattr(self, self.groupKey + "_map").__getitem__
                 
         raise AttributeError(item)
+    
+    def row_iter(self):
+        if self.primaryKey is not None:
+            keyMap = getattr(self, self.primaryKey + "_map")
+            for rowKey in keyMap:
+                yield keyMap[rowKey]
+        
+        if self.groupKey is not None:
+            keyMap = getattr(self, self.groupKey + "_map")
+            for rowKey in keyMap:
+                print rowKey
+                for elem in keyMap[rowKey]:
+                    yield elem
+        

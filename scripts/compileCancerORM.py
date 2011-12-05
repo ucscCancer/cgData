@@ -36,10 +36,11 @@ if __name__ == "__main__":
             
     ds = CGData.DataSet.DataSet(params)
     ds.scan_dirs(args)
-    #cg = CGData.Compiler.BrowserCompiler(ds, params)
-    #cg.link_objects()
     sess = CGData.ORM.get_session()
     for t in ds:
         for name in ds[t]:
+            print "Storing ", t, name 
+            ds[t][name].load()
             sess.write( ds[t][name] )
+            ds[t][name].unload()
     sess.commit()

@@ -2,15 +2,15 @@
 
 import CGData.BaseTable
 
-class DataSubType(CGData.BaseTable):
+class DataSubType(CGData.BaseTable.BaseTable):
 
 
-	__format__ = {
-		"name" : "dataSubType",
-		"type" : "type",
-		"form" : "table",
-		"columnDef" : [
-		],
+    __format__ = {
+        "name" : "dataSubType",
+        "type" : "type",
+        "form" : "table",
+        "columnDef" : [
+        ],
     }
 
     def __init__(self):

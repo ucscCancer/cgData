@@ -31,16 +31,16 @@ def sortedSamples(samples):
         return sorted(samples)
 
 class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
-	
-	__format__ = {
-		"name" : "clinicalMatrix",
-		"type" : "type",
-		"form" : "matrix",
-		"rowType" : "idMap",
-		"colType" : "clinicalFeature",
-		"valueType" : "str",
-		"nullString" : ""
-	}
+    
+    __format__ = {
+        "name" : "clinicalMatrix",
+        "type" : "type",
+        "form" : "matrix",
+        "rowType" : "idMap",
+        "colType" : "clinicalFeature",
+        "valueType" : "str",
+        "nullString" : ""
+    }
 
 
     def __init__(self):

@@ -20,7 +20,7 @@ OBJECT_MAP = {
     'genomicSegment': ('CGData.GenomicSegment', 'GenomicSegment'),
     'genomicMatrix': ('CGData.GenomicMatrix', 'GenomicMatrix'),
     'probeMap': ('CGData.ProbeMap', 'ProbeMap'),
-    'sampleMap': ('CGData.SampleMap', 'SampleMap'),
+    'idMap': ('CGData.IDMap', 'IDMap'),
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
     'trackGenomic': ('CGData.TrackGenomic', 'TrackGenomic'),
@@ -130,9 +130,10 @@ class CGObjectBase(dict):
             raise OSError( "Path not defined" ) 
         
         if self.zip is None:
-            dhandle = open(path)
-            self.read(dhandle, **kw)
-            dhandle.close()
+            if os.path.exists(path):
+                dhandle = open(path)
+                self.read(dhandle, **kw)
+                dhandle.close()
         else:
             z = ZipFile(self.zip)
             dhandle = z.open(self.path)
