@@ -1,9 +1,7 @@
 
-
-
-import csv
 import CGData
-import CGData.TSVMatrix
+import CGData.BaseMatrix
+
 from CGData.SQLUtil import *
 
 CREATE_COL_DB = """
@@ -32,10 +30,18 @@ def sortedSamples(samples):
     else:
         return sorted(samples)
 
-class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
+class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
+	
+	__format__ = {
+		"name" : "clinicalMatrix",
+		"type" : "type",
+		"form" : "matrix",
+		"rowType" : "idMap",
+		"colType" : "clinicalFeature",
+		"valueType" : "str",
+		"nullString" : ""
+	}
 
-    element_type = str
-    corner_name = "#sample"
 
     def __init__(self):
         super(ClinicalMatrix, self).__init__()
@@ -46,16 +52,6 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             return False
         return True
 
-
-    def get_col_namespace(self):
-        if self.get(":clinicalFeature", None) is not None:
-            return "clinicalFeature:" + self.attrs[":clinicalFeature"]
-        return None
-
-    def get_row_namespace(self):
-        if self.get(":sampleMap", None) is not None:
-            return "sampleMap:" + self[":sampleMap"]
-        return None
 
     def column(self, name):
         return [ self.row_hash[row][self.col_list[name]] for row in self.row_hash ]

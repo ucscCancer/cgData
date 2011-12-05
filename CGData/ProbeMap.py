@@ -1,14 +1,23 @@
 
-import csv
-import json
-import CGData
-import CGData.Base
+import CGData.BaseTable
 
 
-baseClass = CGData.Base.get_type("probeMap")
-
-class ProbeMap(baseClass):
-    #stub class to give static name to dynamic class
+class ProbeMap(CGData.BaseTable.BaseTable):
+    __format__ =  {
+            "name" : "probeMap",
+            "type" : "type",
+            "form" : "table",
+            "columnDef" : [
+            "probeName",
+            "aliasList",
+            "chrom",
+            "chromStart",
+            "chromEnd",
+            "strand"
+            ],
+            "primaryKey" : "probeName"
+        }
+        
     def __init__(self):
-        baseClass.__init__(self)
+        CGData.BaseTable.BaseTable.__init__(self)
 

@@ -1,76 +1,28 @@
 
 import csv
 import CGData
-import CGData.TSVMatrix
+import CGData.BaseMatrix
 
-class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
-    
-    null_type = float('nan')
-    element_type = float
-    corner_name = "#probe"
+class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
+
+	__format__ = {
+            "name" : "genomicMatrix",
+            "type" : "type",
+            "form" : "matrix",
+            "rowType" : "probeMap",
+            "colType" : "idMap",
+            "valueType" : "float",
+            "nullString" : "NA"
+        }    
 
     def __init__(self):
-        CGData.TSVMatrix.TSVMatrix.__init__(self)
-        
-    def is_link_ready(self):
-        if self.get( ':sampleMap', None ) is None:
-            return False
-        return True
-
-    def get_row_namespace(self):
-        if self.get(":sampleMap", None) is not None:
-            return "sampleMap:" + self[":sampleMap"]
-        return None
-
-    def get_col_namespace(self):
-        if self.get(":probeMap", None) is not None:
-            return "probeMap:" + self[":probeMap"]
-        return None
-
+        CGData.BaseMatrix.BaseMatrix.__init__(self)
 
     def get_probe_list(self):
         return self.get_rows()
 
     def get_sample_list(self):
         return self.get_cols()
-
-    def add(self, sample, probe, value):
-        """This is just an overload of the TSVMatrix 
-        that changes the parameter names"""
-        CGData.TSVMatrix.TSVMatrix.add(self, sample, probe, value)
-
-    def sample_rename(self, old_sample, new_sample):
-        self.col_rename( old_sample, new_sample )
-
-    def probe_remap(self, old_probe, new_probe):
-        self.row_rename( old_probe, new_probe )
-
-    def remap(self, alt_map, skip_missing=False):
-        valid_map = {}
-        for alt in alt_map.get_probes():
-            valid_map[alt.aliases[0]] = True
-            if not skip_missing or alt.name in self.row_hash:
-                self.probe_remap(alt.name, alt.aliases[0])
-        if skip_missing:
-            remove_list = []
-            for name in self.row_hash:
-                if not name in valid_map:
-                    remove_list.append(name)
-            for name in remove_list:
-                del self.row_hash[name]
-
-    def remove_null_probes(self, threshold=0.0):
-        remove_list = []
-        for probe in self.row_hash:
-            null_count = 0.0
-            for val in self.row_hash[probe]:
-                if val is None or val == self.null_type:
-                    null_count += 1.0
-            nullPrec = null_count / float(len(self.row_hash[probe]))
-            if 1.0 - nullPrec <= threshold:
-                remove_list.append(probe)
-        for name in remove_list:
-            del self.row_hash[name]
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

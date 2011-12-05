@@ -1,5 +1,4 @@
 
-import CGData.format
 from CGData import CGObjectBase
 
 import csv
@@ -10,51 +9,47 @@ class TableRow(object):
         pass
         
     def __str__(self):
-        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.format['columnDef']) + ">"
-    
-    
-def get_class(format):
-    tClass = type(format['name'] + "_row", (TableRow,), dict(format=format))
-    return type(format['name'], (BaseTable,), dict(format=format, row_class=tClass) )
+        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnDef']) + ">"
 
 
 class BaseTable(CGObjectBase):
     def __init__(self):
         super(BaseTable,self).__init__()
         
+        self.__row_class__ = type( "TableRow_" + self.__format__['name'], (TableRow,), dict(__format__=self.__format__) )
         self.primaryKey = None
         self.groupKey = None
         #setup the primary key map
-        if 'primaryKey' in self.format:
-            self.primaryKey = self.format['primaryKey']
-            setattr(self, self.format['primaryKey'] + "_map", {} )
+        if 'primaryKey' in self.__format__:
+            self.primaryKey = self.__format__['primaryKey']
+            setattr(self, self.__format__['primaryKey'] + "_map", {} )
         
         #setup the map for groupKeys
-        if 'groupKey' in self.format:
-            self.groupKey = self.format['groupKey']
-            setattr(self, self.format['groupKey'] + "_group", {} )
+        if 'groupKey' in self.__format__:
+            self.groupKey = self.__format__['groupKey']
+            setattr(self, self.__format__['groupKey'] + "_group", {} )
     
     def read(self, handle):
-        cols = self.format['columnDef']
+        cols = self.__format__['columnDef']
         read = csv.reader(handle, delimiter="\t")
 
         primaryMap = None
-        if 'primaryKey' in self.format:
-            primaryMap = getattr(self, self.format['primaryKey'] + "_map")
+        if 'primaryKey' in self.__format__:
+            primaryMap = getattr(self, self.__format__['primaryKey'] + "_map")
 
         groupMap = None
-        if 'groupKey' in self.format:
-            primaryMap = getattr(self, self.format['groupKey'] + "_group")
+        if 'groupKey' in self.__format__:
+            primaryMap = getattr(self, self.__format__['groupKey'] + "_group")
 
         
         for row in read:
-            r = self.row_class()
+            r = self.__row_class__()
             for i, col in enumerate(cols):
                 setattr(r, col, row[i])
                 if primaryMap is not None:
-                    primaryMap[ getattr(r, self.format['primaryKey'] ) ] = r
+                    primaryMap[ getattr(r, self.__format__['primaryKey'] ) ] = r
                 if groupMap is not None:
-                    groupVal = getattr(r, self.format['groupKey'] )
+                    groupVal = getattr(r, self.__format__['groupKey'] )
                     if groupVal not in groupMap:
                         groupMap[groupVal] = []
                     groupMap[groupVal].append(r)

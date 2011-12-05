@@ -1,15 +1,16 @@
 
-import csv
-import CGData
+import CGData.BaseTable
 
-
-class Assembly(CGData.CGObjectBase):
+class Assembly(CGData.BaseTable.BaseTable):
     """
     Blank Class to represent Genome Assemblies
     """
 
-    DATA_FORM = CGData.TABLE
+    __format__ =  {
+            "name" : "assembly",
+            "type" : "type",
+            "form" : "table",
+            "columnDef" : [
+            ]
+    }
 
-    COLS = [
-        CGData.Column('name', str, primary_key=True),
-    ]

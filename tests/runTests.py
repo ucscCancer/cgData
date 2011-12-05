@@ -23,7 +23,7 @@ def main( names ):
         test_path, distutils.util.get_platform(), sys.version[:3]))
     if os.access(build_path, os.F_OK):
         sys.path.insert(1, build_path)
-    
+    print sys.path
     os.environ[ "PYTHONPATH" ] = build_path + ":.:" + os.environ.get("PYTHONPATH", "")
 
     moduleList = []
