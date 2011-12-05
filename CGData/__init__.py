@@ -150,7 +150,8 @@ class CGObjectBase(dict):
             mhandle.close()
 
     def unload(self):
-        pass
+        """Call to start freeing up memory"""
+        self.free()
 
     def is_link_ready(self):
         return True
@@ -198,6 +199,9 @@ class CGObjectBase(dict):
 
     def get_name(self):
         return self.get( 'name', None )
+    
+    def get_type(self):
+        return self.get('type', None)
     
     def get_link_map(self):
         out = {}

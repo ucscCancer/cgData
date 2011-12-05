@@ -17,9 +17,12 @@ class BaseTable(CGObjectBase):
         super(BaseTable,self).__init__()
         
         self.__row_class__ = type( "TableRow_" + self.__format__['name'], (TableRow,), dict(__format__=self.__format__) )
+        
+        self.free()
+    
+    def free(self):
         self.primaryKey = None
         self.groupKey = None
-        #setup the primary key map
         if 'primaryKey' in self.__format__:
             self.primaryKey = self.__format__['primaryKey']
             setattr(self, self.__format__['primaryKey'] + "_map", {} )
@@ -39,7 +42,7 @@ class BaseTable(CGObjectBase):
 
         groupMap = None
         if 'groupKey' in self.__format__:
-            primaryMap = getattr(self, self.__format__['groupKey'] + "_map")
+            groupMap = getattr(self, self.__format__['groupKey'] + "_map")
 
         
         for row in read:

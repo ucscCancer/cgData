@@ -6,12 +6,12 @@ formatTable = {
             "type" : "type",
             "form" : "table",
             "columnDef" : [
-            "probeName",
-            "aliasList",
-            "chrom",
-            "chromStart",
-            "chromEnd",
-            "strand"
+				"probeName",
+				"aliasList",
+				"chrom",
+				"chromStart",
+				"chromEnd",
+				"strand"
             ],
             "primaryKey" : "probeName"
         },

@@ -17,16 +17,21 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     null_type = None
     def __init__(self):
         CGData.CGDataMatrixObject.__init__(self)
-        self.col_list = None
-        self.row_hash = None
+        self.col_map = None
+        self.row_map = None
+        self.rows = None
+        if self.__format__["valueType"] == 'float':
+            self.element_type = float
 
-    def blank(self):
-        self.col_list = {}
-        self.row_hash = {}    
+    def free(self):
+        self.col_map = {}
+        self.row_map = {}    
+        self.rows = []
 
     def read(self, handle, skip_vals=False):
-        self.col_list = {}
-        self.row_hash = {}
+        self.col_map = {}
+        self.row_map = {}    
+        self.rows = []
         pos_hash = None
         for row in csv.reader(handle, delimiter="\t"):
             if pos_hash is None:
@@ -41,17 +46,18 @@ class BaseMatrix(CGData.CGDataMatrixObject):
                     pos_hash[name] = pos
                     pos += 1
             else:
-                if not skip_vals:
-                    self.row_hash[row[0]] = [self.null_type] * (len(pos_hash))
+                newRow = []
+                if not skip_vals:                    
+                    newRow = [self.null_type] * (len(pos_hash))
                     for col in pos_hash:
                         i = pos_hash[col] + 1
                         if row[i] != 'NA' and row[i] != 'null' and row[i] != 'NONE' and row[i] != "N/A" and len(row[i]):
-                            self.row_hash[row[0]][i - 1] = self.element_type(row[i])
-                else:
-                    self.row_hash[row[0]] = None
-        self.col_list = {}
-        for sample in pos_hash:
-            self.col_list[sample] = pos_hash[sample]
+                            newRow[i - 1] = self.element_type(row[i])
+                self.row_map[row[0]] = len(self.rows)
+                self.rows.append(newRow)
+        self.col_map = {}
+        for col in pos_hash:
+            self.col_map[col] = pos_hash[col]
 
     def write(self, handle, missing='NA'):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')
@@ -91,26 +97,40 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         """
         return self.get_rows()
     
-    def get_cols(self):
+    def get_col_list(self):
         """
         Returns names of columns
         """
-        if self.col_list is None:
+        if self.col_map is None:
             self.load( skip_vals=True )
-        out = self.col_list.keys()
-        out.sort( lambda x,y: self.col_list[x]-self.col_list[y])
+        out = self.col_map.keys()
+        out.sort( lambda x,y: self.col_map[x]-self.col_map[y])
         return out 
         
-    def get_rows(self):
+    def get_row_list(self):
         """
         Returns names of rows
         """
-        return self.row_hash.keys()
+        out = self.row_map.keys()
+        out.sort( lambda x,y: self.row_map[x]-self.row_map[y])
+        return out 
     
-    def get_row_vals(self, row_name):
-        if self.row_hash is None or self.row_hash[ row_name ] is None:
+    def get_row_pos(self, row):
+        return self.row_map[row]
+    
+    def get_col_pos(self, col):
+        return self.col_map[col]
+    
+    def get_row_count(self):
+        return len(self.rows)
+        
+    def get_col_count(self):
+        return len(self.col_map)
+    
+    def get_row(self, row_name):
+        if self.row_map is None:
             self.load( )
-        return self.row_hash[ row_name ]
+        return self.rows[ self.row_map[row_name] ]
     
     def get_val(self, col, row):
         return self.row_hash[row][self.col_list[col]]
@@ -182,6 +202,3 @@ class BaseMatrix(CGData.CGDataMatrixObject):
                 self.row_hash[probe][self.sample_list[sample]] = \
                 matrix.row_hash[probe][matrix.sample_list[sample]]
 
-    def unload(self):
-        self.col_list = None
-        self.row_hash = None
