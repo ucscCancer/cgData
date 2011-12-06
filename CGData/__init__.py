@@ -271,18 +271,6 @@ class CGDataMatrixObject(CGObjectBase):
         Return the name of the row namespace
         """
         raise UnimplementedException()
-        
-    def get_col_names(self):
-        """
-        Alias to get_cols, returns names of columns
-        """
-        raise UnimplementedException()
-    
-    def get_row_names(self):
-        """
-        Alias to get_rows, returns names of rows
-        """
-        raise UnimplementedException()
     
     def get_col_list(self):
         """
@@ -295,6 +283,19 @@ class CGDataMatrixObject(CGObjectBase):
         Returns names of rows
         """
         raise UnimplementedException()
+    
+    def get_row_map(self):
+        """
+        Returns map of row name indexes
+        """
+        raise UnimplementedException()
+         
+    def get_col_map(self):
+        """
+        Returns map of row name indexes
+        """
+        raise UnimplementedException()
+         
     
     def get_row_pos(self, row):
         raise UnimplementedException()
@@ -309,6 +310,9 @@ class CGDataMatrixObject(CGObjectBase):
         raise UnimplementedException()
     
     def get_row(self, row_name):
+        raise UnimplementedException()
+
+    def get_col(self, col_name):
         raise UnimplementedException()
 
 

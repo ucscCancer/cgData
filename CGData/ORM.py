@@ -3,6 +3,7 @@ import CGData
 import os
 import sqlalchemy
 import sqlalchemy.orm
+from sqlalchemy import and_
 from sqlalchemy.ext.declarative import declarative_base
 import hashlib
 import json
@@ -24,7 +25,7 @@ class cgDB(Base):
     type = sqlalchemy.Column(sqlalchemy.String)
     name = sqlalchemy.Column(sqlalchemy.String)
     md5 = sqlalchemy.Column(sqlalchemy.String)
-    form = sqlalchemy.Column(sqlalchemy.String)
+    format = sqlalchemy.Column(sqlalchemy.String)
     meta = sqlalchemy.Column(sqlalchemy.Text)
 
 
@@ -40,12 +41,52 @@ class ORMMatrixBase(CGData.CGDataMatrixObject):
         self.parent = parent
         self.fileInfo = f
         self.update( json.loads(f.meta) )
-        self.table = self.parent.metadata.tables[ self.fileInfo.type ]
+        self.__format__ = json.loads(f.format)
+        self.table = self.parent.get_format_table( self.__format__ )
+        self.dataset = self.parent.h5[ "/%s/%s" % (f.type, f.name) ]
+        
+        sess = self.parent.session_maker()
+        
+        self.col_map = {}        
+        for e in sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==1 ) ).all():
+            self.col_map[e[0]] = e[1]
+
+        self.row_map = {}        
+        for e in sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==0 ) ).all():
+            self.row_map[e[0]] = e[1]
+        
+        
     
     def get_col_count(self):
-        sess = self.parent.session_maker()
-        #sess.query( 
+       return len(self.col_map)
+
+    def get_col_list(self):
+        """
+        Returns names of columns
+        """
+        out = self.col_map.keys()
+        out.sort( lambda x,y: self.col_map[x]-self.col_map[y])
+        return out 
+        
+    def get_row_list(self):
+        """
+        Returns names of rows
+        """
+        out = self.row_map.keys()
+        out.sort( lambda x,y: self.row_map[x]-self.row_map[y])
+        return out 
+
+    def get_col(self, col_name):
+        return self.dataset[:, self.col_map[col_name] ]
     
+    def get_row(self, row_name):
+        return self.dataset[self.row_map[row_name], : ]
+    
+    def get_row_map(self):
+        return self.row_map
+
+    def get_col_map(self):
+        return self.col_map
 
 
 class ORMTypeSet:
@@ -62,7 +103,8 @@ class ORMTypeSet:
         sess = self.parent.session_maker()
         f = sess.query(cgDB).filter( sqlalchemy.and_( cgDB.type == self.type , cgDB.name == name ) ).first()
         if f is not None:
-            if f.form == "matrix":
+            format = json.loads(f.format)
+            if format['form'] == "matrix":
                 return ORMMatrixBase(self.parent, f)
             
     
@@ -82,24 +124,24 @@ class ORM(object):
         
         self.h5 = h5py.File('%s.hdf5' % (path))
     
-    def factory(self, obj):
+    def get_format_table(self, format):
         
-        if obj.__format__['name'] in self.metadata.tables:
-            return self.metadata.tables[ obj.__format__['name'] ]
+        if format['name'] in self.metadata.tables:
+            return self.metadata.tables[ format['name'] ]
         else:
             
-            if obj.__format__['form'] == 'table':
+            if format['form'] == 'table':
                 a = [
-                    obj.__format__['name'], 
+                    format['name'], 
                     self.metadata, 
                     sqlalchemy.Column('fileID', sqlalchemy.Integer)
                 ]
-                print obj.__format__['columnDef']
-                for c in obj.__format__['columnDef']:
+                print format['columnDef']
+                for c in format['columnDef']:
                     col = None
                     print c
                     colType = None
-                    if 'columnType' in obj.__format__:
+                    if 'columnType' in format:
                         colType = sqlalchemy.String
                     else:
                         colType = sqlalchemy.String
@@ -108,9 +150,9 @@ class ORM(object):
                     if col is not None:
                         a.append(col)
                 return sqlalchemy.Table( *a )
-            if obj.__format__['form'] == 'matrix':
+            if format['form'] == 'matrix':
                 a = [
-                    obj.__format__['name'], 
+                    format['name'], 
                     self.metadata, 
                     sqlalchemy.Column('fileID', sqlalchemy.Integer),
                     sqlalchemy.Column('name', sqlalchemy.String), 
@@ -134,7 +176,7 @@ class ORM(object):
     
     def write(self, obj):
         
-        table = self.factory(obj)
+        table = self.get_format_table(obj.__format__)
         if table is not None:
             if not table.exists():
                 table.create()
@@ -154,7 +196,7 @@ class ORM(object):
                 fileRecord.type = obj.__format__['name']
                 fileRecord.name = obj.get_name()    
                 fileRecord.meta = json.dumps(obj)
-                fileRecord.form = obj.__format__['form']
+                fileRecord.format = json.dumps(obj.__format__)
                 sess.add( fileRecord )
                 sess.flush()
                 print "inserted", fileRecord.fileID
@@ -210,7 +252,7 @@ class ORM(object):
                         
                     for col in obj.get_col_list():
                         colNum = obj.get_col_pos(col)                    
-                        a = { 'fileID' : fileRecord.fileID, 'name' : row, 'axis' : 1, 'pos' : colNum }
+                        a = { 'fileID' : fileRecord.fileID, 'name' : col, 'axis' : 1, 'pos' : colNum }
                         sess.execute( table.insert(a) )
                         count += 1
                         if count % 1000 == 0:
