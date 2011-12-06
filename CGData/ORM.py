@@ -18,30 +18,69 @@ related to treating CGData modules like ORM operators
 
 Base = declarative_base()
 
-def get_session():
-    return Session()
-
-
 class cgDB(Base):
     __tablename__ = "cgDB"    
     fileID = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    type = sqlalchemy.Column(sqlalchemy.String )
-    name = sqlalchemy.Column(sqlalchemy.String )
-    md5 = sqlalchemy.Column(sqlalchemy.String )
-    meta = sqlalchemy.Column(sqlalchemy.Text )
+    type = sqlalchemy.Column(sqlalchemy.String)
+    name = sqlalchemy.Column(sqlalchemy.String)
+    md5 = sqlalchemy.Column(sqlalchemy.String)
+    form = sqlalchemy.Column(sqlalchemy.String)
+    meta = sqlalchemy.Column(sqlalchemy.Text)
 
-class Session(object):
-    def __init__(self):
-        self.engine = sqlalchemy.create_engine('sqlite:///test.db',
+
+class ORMTableBase:
+    def __init__(self, parent, type, name):
+        self.parent = parent
+        self.type = type
+        self.name = name
+
+
+class ORMMatrixBase(CGData.CGDataMatrixObject):
+    def __init__(self, parent, f):
+        self.parent = parent
+        self.fileInfo = f
+        self.update( json.loads(f.meta) )
+        self.table = self.parent.metadata.tables[ self.fileInfo.type ]
+    
+    def get_col_count(self):
+        sess = self.parent.session_maker()
+        #sess.query( 
+    
+
+
+class ORMTypeSet:
+    def __init__(self, parent, type):
+        self.type = type
+        self.parent = parent
+    
+    def __iter__(self):
+        sess = self.parent.session_maker()
+        for a in sess.query(cgDB).filter(cgDB.type == self.type).all():
+            yield a.name
+    
+    def __getitem__(self, name):
+        sess = self.parent.session_maker()
+        f = sess.query(cgDB).filter( sqlalchemy.and_( cgDB.type == self.type , cgDB.name == name ) ).first()
+        if f is not None:
+            if f.form == "matrix":
+                return ORMMatrixBase(self.parent, f)
+            
+    
+
+class ORM(object):
+    def __init__(self, path):
+        self.path = path
+        self.engine = sqlalchemy.create_engine('sqlite:///%s.sqlite' % (path),
                        echo=False)
         self.metadata = sqlalchemy.MetaData(bind=self.engine)
         Base.metadata.bind = self.engine
         self.fileTable = cgDB.__table__
+        self.session_maker = sqlalchemy.orm.sessionmaker(bind=self.engine)
 
         if not self.fileTable.exists():
             self.fileTable.create()
         
-        self.h5 = h5py.File('test.hdf5')
+        self.h5 = h5py.File('%s.hdf5' % (path))
     
     def factory(self, obj):
         
@@ -80,7 +119,18 @@ class Session(object):
                 ]
                 return sqlalchemy.Table( *a )
 
-
+    def __iter__(self):
+        return self.get_type_list()
+    
+    def __getitem__(self, item):
+        return ORMTypeSet(self,item)
+    
+    def get_type_list(self):
+        sess = self.session_maker()
+        for row in sess.query( sqlalchemy.distinct(cgDB.type) ).all():
+            yield row[0]
+        
+        
     
     def write(self, obj):
         
@@ -88,8 +138,7 @@ class Session(object):
         if table is not None:
             if not table.exists():
                 table.create()
-            Session = sqlalchemy.orm.sessionmaker(bind=self.engine)
-            sess = Session()
+            sess = self.session_maker()
             #self.metadata.create_all(self.engine)
             fileRecord = None
             for row in sess.query( cgDB ).filter(
@@ -105,6 +154,7 @@ class Session(object):
                 fileRecord.type = obj.__format__['name']
                 fileRecord.name = obj.get_name()    
                 fileRecord.meta = json.dumps(obj)
+                fileRecord.form = obj.__format__['form']
                 sess.add( fileRecord )
                 sess.flush()
                 print "inserted", fileRecord.fileID

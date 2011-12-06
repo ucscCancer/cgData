@@ -104,7 +104,7 @@ class CGGroupBase(object):
         return out
     
 class UnimplementedException(Exception):
-    def __init__(self, str):
+    def __init__(self, str="Method not implemented"):
         Exception.__init__(self, str)
 
 class CGObjectBase(dict):
@@ -258,6 +258,58 @@ class CGDataMatrixObject(CGObjectBase):
         
     def __init__(self):
         CGObjectBase.__init__(self)
+    
+    
+    def get_col_namespace(self):
+        """
+        Return the name of the column namespace
+        """
+        raise UnimplementedException()
+
+    def get_row_namespace(self):
+        """
+        Return the name of the row namespace
+        """
+        raise UnimplementedException()
+        
+    def get_col_names(self):
+        """
+        Alias to get_cols, returns names of columns
+        """
+        raise UnimplementedException()
+    
+    def get_row_names(self):
+        """
+        Alias to get_rows, returns names of rows
+        """
+        raise UnimplementedException()
+    
+    def get_col_list(self):
+        """
+        Returns names of columns
+        """
+        raise UnimplementedException()
+        
+    def get_row_list(self):
+        """
+        Returns names of rows
+        """
+        raise UnimplementedException()
+    
+    def get_row_pos(self, row):
+        raise UnimplementedException()
+    
+    def get_col_pos(self, col):
+        raise UnimplementedException()
+    
+    def get_row_count(self):
+        raise UnimplementedException()
+        
+    def get_col_count(self):
+        raise UnimplementedException()
+    
+    def get_row(self, row_name):
+        raise UnimplementedException()
 
 
 def cg_new(type_str):

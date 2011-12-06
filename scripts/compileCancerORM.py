@@ -16,8 +16,9 @@ from getopt import getopt
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "bp:f:v" )
+    opts, args = getopt( sys.argv[1:], "bp:f:vo:" )
     params = {}
+    outFile = "test"
     params['binary'] = False
     for a,o in opts:
         if a == "-p":
@@ -33,10 +34,12 @@ if __name__ == "__main__":
             CGData.LOG_LEVEL = 0
         if a == "-b":
             params['binary'] = True
+        if a == "-o":
+			outFile = o
             
     ds = CGData.DataSet.DataSet(params)
     ds.scan_dirs(args)
-    sess = CGData.ORM.get_session()
+    sess = CGData.ORM.ORM(outFile)
     for t in ds:
         for name in ds[t]:
             print "Storing ", t, name 
