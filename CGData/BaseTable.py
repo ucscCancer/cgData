@@ -81,7 +81,6 @@ class BaseTable(CGObjectBase):
         if self.groupKey is not None:
             keyMap = getattr(self, self.groupKey + "_map")
             for rowKey in keyMap:
-                print rowKey
                 for elem in keyMap[rowKey]:
                     yield elem
         

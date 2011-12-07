@@ -23,14 +23,10 @@ OBJECT_MAP = {
     'idMap': ('CGData.IDMap', 'IDMap'),
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
-    'trackGenomic': ('CGData.TrackGenomic', 'TrackGenomic'),
-    'trackClinical': ('CGData.TrackClinical', 'TrackClinical'),
     'assembly': ('CGData.Assembly', 'Assembly'),
     'clinicalFeature': ('CGData.ClinicalFeature', 'ClinicalFeature'),
     'refGene' : ('CGData.RefGene', 'RefGene')
 }
-
-MERGE_OBJECTS = [ 'trackClinical', 'trackGenomic' ]
 
 class FormatException(Exception):
 
@@ -47,62 +43,6 @@ def get_type(type_str):
     cls = getattr(module, cls_name)
     return cls
 
-class CGGroupMember(object):
-    pass
-
-class CGGroupBase(object):
-
-    DATA_FORM = None
-
-    def __init__(self, group_name):
-        self.members = {}
-        self.name = group_name
-    
-    def __setitem__(self, name, item):
-        self.members[ name ] = item
-    
-    def __getitem__(self, name):
-        return self.members[ name ]
-    
-    def put(self, obj):
-        self.members[ obj.get_name() ] = obj
-    
-    def is_link_ready(self):
-        for name in self.members:
-            if not self.members[name].is_link_ready():
-                return False
-        return True
-    
-    def get_name(self):
-        return self.name
-    
-    def unload(self):
-        for name in self.members:
-            self.members[name].unload()
-    
-    def lookup(self, **kw):
-        for elem in self.members:
-            found = True
-            obj = self.members[ elem ]
-            for key in kw:
-                if obj.get( key, None ) != kw[key] and obj.get( ":" + key, None ) != kw[key]:
-                    found = False
-            if found:
-                return obj
-                    
-    
-    def get_link_map(self):
-        out = {}
-        for name in self.members:
-            lmap = self.members[ name ].get_link_map()
-            for ltype in lmap:
-                if ltype not in out:
-                    out[ ltype ] = []
-                for lname in lmap[ltype]:
-                    if lname not in out[ltype]:
-                        out[ltype].append( lname )
-        return out
-    
 class UnimplementedException(Exception):
     def __init__(self, str="Method not implemented"):
         Exception.__init__(self, str)
@@ -217,41 +157,6 @@ class CGObjectBase(dict):
         if not 'history' in self:
             self[ 'history' ] = []
         self[ 'history' ].append( desc )
-
-    
-
-class CGMergeObject(object):
-    
-    typeSet = {}
-    
-    def __init__(self):
-        self.members = {}
-    
-    def merge(self, **kw):
-        self.members = kw
-    
-    def __iter__(self):
-        return self.members.keys().__iter__()
-    
-    def __getitem__(self, item):
-        return self.members[item]
-
-    def unload(self):
-        pass
-        
-    def sql_pass(self, id_table, method):
-        for t in self.members:
-            if hasattr(self.members[t], "gen_sql_" + method):
-                f = getattr(self.members[t], "gen_sql_" + method)
-                for line in f(id_table):
-                    yield line
-
-
-
-class CGDataSetObject(CGObjectBase):
-    
-    def __init__(self):
-        CGObjectBase.__init__(self)
 
 
 class CGDataMatrixObject(CGObjectBase):

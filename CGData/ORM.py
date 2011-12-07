@@ -29,12 +29,13 @@ class cgDB(Base):
     meta = sqlalchemy.Column(sqlalchemy.Text)
 
 
-class ORMTableBase:
-    def __init__(self, parent, type, name):
+class ORMTableBase(CGData.CGObjectBase):
+    def __init__(self, parent, f):
         self.parent = parent
-        self.type = type
-        self.name = name
-
+        self.fileInfo = f
+        self.update( json.loads(f.meta) )
+        self.__format__ = json.loads(f.format)
+        self.table = self.parent.get_format_table( self.__format__ )
 
 class ORMMatrixBase(CGData.CGDataMatrixObject):
     def __init__(self, parent, f):
@@ -106,6 +107,8 @@ class ORMTypeSet:
             format = json.loads(f.format)
             if format['form'] == "matrix":
                 return ORMMatrixBase(self.parent, f)
+            if format['form'] == "table":
+                return ORMTableBase(self.parent, f)
             
     
 
@@ -172,7 +175,37 @@ class ORM(object):
         for row in sess.query( sqlalchemy.distinct(cgDB.type) ).all():
             yield row[0]
         
-        
+    
+    def md5check(self, path):
+        fDigest = ""
+        if os.path.exists(path):
+            m = hashlib.md5()
+            handle = open(path)
+            while 1:
+                buff = handle.read(10240)
+                if len(buff) == 0:
+                    break
+                m.update(buff)
+            fDigest = m.hexdigest()
+            handle.close()
+    
+    def loaded( self, path, md5Check=False ):
+        obj = CGData.light_load(path)
+        sess = self.session_maker()
+        for row in sess.query( cgDB ).filter(
+                sqlalchemy.and_(
+                    cgDB.type == obj.__format__['name'],
+                    cgDB.name == obj.get_name()
+                )
+        ).all():
+            print "found", row
+            fileRecord = row
+            if not md5Check:
+                return True            
+            fDigest = self.md5check(path)            
+            if fDigest == fileRecord.md5:
+                return True
+        return False
     
     def write(self, obj):
         
@@ -201,82 +234,65 @@ class ORM(object):
                 sess.flush()
                 print "inserted", fileRecord.fileID
                 
-            fDigest = ""
-            if os.path.exists(obj.path):
-                m = hashlib.md5()
-                handle = open(obj.path)
-                while 1:
-                    buff = handle.read(10240)
-                    if len(buff) == 0:
-                        break
-                    m.update(buff)
-                fDigest = m.hexdigest()
-                handle.close()
+            sess.execute( table.delete( table.c.fileID == fileRecord.fileID ) )
+            #if obj.__format__['form'] == 'matrix':
+            #    self.h5.delete( "/%s/%s" % (obj.__format__['name'], obj.get_name()) )
+            fileRecord.md5 = ""
+            sess.flush()        
             
-            if fDigest == fileRecord.md5:
-                print "skipping"
-            else:                
-                print "fileChange"
-                sess.execute( table.delete( table.c.fileID == fileRecord.fileID ) )
-                #if obj.__format__['form'] == 'matrix':
-                #    self.h5.delete( "/%s/%s" % (obj.__format__['name'], obj.get_name()) )
-                fileRecord.md5 = ""
-                sess.flush()            
+            print "fileID", fileRecord.fileID
+            print table
+            if obj.get_type() not in self.h5:
+                self.h5.create_group(obj.get_type())
             
-                
-                print "fileID", fileRecord.fileID
-                print table
-                if obj.get_type() not in self.h5:
-                    self.h5.create_group(obj.get_type())
-                
-                if obj.__format__['form'] == 'table':
-                    obj.load()
-                    for row in obj.row_iter():
-                        a = {}
-                        for c in obj.__format__['columnDef']:
-                            a[c] = getattr(row, c)
-                        #print a
-                        sess.execute( table.insert(a) )
-                    obj.unload()
-                
-                if obj.__format__['form'] == 'matrix':
-                    count = 0
-                    obj.load()
-                    for row in obj.get_row_list():
-                        rowNum = obj.get_row_pos(row)                    
-                        a = { 'fileID' : fileRecord.fileID, 'name' : row, 'axis' : 0, 'pos' : rowNum }
-                        sess.execute( table.insert(a) )
-                        count += 1
-                        if count % 1000 == 0:
-                            sess.flush()
-                        
-                    for col in obj.get_col_list():
-                        colNum = obj.get_col_pos(col)                    
-                        a = { 'fileID' : fileRecord.fileID, 'name' : col, 'axis' : 1, 'pos' : colNum }
-                        sess.execute( table.insert(a) )
-                        count += 1
-                        if count % 1000 == 0:
-                            sess.flush()
+            if obj.__format__['form'] == 'table':
+                obj.load()
+                for row in obj.row_iter():
+                    a = {}
+                    for c in obj.__format__['columnDef']:
+                        a[c] = getattr(row, c)
+                    #print a
+                    sess.execute( table.insert(a) )
+                obj.unload()
+            
+            if obj.__format__['form'] == 'matrix':
+                count = 0
+                obj.load()
+                for row in obj.get_row_list():
+                    rowNum = obj.get_row_pos(row)                    
+                    a = { 'fileID' : fileRecord.fileID, 'name' : row, 'axis' : 0, 'pos' : rowNum }
+                    sess.execute( table.insert(a) )
+                    count += 1
+                    if count % 1000 == 0:
+                        sess.flush()
                     
-                    dsetName = "/%s/%s" % (obj.get_type(), obj.get_name())
-                    if dsetName not in self.h5:
-                        if obj.__format__['valueType'] == 'float':                            
-                            dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), 'f')
-                        if obj.__format__['valueType'] == 'str':                            
-                            dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), h5py.new_vlen(str))
-                    else:
-                        dset = self.h5[dsetName]
-                    for row in obj.get_row_list():
-                        d = obj.get_row(row)
-                        for i in range(len(d)):
-                            if d[i] is None:
-                                d[i] = numpy.nan
-                        dset[ obj.get_row_pos(row) ] = d
+                for col in obj.get_col_list():
+                    colNum = obj.get_col_pos(col)                    
+                    a = { 'fileID' : fileRecord.fileID, 'name' : col, 'axis' : 1, 'pos' : colNum }
+                    sess.execute( table.insert(a) )
+                    count += 1
+                    if count % 1000 == 0:
+                        sess.flush()
+                
+                dsetName = "/%s/%s" % (obj.get_type(), obj.get_name())
+                if dsetName not in self.h5:
+                    if obj.__format__['valueType'] == 'float':                            
+                        dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), 'f')
+                    if obj.__format__['valueType'] == 'str':                            
+                        dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), h5py.new_vlen(str))
+                else:
+                    dset = self.h5[dsetName]
+                for row in obj.get_row_list():
+                    d = obj.get_row(row)
+                    for i in range(len(d)):
+                        if d[i] is None:
+                            d[i] = numpy.nan
+                    dset[ obj.get_row_pos(row) ] = d
 
-                    obj.unload()
-                      
-                    fileRecord.md5 = fDigest
-                    sess.flush()
+                obj.unload()
+                  
+                fileRecord.md5 = self.md5check(obj.path)
+                sess.flush()
 
 
             sess.commit()

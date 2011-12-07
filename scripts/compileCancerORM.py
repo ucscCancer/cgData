@@ -6,7 +6,6 @@ from glob import glob
 import json
 import re
 import CGData
-import CGData.Compiler
 import CGData.DataSet
 import CGData.ORM
 
@@ -42,8 +41,13 @@ if __name__ == "__main__":
     sess = CGData.ORM.ORM(outFile)
     for t in ds:
         for name in ds[t]:
-            print "Storing ", t, name 
-            ds[t][name].load()
-            sess.write( ds[t][name] )
-            ds[t][name].unload()
+            print "Scanning ", t, name 
+            try:
+                if not sess.loaded( ds[t][name].path, md5Check=False ):
+                    ds[t][name].load()
+                    print "Storing ", t, name 
+                    sess.write( ds[t][name] )
+                ds[t][name].unload()
+            except Exception as e:
+                print e
     sess.commit()

@@ -4,7 +4,7 @@ import CGData.BaseTable
 
 
 class IDMap(CGData.BaseTable.BaseTable):
-     __format__ = {
+    __format__ = {
             "name" : "idMap",
             "type" : "type",
             "form" : "table",
@@ -17,4 +17,4 @@ class IDMap(CGData.BaseTable.BaseTable):
     }
     
     def __init__(self):
-    	CGData.BaseTable.BaseTable.__init__(self)
+        CGData.BaseTable.BaseTable.__init__(self)
