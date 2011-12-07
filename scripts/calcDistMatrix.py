@@ -61,6 +61,11 @@ for name in orm['genomicMatrix']:
 		for row in data.get_row_list():
 			organizer.add_name(row)
 
+def med_normalize(vec):
+	med = median(vec,0)
+	return (vec - med) / std(vec)
+	
+
 #scan through the selected matrices 
 datasetNames = dataset.keys()
 for i in range(len(datasetNames)):
@@ -68,7 +73,7 @@ for i in range(len(datasetNames)):
 	dataset_i = dataset[ name_i ]
 	sample_set_i = {}
 	for col_i in dataset_i.get_col_list():
-		sample_i = nan_to_num( organizer.transform( dataset_i.get_row_map(), dataset_i.get_col(col_i) ) )
+		sample_i = med_normalize( nan_to_num( organizer.transform( dataset_i.get_row_map(), dataset_i.get_col(col_i) ) ) )
 		sample_set_i[ name_i + ":" + col_i ] = sample_i
 
 	for j in range(i,len(datasetNames)):		
@@ -76,7 +81,7 @@ for i in range(len(datasetNames)):
 		dataset_j = dataset[ name_j ]	
 		sample_set_j = {}
 		for col_j in dataset_j.get_col_list():
-			sample_j = nan_to_num( organizer.transform( dataset_j.get_row_map(), dataset_j.get_col(col_j) ) )
+			sample_j = med_normalize( nan_to_num( organizer.transform( dataset_j.get_row_map(), dataset_j.get_col(col_j) ) ) )
 			sample_set_j[ name_j + ":" + col_j ] = sample_j
 		
 		#for the current pair of matrices, look at every column(sample) and 
