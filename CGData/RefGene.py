@@ -47,6 +47,7 @@ class GeneInfo(object):
 class RefGene(CGData.CGDataSetObject):
 
     def __init__(self):
+        CGData.CGDataSetObject.__init__(self)
         self.hugo_map = {}
 
     def read(self, handle):
@@ -84,3 +85,6 @@ class RefGene(CGData.CGDataSetObject):
 
     def get_chrom(self, chrom):
         return self.chrom_map[chrom]
+    
+    def get_gene(self, gene):
+        return self.hugo_map[gene]
