@@ -20,6 +20,7 @@ OBJECT_MAP = {
     'genomicSegment': ('CGData.GenomicSegment', 'GenomicSegment'),
     'genomicMatrix': ('CGData.GenomicMatrix', 'GenomicMatrix'),
     'probeMap': ('CGData.ProbeMap', 'ProbeMap'),
+    'aliasMap' : ('CGData.AliasMap', 'AliasMap'),
     'idMap': ('CGData.IDMap', 'IDMap'),
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
@@ -57,6 +58,7 @@ class CGObjectBase(dict):
         self.path = None
         self.zip = None
         self.light_mode = False
+        self.loaded = False
         super(CGObjectBase,self).__init__()
 
     # XXX There are no less than three different code paths for
@@ -88,10 +90,12 @@ class CGObjectBase(dict):
             meta = dict((k, v) for k, v in meta.iteritems() if v != None)
             self.update(meta)
             mhandle.close()
+        self.loaded = True
 
     def unload(self):
         """Call to start freeing up memory"""
         self.free()
+        self.loaded = False
 
     def is_link_ready(self):
         return True
@@ -128,29 +132,27 @@ class CGObjectBase(dict):
         it's data.
         """
         raise UnimplementedException()
-    
-    def is_group_member(self):
-        if 'group' in self:
-            return True
-        return False
-    
-    def get_group(self):
-        return self.get( 'group', self.get('name', None))
 
     def get_name(self):
-        return self.get( 'name', None )
+        return self.get( 'cgdata', {} ).get( 'name', None )
     
     def get_type(self):
-        return self.get('type', None)
+        return self.get('cgdata', {}).get('type', None)
     
     def get_link_map(self):
         out = {}
-        for key in self:
-            if key.startswith(':'):
-                if isinstance( self[ key ], list ):
-                    out[ key[1:] ] = self[ key ]
-                elif self[ key ] is not None:
-                    out[ key[1:] ] = [ self[ key ] ]
+        if 'links' in self['cgdata']:
+            for link in self['cgdata']['links']:
+                if link['type'] not in out:
+                    out[ link['type'] ] = []
+                out[ link['type'] ].append( link['name'] )
+        for e in ['columnKeyMap', 'rowKeyMap' ]:
+            if e in self['cgdata']:
+                link = self['cgdata'][e]
+                if link['type'] not in out:
+                    out[ link['type'] ] = []
+                out[ link['type'] ].append( link['name'] )
+
         return out
 
     def add_history(self, desc):
@@ -297,15 +299,15 @@ def light_load(path, zip=None):
     # Throw away empty values
     meta = dict((k, v) for k, v in meta.iteritems() if v != None)
 
-    if meta['type'] in OBJECT_MAP:
-        out = cg_new(meta['type'])
+    if meta['cgdata']['type'] in OBJECT_MAP:
+        out = cg_new(meta['cgdata']['type'])
         out.update( meta )
         out.path = data_path
         out.zip = zip
         out.light_mode = True
         return out
     else:
-        raise FormatException("%s class not found" % (meta['type']))
+        raise FormatException("%s class not found" % (meta['cgdata']['type']))
 
 global LOG_LEVEL
 LOG_LEVEL = 2

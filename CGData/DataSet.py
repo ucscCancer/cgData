@@ -10,6 +10,19 @@ class DataSet(dict):
         self.params = params
         super(DataSet,self).__init__()
 
+
+    def get_linked_data(self, link_type, link_name):
+        out = {}
+        for d_type in self.keys():
+            dmap = self.get(d_type)
+            for d_name in dmap:
+                lmap = dmap[d_name].get_link_map()
+                if link_type in lmap and link_name in lmap[link_type]:
+                    if d_type not in out:
+                        out[d_type] = {}
+                    out[d_type][d_name] = dmap[d_name]
+        return out
+
     def scan_dirs(self, dirs):
         for dir in dirs:
             CGData.log("SCANNING DIR: %s" % (dir))
@@ -24,10 +37,11 @@ class DataSet(dict):
                             data = None
                         handle.close()
 
-                        if (data is not None and 'name' in data 
-                        and data['name'] is not None
-                        and 'type' in data):
-                            self.addFile(data['type'], data['name'], path)
+                        if (data is not None and 'cgdata' in data 
+                        and 'name' in data['cgdata']
+                        and data['cgdata']['name'] is not None
+                        and 'type' in data['cgdata']):
+                            self.addFile(data['cgdata']['type'], data['cgdata']['name'], path)
 
                     if path.endswith("*.cgz"):
                         cgzList = CGData.CGZ.list( path )

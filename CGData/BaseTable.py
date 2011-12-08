@@ -14,15 +14,14 @@ class TableRow(object):
 
 class BaseTable(CGObjectBase):
     def __init__(self):
-        super(BaseTable,self).__init__()
-        
-        self.__row_class__ = type( "TableRow_" + self.__format__['name'], (TableRow,), dict(__format__=self.__format__) )
-        
+        super(BaseTable,self).__init__()        
+        self.__row_class__ = type( "TableRow_" + self.__format__['name'], (TableRow,), dict(__format__=self.__format__) )        
         self.free()
     
     def free(self):
         self.primaryKey = None
         self.groupKey = None
+        self.loaded = False
         if 'primaryKey' in self.__format__:
             self.primaryKey = self.__format__['primaryKey']
             setattr(self, self.__format__['primaryKey'] + "_map", {} )
@@ -58,17 +57,23 @@ class BaseTable(CGObjectBase):
                     groupMap[groupVal].append(r)
     
     def __getattr__(self, item):
+        if not self.loaded:
+            self.load()
         if self.primaryKey is not None:
             if item == "get_" + self.primaryKey + "_list":
                 return getattr(self, self.primaryKey + "_map").keys
             if item == "get_by_" + self.primaryKey:
-                return getattr(self, self.primaryKey + "_map").__getitem__
+                return getattr(self, self.primaryKey + "_map").__getitem__                
+            if item == "get_" + self.primaryKey + "_values":
+                return getattr(self, self.primaryKey + "_map").values
         
         if self.groupKey is not None:
             if item == "get_" + self.groupKey + "_list":
                 return getattr(self, self.groupKey + "_map").keys
             if item == "get_by_" + self.groupKey:
                 return getattr(self, self.groupKey + "_map").__getitem__
+            if item == "get_" + self.groupKey + "_values":
+                return getattr(self, self.groupKey + "_map").values
                 
         raise AttributeError(item)
     

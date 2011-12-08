@@ -19,10 +19,16 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
         CGData.BaseMatrix.BaseMatrix.__init__(self)
 
     def get_probe_list(self):
-        return self.get_rows()
+        return self.get_row_list()
 
     def get_sample_list(self):
-        return self.get_cols()
+        return self.get_col_list()
+    
+    def get_data_subtype(self):
+        for a in self.get('cgdata', {}).get('links', []):
+            if a['type'] == 'dataSubType':
+                return a['name']
+        return None
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

@@ -2,19 +2,16 @@
 import CGData.BaseTable
 
 
-class ProbeMap(CGData.BaseTable.BaseTable):
+class AliasMap(CGData.BaseTable.BaseTable):
     __format__ =  {
-            "name" : "probeMap",
+            "name" : "aliasMap",
             "type" : "type",
             "form" : "table",
             "columnDef" : [
             "probe",
-            "chrom",
-            "chrom_start",
-            "chrom_end",
-            "strand"
+            "alias"
             ],
-            "primaryKey" : "probe"
+            "groupKey" : "probe"
         }
         
     def __init__(self):

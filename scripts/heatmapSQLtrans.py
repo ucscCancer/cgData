@@ -4,6 +4,7 @@ import sys
 from getopt import getopt
 
 import CGData.ORM
+import CGData.DataSet
 import CGData.HeatMapCompiler
 
 
@@ -27,7 +28,13 @@ if __name__ == "__main__":
         if a == "-b":
             params['binary'] = True
 
-    orm = CGData.ORM.ORM(args[0])
-
+    #orm = CGData.ORM.ORM(args[0])
+    
+    orm = CGData.DataSet.DataSet()
+    orm.scan_dirs( [args[0]])
+    
     cg = CGData.HeatMapCompiler.BrowserCompiler(orm, params)
+    
+    
+    
     cg.link_objects()

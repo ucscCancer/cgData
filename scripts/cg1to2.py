@@ -3,19 +3,21 @@
 import sys
 import os
 import json
+import datetime
 import shutil
 from glob import glob
-
-
-
+import csv
 
 class CG1to2:
 	
 	types = {
 		'sampleMap' : 'sampleMap',
 		'clinicalFeature' : 'copy',
-		'clinicalMatrix' : 'copy',
-		'genomicMatrix' : 'copy'
+		'clinicalMatrix' : 'clinicalMatrix',
+		'genomicMatrix' : 'genomicMatrix',
+		#'dataSubType' : 'copy',
+		#'assembly' : 'copy',
+		'probeMap' : 'probeMap'
 	}
 	
 	def __init__(self, src, dst):
@@ -36,6 +38,7 @@ class CG1to2:
 			if path.endswith(".json"):
 				meta = self.getmeta(path)
 				if 'type' in meta and meta['type'] in self.types:
+					print "processing:", path
 					getattr(self, self.types[meta['type']])(path)
 
 	def getmeta(self, path):
@@ -47,29 +50,108 @@ class CG1to2:
 	def getdst(self,path):
 		return os.path.abspath(path).replace(os.path.abspath(self.src), os.path.abspath(self.dst))
 
-	def probeMap(self, path):
-		print "probeMap", path, self.getdst(path)
-	
+	def probeMap(self, path):		
+		meta = self.getmeta(path)
+		if 'group' in meta and meta['group'] is not None:
+			meta['cgdata'] = { 'columnKeyMap' : { 'type' :'probe', 'name' : meta['group'] } }
+			del meta['group']
+		else:
+			meta['cgdata'] = { 'columnKeyMap' : { 'type' :'probe', 'name' :meta['name'] } }
+			
+		meta = self.meta_adjust(meta) 
+		handle = open( self.getdst(path), "w" )
+		handle.write( json.dumps(meta))
+		handle.close()
+		
+		apath = path.replace(".json", ".aliasmap.json")
+		meta['cgdata']['type'] = 'aliasMap'
+		handle = open( self.getdst(apath), "w" )
+		handle.write( json.dumps(meta))
+		handle.close()
+		
+		dpath = path.replace(".json", "")
+		adpath = apath.replace(".json", "")
+		ohandle = open( self.getdst(dpath), "w" )
+		ahandle = open( self.getdst(adpath), "w" )
+		owriter = csv.writer( ohandle, delimiter="\t", lineterminator="\n" )
+		awriter = csv.writer( ahandle, delimiter="\t", lineterminator="\n" )
+		handle = open(dpath)
+		reader = csv.reader( handle, delimiter="\t")
+		for row in reader:
+			owriter.writerow( [row[0]] + row[2:] )
+			if len(row[1]):
+				awriter.writerow( row[0:2] )
+
+		handle.close()
+		ohandle.close()
+		ahandle.close()
+		
 	def sampleMap(self,path):
 		meta = self.getmeta(path)
 		meta['type'] = "idMap"
-		handle = open( self.getdst(path), "w")
-		handle.write( json.dumps(meta) )
-		handle.close()
-		dpath = path.replace(".json", "")
-		shutil.copy( dpath, self.getdst(dpath) )		
-
+		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'id', 'name' : meta['name'] } }
+		self.copy(path,self.meta_adjust(meta))
 	
-	def copy(self,path):
+	def genomicMatrix(self,path):
 		meta = self.getmeta(path)
+		meta['cgdata'] = { 
+			'columnKeyMap' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
+			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+		}
+		del meta[':sampleMap']
+		del meta[':probeMap']
+		self.copy( path, self.meta_adjust(meta) )
+	
+	def clinicalMatrix(self,path):
+		meta = self.getmeta(path)
+		meta['cgdata'] = { 
+			'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
+			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+		}
+		del meta[':sampleMap']
+		del meta[':clinicalFeature']
+		self.copy( path, self.meta_adjust(meta) )
+	
+	def meta_adjust(self, meta):
+		if 'cgdata' not in meta:
+			meta['cgdata'] = {}
+		if 'name' in meta:
+			meta['cgdata']['name'] = meta['name']
+			del meta['name']
+		if 'type' in meta:
+			meta['cgdata']['type'] = meta['type']
+			del meta['type']
+		
+		if 'date' in meta and meta['date'] is not None:
+			meta['cgdata']['version'] = meta['date']
+		else:
+			meta['cgdata']['version'] = datetime.date.today().isoformat()
+	
 		if ":sampleMap" in meta:
 			meta[":idMap"] = meta[":sampleMap"]
 			del meta[":sampleMap"]
+		
+		rmlist = []
+		meta['cgdata']['links'] = []
+		for key in meta:
+			if key.startswith( ":" ) :
+				meta['cgdata']['links'].append( { 'type' : key[1:], 'name' : meta[key] } )
+				rmlist.append(key)
+		for key in rmlist:
+			del meta[key]
+		return meta
+	
+	def copy(self,path, meta=None):
+		if meta is None:
+			meta = self.getmeta(path)
+			meta = self.meta_adjust(meta)
+
 		handle = open( self.getdst(path), "w")
 		handle.write( json.dumps(meta) )
 		handle.close()
 		dpath = path.replace(".json", "")
-		shutil.copy( dpath, self.getdst(dpath) )		
+		if os.path.exists(dpath):
+			shutil.copy( dpath, self.getdst(dpath) )		
 
 
 if __name__ == "__main__":

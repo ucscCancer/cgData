@@ -101,8 +101,8 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         """
         Returns names of columns
         """
-        if self.col_map is None:
-            self.load( skip_vals=True )
+        if not self.loaded:
+            self.load( )
         out = self.col_map.keys()
         out.sort( lambda x,y: self.col_map[x]-self.col_map[y])
         return out 
@@ -128,7 +128,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         return len(self.col_map)
     
     def get_row(self, row_name):
-        if self.row_map is None:
+        if not self.loaded:
             self.load( )
         return self.rows[ self.row_map[row_name] ]
     

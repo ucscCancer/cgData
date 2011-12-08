@@ -7,6 +7,8 @@ from copy import copy
 import CGData
 import CGData.CGZ
 
+from CGData.SQLUtil import *
+
 from CGData import log, error, warn
 import re
 
@@ -25,7 +27,7 @@ CREATE TABLE `%s` (
 ) engine 'MyISAM';
 """
 
-
+    
 CREATE_BED = """
 CREATE TABLE %s (
     id int unsigned not null primary key auto_increment,
@@ -54,6 +56,7 @@ dataSubTypeMap = {
     'geneExp': 'expression',
     'SNP': 'SNP',
     'RPPA': 'RPPA',
+    'DNAMethylation' : 'DNAMethylation'
     }
 
 
@@ -144,16 +147,48 @@ class BrowserCompiler(object):
         #    self.set_hash['clinicalFeature'] = {}
         #self.set_hash['clinicalFeature']['__null__'] = CGData.ClinicalFeature.NullClinicalFeature()
 
-        if 'binary' in self.params and self.params['binary']:
-            CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
+        #if 'binary' in self.params and self.params['binary']:
+        #    CGData.OBJECT_MAP['trackGenomic'] = ('CGData.TrackGenomic', 'BinaryTrackGenomic')
 
     
     def link_objects(self):
         """
         Scan found object records and determine if the data they link to is
         avalible
-        """
-               
+        """    
+        
+        self.id_table = CGIDTable()
+
+        for gmatrix_name in self.set_hash[ 'genomicMatrix' ]:
+            gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
+            id_lmap =  self.set_hash.get_linked_data( 'id', gmatrix.get_link_map()['id'][0] )
+                        
+            print gmatrix.get_name(), id_lmap['idMap'], id_lmap.keys()
+            
+            tg = TrackGenomic()
+            tg.merge( 
+                genomicMatrix=gmatrix, 
+                idMap=id_lmap['idMap'].values()[0], 
+                clinicalMatrix=id_lmap['clinicalMatrix'].values()[0]
+            )
+            
+            probe_lmap = self.set_hash.get_linked_data( 'probe', gmatrix.get_link_map()['probe'][0] )
+            tg.merge(
+                probeMap = probe_lmap['probeMap'].values()[0],
+                aliasMap = probe_lmap['aliasMap'].values()[0]                
+            )
+            
+            print "Generate", tg.get_type(), tg.get_name()
+            shandle = tg.gen_sql(self.id_table)
+            if shandle is not None:
+                ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (tg.get_type(), tg.get_name() ) ), "w" )
+                for line in shandle:
+                    ohandle.write( line )
+                ohandle.close()
+                
+        
+        return
+        
         #Check objects for their dependencies
         ready_matrix = {}
         for stype in ['genomicMatrix', 'clinicalMatrix', 'clinicalFeature', 'idMap']:
@@ -199,13 +234,14 @@ class BrowserCompiler(object):
             except KeyError:
                 error("missing data type %s" % (stype) )
                 continue
-            mobjlist = self.set_enumerate( mtype, select_set )
+            mobjlist = self.set_enumerate( merge_type, select_set )
+            print mobjlist
             for mobj in mobjlist:
                 if merge_type not in ready_matrix:
-                    ready_matrix[ merge_type ] = {}
-                for cType in mobj:
-                    merge_children[cType][mobj[cType].get_name()] = True
-                ready_matrix[ merge_type ][ mobj.get_name() ] = mobj
+                    ready_matrix[ merge_type.type_name ] = {}
+                for cType in mobj.members:
+                    merge_children[cType][mobj.members[cType].get_name()] = True
+                ready_matrix[ merge_type.type_name ][ mobj.get_name() ] = mobj
         
         self.compile_matrix = {}
         for sType in ready_matrix:
@@ -360,6 +396,28 @@ class BrowserCompiler(object):
             self.orig_order.append( name )
     
    
+
+
+class TrackClinical:
+    type_name = "trackClinical"
+    DATA_FORM = None
+
+    typeSet = { 
+        'clinicalMatrix' : True, 
+        'clinicalFeature' : True
+    } 
+
+    def __init__(self):
+        self.members = {}
+
+    def merge(self, **kw):
+        for k in kw:
+            if k in self.typeSet:
+                self.members[k] = kw[k]
+    
+    def get_name( self ):
+        return "%s" % ( self.members[ "clinicalMatrix" ].get_name() )
+
     def gen_sql_clinicalMatrix(self, id_table, features=None):
         CGData.log( "Writing Clinical %s SQL" % (self['name']))
         
@@ -436,21 +494,54 @@ CREATE TABLE clinical_%s (
         for a in matrix.gen_sql_heatmap(id_table, features=features):
             yield a
 
+    
 
 
-    def gen_sql_genomicMatrix(self, id_table):
+class TrackGenomic:
+    type_name = "trackGenomic"
+
+    DATA_FORM = None
+
+    typeSet = {
+        'clinicalMatrix' : True,
+        'genomicMatrix' : True,
+        'sampleMap' : True,
+        'probeMap' : True,
+        'aliasMap' : True
+    }
+
+    format = "bed 15"
+
+    def __init__(self):
+        self.members = {}
+
+    def merge(self, **kw):
+        for k in kw:
+            if k in self.typeSet:
+                self.members[k] = kw[k]
+        
+            
+    def get_name( self ):
+        return "%s" % ( self.members[ "genomicMatrix" ].get_name() )
+    
+    def get_type( self ):
+        return 'trackGenomic'
+
+    def scores(self, row):
+        return "'%s'" % (','.join( str(a) for a in row ))
+
+    def gen_sql(self, id_table):
         #scan the children
         # XXX Handling of sql for children is broken if the child may appear
         # as part of multiple merge objects, such as TrackGenomic and TrackClinical.
         # A disgusting workaround for clinicalMatrix is to prevent the TrackGenomic from calling
         # it for gen_sql.
         clinical = self.members.pop("clinicalMatrix")
-        for line in CGData.CGMergeObject.sql_pass(self, id_table, method="heatmap"):
-            yield line
+        
         self.members["clinicalMatrix"] = clinical
 
         gmatrix = self.members[ 'genomicMatrix' ]
-        pmap = self.members[ 'probeMap' ].lookup( assembly="hg18" ) # BUG: hard coded to only producing HG18 tables
+        pmap = self.members[ 'probeMap' ] # BUG: hard coded to only producing HG18 tables
         if pmap is None:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
@@ -469,7 +560,7 @@ CREATE TABLE clinical_%s (
                 sql_fix(gmatrix['longTitle']),
                 len(gmatrix.get_sample_list()),
                 self.format,
-                dataSubTypeMap[gmatrix[':dataSubType']],
+                dataSubTypeMap[gmatrix.get_data_subtype()],
                 'localDb',
                 'public',
                 float(gmatrix.get('priority', 1.0)),
@@ -505,9 +596,9 @@ CREATE TABLE genomic_%s_alias (
 ) engine 'MyISAM';
 """ % ( table_base )
 
-        for probe in pmap.get_probes():
-            for alias in probe.aliases:
-                yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(probe.name), sql_fix(alias))
+        for aliasList in self.members['aliasMap'].get_probe_values():
+            for alias in aliasList:
+                yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(alias.probe), sql_fix(alias.alias))
 
         # write out the BED table
         yield "drop table if exists %s;" % ( "genomic_" + table_base )
@@ -527,12 +618,16 @@ CREATE TABLE genomic_%s_alias (
         missingProbeCount = 0
         for probe_name in gmatrix.get_probe_list():
             # get the genomic data and rearrange to match the sample_id order
-            tmp = gmatrix.get_row_vals( probe_name )
+            tmp = gmatrix.get_row( probe_name )
             row = map(lambda i: tmp[order[i]], range(len(tmp)))
-
-            pset = pmap.lookup( probe_name )
-            if pset is not None:
-                for probe in pset:
+            #pset = pmap.get_by_probe( probe_name )
+            probe = None
+            try:
+                probe = pmap.get_by_probe( probe_name )
+            except KeyError:
+                pass
+            if probe is not None:
+                #for probe in pset:
                     istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
                             ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
                     yield istr
@@ -548,45 +643,7 @@ CREATE TABLE genomic_%s_alias (
         for t in self.members:
             self.members[t].unload()
 
-
-class TrackClinical:
-
-    DATA_FORM = None
-
-    typeSet = { 
-        'clinicalMatrix' : True, 
-        'clinicalFeature' : True
-    } 
-
-    def __init__(self):
-        CGData.CGMergeObject.__init__(self)
-            
-    def get_name( self ):
-        return "%s" % ( self.members[ "clinicalMatrix" ].get_name() )
     
-
-
-class TrackGenomic(object):
-
-    DATA_FORM = None
-
-    typeSet = {
-        'clinicalMatrix' : True,
-        'genomicMatrix' : True,
-        'sampleMap' : True,
-        'probeMap' : True
-    }
-
-    format = "bed 15"
-
-    def __init__(self):
-        pass
-            
-    def get_name( self ):
-        return "%s" % ( self.members[ "genomicMatrix" ].get_name() )
-
-    def scores(self, row):
-        return "'%s'" % (','.join( str(a) for a in row ))
 
 
 class BinaryTrackGenomic(TrackGenomic):
