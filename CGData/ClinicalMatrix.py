@@ -4,18 +4,6 @@ import CGData.BaseMatrix
 
 from CGData.SQLUtil import *
 
-
-def sortedSamples(samples):
-    import os, re
-    # Check for numeric sample ids. Allow for a common prefix
-    # before the number.
-    prefix = os.path.commonprefix(samples)
-    plen = len(prefix)
-    if reduce(lambda x,y: x and y, map(lambda s: re.match('^' + prefix + '[0-9]+$', s), samples)):
-        return sorted(samples, cmp=lambda x, y: int(x[plen:]) - int(y[plen:]))
-    else:
-        return sorted(samples)
-
 class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
     
     __format__ = {

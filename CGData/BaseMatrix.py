@@ -85,18 +85,6 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         """
         return self.get("rowNamespace", None)
         
-    def get_col_names(self):
-        """
-        Alias to get_cols, returns names of columns
-        """
-        return self.get_cols()
-    
-    def get_row_names(self):
-        """
-        Alias to get_rows, returns names of rows
-        """
-        return self.get_rows()
-    
     def get_col_list(self):
         """
         Returns names of columns
@@ -132,8 +120,16 @@ class BaseMatrix(CGData.CGDataMatrixObject):
             self.load( )
         return self.rows[ self.row_map[row_name] ]
     
+    def get_col(self, col_name):
+        if not self.loaded:
+            self.load( )
+        out = []
+        for row_name in self.get_row_list():
+            out.append( self.get_val(col_name, row_name) )
+        return out
+    
     def get_val(self, col, row):
-        return self.row_hash[row][self.col_list[col]]
+        return self.rows[self.row_map[row]][self.col_map[col]]
 
     def col_rename(self, old_col, new_col):
         """

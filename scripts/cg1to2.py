@@ -12,7 +12,7 @@ class CG1to2:
 	
 	types = {
 		'sampleMap' : 'sampleMap',
-		'clinicalFeature' : 'copy',
+		'clinicalFeature' : 'clinicalFeature',
 		'clinicalMatrix' : 'clinicalMatrix',
 		'genomicMatrix' : 'genomicMatrix',
 		#'dataSubType' : 'copy',
@@ -91,6 +91,13 @@ class CG1to2:
 		meta['type'] = "idMap"
 		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'id', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
+		
+	def clinicalFeature(self,path):
+		meta = self.getmeta(path)
+		meta['type'] = 'featureDescription'
+		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta['name'] } }
+		self.copy(path,self.meta_adjust(meta))
+	
 	
 	def genomicMatrix(self,path):
 		meta = self.getmeta(path)

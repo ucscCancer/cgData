@@ -25,7 +25,7 @@ OBJECT_MAP = {
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
     'assembly': ('CGData.Assembly', 'Assembly'),
-    'clinicalFeature': ('CGData.ClinicalFeature', 'ClinicalFeature'),
+    'featureDescription': ('CGData.FeatureDescription', 'FeatureDescription'),
     'refGene' : ('CGData.RefGene', 'RefGene')
 }
 

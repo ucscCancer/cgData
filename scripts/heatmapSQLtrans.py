@@ -37,4 +37,4 @@ if __name__ == "__main__":
     
     
     
-    cg.link_objects()
+    cg.gen_sql()

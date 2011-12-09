@@ -19,72 +19,63 @@ class BaseTable(CGObjectBase):
         self.free()
     
     def free(self):
-        self.primaryKey = None
+        self.firstKey = None
         self.groupKey = None
         self.loaded = False
         if 'primaryKey' in self.__format__:
-            self.primaryKey = self.__format__['primaryKey']
+            self.firstKey = self.__format__['primaryKey']
             setattr(self, self.__format__['primaryKey'] + "_map", {} )
+            self.groupKey = False
         
         #setup the map for groupKeys
         if 'groupKey' in self.__format__:
-            self.groupKey = self.__format__['groupKey']
+            self.firstKey = self.__format__['groupKey']
             setattr(self, self.__format__['groupKey'] + "_map", {} )
+            self.groupKey = True
     
     def read(self, handle):
         cols = self.__format__['columnDef']
         read = csv.reader(handle, delimiter="\t")
 
-        primaryMap = None
-        if 'primaryKey' in self.__format__:
-            primaryMap = getattr(self, self.__format__['primaryKey'] + "_map")
-
-        groupMap = None
-        if 'groupKey' in self.__format__:
-            groupMap = getattr(self, self.__format__['groupKey'] + "_map")
-
+        storeMap = getattr(self, self.firstKey + "_map")
         
         for row in read:
             r = self.__row_class__()
             for i, col in enumerate(cols):
                 setattr(r, col, row[i])
-                if primaryMap is not None:
-                    primaryMap[ getattr(r, self.__format__['primaryKey'] ) ] = r
-                if groupMap is not None:
-                    groupVal = getattr(r, self.__format__['groupKey'] )
-                    if groupVal not in groupMap:
-                        groupMap[groupVal] = []
-                    groupMap[groupVal].append(r)
+                if not self.groupKey:
+                    storeMap[ getattr(r, self.firstKey ) ] = r
+                else:
+                    groupName = getattr(r, self.firstKey )
+                    if groupName not in storeMap:
+                        storeMap[groupName] = []
+                    storeMap[groupName].append(r)
     
     def __getattr__(self, item):
         if not self.loaded:
             self.load()
-        if self.primaryKey is not None:
-            if item == "get_" + self.primaryKey + "_list":
-                return getattr(self, self.primaryKey + "_map").keys
-            if item == "get_by_" + self.primaryKey:
-                return getattr(self, self.primaryKey + "_map").__getitem__                
-            if item == "get_" + self.primaryKey + "_values":
-                return getattr(self, self.primaryKey + "_map").values
-        
-        if self.groupKey is not None:
-            if item == "get_" + self.groupKey + "_list":
-                return getattr(self, self.groupKey + "_map").keys
-            if item == "get_by_" + self.groupKey:
-                return getattr(self, self.groupKey + "_map").__getitem__
-            if item == "get_" + self.groupKey + "_values":
-                return getattr(self, self.groupKey + "_map").values
+
+        if item == "get_" + self.firstKey + "_list":
+            return self.__get_firstmap__().keys
+        if item == "get_by_" + self.firstKey:
+            return self.__get_firstmap__().__getitem__                
+        if item == "get_" + self.firstKey + "_values":
+            return self.__get_firstmap__().values      
+        if item == "get_" + self.firstKey + "_map":
+            return self.__get_firstmap__
                 
         raise AttributeError(item)
     
+    def __get_firstmap__(self):
+        return getattr(self, self.firstKey + "_map")
+    
     def row_iter(self):
-        if self.primaryKey is not None:
-            keyMap = getattr(self, self.primaryKey + "_map")
+        if not self.groupKey:
+            keyMap = getattr(self, self.firstKey + "_map")
             for rowKey in keyMap:
                 yield keyMap[rowKey]
-        
-        if self.groupKey is not None:
-            keyMap = getattr(self, self.groupKey + "_map")
+        else:
+            keyMap = getattr(self, self.firstKey + "_map")
             for rowKey in keyMap:
                 for elem in keyMap[rowKey]:
                     yield elem
