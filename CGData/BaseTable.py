@@ -20,6 +20,7 @@ class BaseTable(CGObjectBase):
     
     def free(self):
         self.firstKey = None
+        self.secondKey = None
         self.groupKey = None
         self.loaded = False
         if 'primaryKey' in self.__format__:
@@ -32,6 +33,9 @@ class BaseTable(CGObjectBase):
             self.firstKey = self.__format__['groupKey']
             setattr(self, self.__format__['groupKey'] + "_map", {} )
             self.groupKey = True
+        
+        if 'secondaryKey' in self.__format__:
+            self.secondKey = self.__format__['secondaryKey']
     
     def read(self, handle):
         cols = self.__format__['columnDef']
@@ -43,13 +47,28 @@ class BaseTable(CGObjectBase):
             r = self.__row_class__()
             for i, col in enumerate(cols):
                 setattr(r, col, row[i])
-                if not self.groupKey:
-                    storeMap[ getattr(r, self.firstKey ) ] = r
+            if not self.groupKey:
+                if self.secondKey is not None:
+                    key1 = getattr(r, self.firstKey )                    
+                    key2 = getattr(r, self.secondKey )
+                    if key1 not in storeMap:
+                        storeMap[key1] = {}
+                    storeMap[key1][key2] = r
                 else:
-                    groupName = getattr(r, self.firstKey )
-                    if groupName not in storeMap:
-                        storeMap[groupName] = []
-                    storeMap[groupName].append(r)
+                    storeMap[ getattr(r, self.firstKey ) ] = r
+            else:
+                key1 = getattr(r, self.firstKey )
+                if self.secondKey is not None:
+                    key2 = getattr(r, self.secondKey )
+                    if key1 not in storeMap:
+                        storeMap[key1] = {}
+                    if key2 not in storeMap[key1]:
+                        storeMap[key1][key2] = []
+                    storeMap[key1][key2].append(r)
+                else:
+                    if key1 not in storeMap:
+                        storeMap[key1] = []
+                    storeMap[key1].append(r)
     
     def __getattr__(self, item):
         if not self.loaded:

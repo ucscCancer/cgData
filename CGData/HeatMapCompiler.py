@@ -6,6 +6,7 @@ import json
 from copy import copy
 import CGData
 import CGData.CGZ
+import CGData.FeatureDescription
 
 from CGData.SQLUtil import *
 
@@ -159,7 +160,9 @@ class BrowserCompiler(object):
         """    
         
         self.id_table = CGIDTable()
-        
+        if not os.path.exists(self.out_dir):
+            os.makedirs(self.out_dir)
+
         
         for gmatrix_name in self.set_hash[ 'genomicMatrix' ]:
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
@@ -197,7 +200,8 @@ class BrowserCompiler(object):
                 id_lmap =  self.set_hash.get_linked_data( 'clinicalFeature', cmatrix.get_link_map()['clinicalFeature'][0] )
                 if 'featureDescription' in id_lmap:
                     tc.merge( featureDescription=id_lmap['featureDescription'].values()[0] )
-            
+            else:
+                tc.merge( featureDescription=CGData.FeatureDescription.NullClinicalFeature() )
             shandle = tc.gen_sql(self.id_table)
             if shandle is not None:
                 ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (tc.get_type(), tc.get_name() ) ), "w" )
@@ -295,13 +299,15 @@ CREATE TABLE clinical_%s (
         yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
                 ( 'sampleName', 'sample name', 'sample name', 'sampleName', clinical_table, 'coded' )
 
+        print features
+
         i = 0;
         for name in self.col_order:
-            shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0]
-            longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0]
+            shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0].value
+            longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0].value
             filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
-            visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0]
-            priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0])
+            visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0].value
+            priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0].value)
             yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);\n" % \
                     ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, visibility, priority)
             i += 1
@@ -469,7 +475,7 @@ CREATE TABLE genomic_%s_alias (
     alias         varchar(255)
 ) engine 'MyISAM';
 """ % ( table_base )
-
+        
         for aliasList in self.members['aliasMap'].get_probe_values():
             for alias in aliasList:
                 yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(alias.probe), sql_fix(alias.alias))

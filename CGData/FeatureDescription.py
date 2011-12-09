@@ -13,7 +13,8 @@ class FeatureDescription(CGData.BaseTable.BaseTable):
             "predicate",
             "value"
         ],
-        "groupKey" : "feature"
+        "groupKey" : "feature",
+        "secondaryKey" : "predicate"
     }
     
     def __init__(self):

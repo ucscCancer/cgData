@@ -1,0 +1,7 @@
+age	shortTitle	Age
+age	longTitle	Age at diagnosis
+age	visibility	off
+status	shortTitle	Status
+status	longTitle	Status of something
+status	priority	5.1
+status	visibility	on

@@ -35,6 +35,4 @@ if __name__ == "__main__":
     
     cg = CGData.HeatMapCompiler.BrowserCompiler(orm, params)
     
-    
-    
     cg.gen_sql()

@@ -111,12 +111,17 @@ class CG1to2:
 	
 	def clinicalMatrix(self,path):
 		meta = self.getmeta(path)
-		meta['cgdata'] = { 
-			'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
-			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
-		}
+		if ":clinicalFeature" in meta:
+			meta['cgdata'] = { 
+				'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
+				'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+			}
+			del meta[':clinicalFeature']
+		else:
+			meta['cgdata'] = { 
+				'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+			}
 		del meta[':sampleMap']
-		del meta[':clinicalFeature']
 		self.copy( path, self.meta_adjust(meta) )
 	
 	def meta_adjust(self, meta):

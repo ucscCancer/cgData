@@ -3,11 +3,11 @@
 import unittest
 import os
 
-import CGData.Base
+import CGData
 
 class TestCase(unittest.TestCase):
     def test_load(self):
-        m = CGData.Base.load("data_basic/probeMap_test")
+        m = CGData.load("data_basic/probeMap_test")
         print m.get_probeName_list()
         
 
