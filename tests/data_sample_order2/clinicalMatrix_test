@@ -1,6 +1,6 @@
 Sample	age	status
-1	3	Negative
-101	30	Negative
-4	56	Positive
+sample1	3	Negative
+sample101	30	Negative
+sample4	56	Positive
 sample63	67	Negative
-17	89	Positive
+sample17	89	Positive

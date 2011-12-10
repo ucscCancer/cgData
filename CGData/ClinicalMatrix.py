@@ -38,5 +38,5 @@ class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
             except ValueError:
                 type = 'category'
                 break
-        return [type]
+        return type
 

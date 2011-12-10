@@ -1,6 +1,7 @@
 
 import sys
 import os
+import csv
 from glob import glob
 import json
 from copy import copy
@@ -254,26 +255,46 @@ class TrackClinical:
     def get_type( self ):
         return 'trackClinical'
 
+    def gen_sql(self, id_table):
+        CGData.log("ClincalTrack SQL " + self.get_name())
+
+        features = self.members["featureDescription"].get_feature_map()
+        matrix = self.members["clinicalMatrix"]
+        # e.g. { 'HER2+': 'category', ...}
+        explicit_types = dict((f, features[f]['valueType'][0].value) for f in features if 'valueType' in features[f])
+        print "presets:", explicit_types
+        self.feature_type_setup(explicit_types)
+        for a in features:
+            if "stateOrder" in features[a]:
+                read = csv.reader( [features[a]["stateOrder"][0].value], skipinitialspace=True)
+                enums = read.next()
+                i = 0
+                for e in self.enum_map[a]:
+                    if e in enums:
+                        self.enum_map[a][e] = enums.index(e)
+                    else:
+                        self.enum_map[a][e] = len(enums) + i
+                        i += 1
+        for a in self.gen_sql_clinicalMatrix(id_table, features=features):
+            yield a
+
+
     def gen_sql_clinicalMatrix(self, id_table, features=None):
         
         matrix = self.members["clinicalMatrix"]
-
         
         CGData.log( "Writing Clinical %s SQL" % (matrix.get_name()))
-        
-        if features == None:
-            self.feature_type_setup()
-
+                
         table_name = matrix.get_name()
         clinical_table = 'clinical_' + table_name
         yield "drop table if exists %s;" % ( clinical_table )
-
 
         yield """
 CREATE TABLE clinical_%s (
 \tsampleID int,
 \tsampleName ENUM ('%s')""" % ( table_name, "','".join(map(lambda s: sql_fix(s), sortedSamples(matrix.get_row_list()))) )
 
+        print "enum", self.enum_map
         for col in self.col_order:
             if ( self.enum_map.has_key( col ) ):
                 yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]) ) )
@@ -299,7 +320,6 @@ CREATE TABLE clinical_%s (
         yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
                 ( 'sampleName', 'sample name', 'sample name', 'sampleName', clinical_table, 'coded' )
 
-        print features
 
         i = 0;
         for name in self.col_order:
@@ -312,29 +332,6 @@ CREATE TABLE clinical_%s (
                     ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, visibility, priority)
             i += 1
 
-    def gen_sql(self, id_table):
-        CGData.log("ClincalTrack SQL " + self.get_name())
-
-        features = self.members["featureDescription"].get_feature_map()
-        matrix = self.members["clinicalMatrix"]
-
-        # e.g. { 'HER2+': 'category', ...}
-        explicit_types = dict((f, features[f]['valueType']) for f in features if 'valueType' in features[f])
-
-        self.feature_type_setup(explicit_types)
-        for a in features:
-            if "stateOrder" in features[a]:
-                
-                enums = [x for x in csv.reader(features[a]["stateOrder"], skipinitialspace=True)][0]
-                i = 0
-                for e in matrix.enum_map[a]:
-                    if e in enums:
-                        matrix.enum_map[a][e] = enums.index(e)
-                    else:
-                        matrix.enum_map[a][e] = len(enums) + i
-                        i += 1
-        for a in self.gen_sql_clinicalMatrix(id_table, features=features):
-            yield a
 
     def feature_type_setup(self, types = {}):
         
@@ -348,13 +345,14 @@ CREATE TABLE clinical_%s (
 
             if not key in types:
                 types[key] = cmatrix.__guess_type__(values)
-
+            print types[key]
             if len(values) > 0: # drop empty columns. XXX is this correct behavior?
-                if types[key] == ['float']:
+                if types[key] in ['float']:
                     self.float_map[key] = True
                 else:
                     self.enum_map[key] = dict((enum, order) for enum, order in zip(sorted(values), range(len(values))))
-
+        print self.enum_map
+        print self.float_map
         id_map = {}
         id_num = 0
         prior = 1

@@ -67,7 +67,7 @@ CREATE TABLE raDb (
 """)
         while cls.c.nextset() is not None: pass
 
-        cmd = '../scripts/compileCancerData.py data_enum_order_quote; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
+        cmd = '../scripts/genHeatmapSQL.py data_enum_order_quote2; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
         f = open('test.log', 'a')
         p = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
         p.communicate()

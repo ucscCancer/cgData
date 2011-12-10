@@ -1,0 +1,7 @@
+color	valueType	category
+color	state	Orange
+color	state	Blue
+color	state	Green
+color	state	Red
+color	state	Purple
+color	stateOrder	Red,Orange,Green,Blue,Purple

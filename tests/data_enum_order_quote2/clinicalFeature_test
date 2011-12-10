@@ -1,0 +1,7 @@
+color	valueType	category
+color	state	Red,Yellow
+color	state	Blue
+color	state	Blue,Yellow
+color	state	Red
+color	state	Red,Blue
+color	stateOrder	Red,"Red,Yellow","Blue,Yellow",Blue,"Red,Blue"
