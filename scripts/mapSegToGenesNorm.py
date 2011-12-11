@@ -12,6 +12,7 @@ import numpy
 handle = open( sys.argv[1] )
 sg = CGData.GenomicSegment.GenomicSegment()
 sg.read( handle )
+sg.loaded = True
 handle.close()
 
 handle = open( sys.argv[2] )
@@ -52,12 +53,12 @@ for num, id in enumerate(ng.get_gene_list()):
 
 out = numpy.empty((len(geneList),len(idList)))
 out.fill(numpy.nan)
-    
+
 #read through the segment one sample id at a time
 for id in idList:   
     print id
     segmentMap = {}
-    for segment in sg.get_id(id):
+    for segment in sg.get_by_id(id):
         for hit in pm.find_overlap( segment, ng ):
             span = float(min(segment.chrom_end, hit.chrom_end) - max(segment.chrom_start, hit.chrom_start)) / float(hit.chrom_end - hit.chrom_start)
             #if hit.name not in segmentMap:

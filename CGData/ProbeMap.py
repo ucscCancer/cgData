@@ -7,7 +7,7 @@ class ProbeMap(CGData.BaseTable.BaseTable):
             "name" : "probeMap",
             "type" : "type",
             "form" : "table",
-            "columnDef" : [
+            "columnOrder" : [
             "probe",
             "chrom",
             "chrom_start",

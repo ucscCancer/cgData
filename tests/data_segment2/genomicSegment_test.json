@@ -1,0 +1,1 @@
+{"cgdata": {"rowKeyMap": {"type": "id", "name": "tcga"}, "version": "2011-12-10", "type": "genomicSegment", "name": "broad.mit.edu_BRCA_Genome_Wide_SNP_6_20111207", "links": [{"type": "dataSubType", "name": "cna"}]}, "dataProducer": "Remus TCGA Import", "redistribution": "yes", "accessMap": "public"}

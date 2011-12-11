@@ -44,10 +44,10 @@ class GeneInfo(object):
         return self.name
 
 
-class RefGene(CGData.CGDataSetObject):
+class RefGene(CGData.CGObjectBase):
 
     def __init__(self):
-        CGData.CGDataSetObject.__init__(self)
+        CGData.CGObjectBase.__init__(self)
         self.hugo_map = {}
         self.chrom_map = {}
 

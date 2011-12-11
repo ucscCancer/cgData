@@ -7,7 +7,7 @@ class AliasMap(CGData.BaseTable.BaseTable):
             "name" : "aliasMap",
             "type" : "type",
             "form" : "table",
-            "columnDef" : [
+            "columnOrder" : [
             "probe",
             "alias"
             ],

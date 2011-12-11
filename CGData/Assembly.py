@@ -10,7 +10,7 @@ class Assembly(CGData.BaseTable.BaseTable):
             "name" : "assembly",
             "type" : "type",
             "form" : "table",
-            "columnDef" : [
+            "columnOrder" : [
             ]
     }
 

@@ -8,7 +8,7 @@ class IDMap(CGData.BaseTable.BaseTable):
             "name" : "idMap",
             "type" : "type",
             "form" : "table",
-            "columnDef" : [
+            "columnOrder" : [
                 "id",
                 "child"
             ],

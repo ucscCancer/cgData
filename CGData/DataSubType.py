@@ -9,7 +9,7 @@ class DataSubType(CGData.BaseTable.BaseTable):
         "name" : "dataSubType",
         "type" : "type",
         "form" : "table",
-        "columnDef" : [
+        "columnOrder" : [
         ],
     }
 

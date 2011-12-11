@@ -139,8 +139,7 @@ class ORM(object):
                     self.metadata, 
                     sqlalchemy.Column('fileID', sqlalchemy.Integer)
                 ]
-                print format['columnDef']
-                for c in format['columnDef']:
+                for c in format['columnOrder']:
                     col = None
                     print c
                     colType = None
@@ -249,7 +248,7 @@ class ORM(object):
                 obj.load()
                 for row in obj.row_iter():
                     a = {}
-                    for c in obj.__format__['columnDef']:
+                    for c in obj.__format__['columnOrder']:
                         a[c] = getattr(row, c)
                     #print a
                     sess.execute( table.insert(a) )

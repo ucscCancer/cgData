@@ -8,7 +8,7 @@ class FeatureDescription(CGData.BaseTable.BaseTable):
         "name" : "featureDescription",
         "type" : "type",
         "form" : "table",
-        "columnDef" : [
+        "columnOrder" : [
             "feature",
             "predicate",
             "value"

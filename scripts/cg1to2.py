@@ -17,7 +17,8 @@ class CG1to2:
 		'genomicMatrix' : 'genomicMatrix',
 		#'dataSubType' : 'copy',
 		#'assembly' : 'copy',
-		'probeMap' : 'probeMap'
+		'probeMap' : 'probeMap',
+		'genomicSegment' : 'genomicSegment'
 	}
 	
 	def __init__(self, src, dst):
@@ -107,6 +108,14 @@ class CG1to2:
 		}
 		del meta[':sampleMap']
 		del meta[':probeMap']
+		self.copy( path, self.meta_adjust(meta) )
+	
+	def genomicSegment(self,path):
+		meta = self.getmeta(path)
+		meta['cgdata'] = { 
+			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+		}
+		del meta[':sampleMap']
 		self.copy( path, self.meta_adjust(meta) )
 	
 	def clinicalMatrix(self,path):

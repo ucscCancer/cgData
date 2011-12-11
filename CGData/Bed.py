@@ -8,7 +8,7 @@ class Bed(CGData.BaseTable.BaseTable):
 		"name" : "bed",
 		"type" : "type",
         "form" : "table",
-        "columnDef" : 
+        "columnOrder" : 
         [
 			"chrom",
 			"chrom_start",

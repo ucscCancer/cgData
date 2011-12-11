@@ -1,14 +1,7 @@
 
-import CGData.format
-
-
 import csv
 import CGData
 import math
-
-
-def get_class(format):
-    return type(format['name'], (BaseMatrix,), dict(format=format) )
 
 
 class BaseMatrix(CGData.CGDataMatrixObject):

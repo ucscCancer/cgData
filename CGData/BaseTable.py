@@ -9,7 +9,7 @@ class TableRow(object):
         pass
         
     def __str__(self):
-        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnDef']) + ">"
+        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnOrder']) + ">"
 
 
 class BaseTable(CGObjectBase):
@@ -38,7 +38,19 @@ class BaseTable(CGObjectBase):
             self.secondKey = self.__format__['secondaryKey']
     
     def read(self, handle):
-        cols = self.__format__['columnDef']
+        cols = self.__format__['columnOrder']
+        colType = {}
+        for col in cols:
+            if 'columnDef' in self.__format__ and col in self.__format__['columnDef']:
+                if self.__format__['columnDef'][col]['type'] == 'float':
+                    colType[col] = float
+                elif self.__format__['columnDef'][col]['type'] == 'int':
+                    colType[col] = int
+                else:
+                    colType[col] = str
+            else:
+                colType[col] = str
+                
         read = csv.reader(handle, delimiter="\t")
 
         storeMap = getattr(self, self.firstKey + "_map")
@@ -46,7 +58,7 @@ class BaseTable(CGObjectBase):
         for row in read:
             r = self.__row_class__()
             for i, col in enumerate(cols):
-                setattr(r, col, row[i])
+                setattr(r, col, colType[col](row[i]))
             if not self.groupKey:
                 if self.secondKey is not None:
                     key1 = getattr(r, self.firstKey )                    
