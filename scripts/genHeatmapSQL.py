@@ -3,7 +3,7 @@
 import sys
 from getopt import getopt
 
-import CGData.ORM
+#import CGData.ORM
 import CGData.DataSet
 import CGData.HeatMapCompiler
 
