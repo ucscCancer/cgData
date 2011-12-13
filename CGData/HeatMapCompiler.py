@@ -167,21 +167,47 @@ class BrowserCompiler(object):
         
         for gmatrix_name in self.set_hash[ 'genomicMatrix' ]:
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
-            id_lmap =  self.set_hash.get_linked_data( 'id', gmatrix.get_link_map()['id'][0] )
-                        
-            print gmatrix.get_name(), id_lmap['idMap'], id_lmap.keys()
+            
+            #query to fine all id spaces that link to current genomic matrix
+            idList = self.set_hash.find_file_links(file_type="genomicMatrix", file_name=gmatrix_name, predicate="columnKeyMap", map_type='id')
+            print self.set_hash.file_links
+            if len(idList) == 0:
+                error("IDmap not found")
+                pass
+            idName = idList[0]['name']
+            
+            idmap = {}
+            for row in self.set_hash.find_map_links( 'id', idName ):
+                if row['type'] not in idmap:
+                    idmap[row['type']] = []
+                idmap[row['type']].append( row['name'] )
+            
+            print idmap 
             
             tg = TrackGenomic()
             tg.merge( 
                 genomicMatrix=gmatrix, 
-                idMap=id_lmap['idMap'].values()[0], 
-                clinicalMatrix=id_lmap['clinicalMatrix'].values()[0]
+                idMap=self.set_hash['idMap'][idName], 
+                clinicalMatrix=self.set_hash['clinicalMatrix'][idmap['clinicalMatrix'][0]]
             )
             
-            probe_lmap = self.set_hash.get_linked_data( 'probe', gmatrix.get_link_map()['probe'][0] )
+            #query to find the probe key space that matches the current probemap
+            probeList = self.set_hash.find_file_links( file_type="genomicMatrix", file_name=gmatrix_name, map_type="probe" )
+            probeName = probeList[0]['name']
+            
+            #find probeMap that connects to probe
+            probeMapList = self.set_hash.find_map_links( map_type="probe", map_name=probeName, file_type="probeMap" )
+            probeMapName = probeMapList[0]['name']
+            #find aliasMap that connects to probe
+            aliasMapList = self.set_hash.find_map_links( map_type="probe", map_name=probeName, file_type="aliasMap" )
+            aliasMapName = aliasMapList[0]['name']
+            
+            print probeMapName, aliasMapName
+
+            
             tg.merge(
-                probeMap = probe_lmap['probeMap'].values()[0],
-                aliasMap = probe_lmap['aliasMap'].values()[0]                
+                probeMap = self.set_hash['probeMap'][probeMapName],
+                aliasMap = self.set_hash['aliasMap'][aliasMapName]                
             )
             
             print "Generate", tg.get_type(), tg.get_name()
@@ -197,10 +223,16 @@ class BrowserCompiler(object):
             cmatrix = self.set_hash['clinicalMatrix'][cmatrix_name]
             tc = TrackClinical()
             tc.merge( clinicalMatrix=cmatrix )
-            if 'clinicalFeature' in cmatrix.get_link_map():
-                id_lmap =  self.set_hash.get_linked_data( 'clinicalFeature', cmatrix.get_link_map()['clinicalFeature'][0] )
-                if 'featureDescription' in id_lmap:
-                    tc.merge( featureDescription=id_lmap['featureDescription'].values()[0] )
+            
+            print "matrix link", cmatrix.get_link_map()
+            if 'columnKeyMap' in cmatrix.get_link_map():
+                featureDescList = self.set_hash.find_map_links( 
+                    map_type="clinicalFeature", 
+                    map_name=cmatrix.get_link_map()['columnKeyMap']['clinicalFeature'],
+                    file_type="featureDescription"
+                )
+                featureDescName = featureDescList[0]['name']
+                tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )
             else:
                 tc.merge( featureDescription=CGData.FeatureDescription.NullClinicalFeature() )
             shandle = tc.gen_sql(self.id_table)
@@ -463,7 +495,7 @@ CREATE TABLE sample_%s (
 """ % ( table_base )
 
         for sample in sortedSamples(gmatrix.get_sample_list()):
-	    yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
+            yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
 
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )

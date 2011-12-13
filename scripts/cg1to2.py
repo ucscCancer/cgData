@@ -103,8 +103,8 @@ class CG1to2:
 	def genomicMatrix(self,path):
 		meta = self.getmeta(path)
 		meta['cgdata'] = { 
-			'columnKeyMap' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
-			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+			'rowKeyMap' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
+			'columnKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
 		}
 		del meta[':sampleMap']
 		del meta[':probeMap']

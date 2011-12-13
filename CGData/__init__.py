@@ -142,16 +142,16 @@ class CGObjectBase(dict):
     def get_link_map(self):
         out = {}
         if 'links' in self['cgdata']:
+            pred = "link"
+            out[pred] = {}
             for link in self['cgdata']['links']:
-                if link['type'] not in out:
-                    out[ link['type'] ] = []
-                out[ link['type'] ].append( link['name'] )
+                out[pred][ link['type'] ] = link['name']
         for e in ['columnKeyMap', 'rowKeyMap' ]:
             if e in self['cgdata']:
+                if e not in out:
+                    out[e] = {}
                 link = self['cgdata'][e]
-                if link['type'] not in out:
-                    out[ link['type'] ] = []
-                out[ link['type'] ].append( link['name'] )
+                out[e][ link['type'] ] = link['name']
 
         return out
 
