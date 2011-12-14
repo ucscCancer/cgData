@@ -1,18 +1,19 @@
 from django.http import HttpResponse
-from CGData.Compiler import BrowserCompiler
+from CGData.DataSet import DataSet
 from django.template import Context, loader
 
-repoBase = "../cancerGenomeData/"
+repoBase = "/inside/depot/cancerGenomeFreeze/cgDataFreeze_2/"
 
 def index(request):
     print request.path
-    b = BrowserCompiler()
+    b = DataSet()
     if request.path == "/":
         b.scan_dirs([repoBase])
         t = loader.get_template('repoview.html')
         c = Context({
-            'type_list': b.set_hash.keys(),
+            'type_list': b.keys(),
         })
+        print b
         return HttpResponse(t.render(c))
     else:
         tmp = request.path.split("/")
