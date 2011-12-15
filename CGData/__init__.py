@@ -54,11 +54,14 @@ class CGObjectBase(dict):
     The methods covered in the base case cover usage meta-information
     loading/unloading and manipulation as well as zip (cgz) file access.
     """
+    __format__ = None
     def __init__(self):
         self.path = None
         self.zip = None
         self.light_mode = False
         self.loaded = False
+        if 'cgformat' not in self and self.__format__ is not None:
+            self['cgformat'] = self.__format__
         super(CGObjectBase,self).__init__()
 
     # XXX There are no less than three different code paths for
@@ -96,9 +99,6 @@ class CGObjectBase(dict):
         """Call to start freeing up memory"""
         self.free()
         self.loaded = False
-
-    def is_link_ready(self):
-        return True
     
     def store(self, path=None):
         if path is None and self.path is not None:
@@ -327,17 +327,4 @@ def warn(eStr):
 def error(eStr):
     sys.stderr.write("ERROR: %s\n" % (eStr))
     #errorLogHandle.write("ERROR: %s\n" % (eStr))
-
-
-#####################
-
-
-TABLE = "table"
-MATRIX = "matrix"
-
-class Column(object):
-    def __init__(self, name, type, primary_key=False):
-        self.name = name
-        self.type = type
-        self.primary_key = primary_key
 

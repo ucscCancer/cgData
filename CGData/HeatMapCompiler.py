@@ -9,7 +9,6 @@ import CGData
 import CGData.CGZ
 import CGData.FeatureDescription
 
-from CGData.SQLUtil import *
 
 from CGData import log, error, warn
 import re
@@ -63,6 +62,16 @@ dataSubTypeMap = {
     }
 
 
+def col_fix( name ):
+    out = name.replace('`', '_').replace('\\','_').strip()
+    while (len(out) > 64):
+        out = re.sub( r'[aeiou]([^aioeu]*)$', r'\1', out)
+    return out
+
+def sql_fix( name ):
+    return name.replace("\\", "\\\\").replace("'", "\\'")
+
+
 class CGIDTable(object):
     
     def __init__(self):
@@ -76,64 +85,6 @@ class CGIDTable(object):
             
         return self.id_table[ itype ][ iname ]
 
-
-
-class CGGroupMember(object):
-    pass
-
-class CGGroupBase(object):
-
-    DATA_FORM = None
-
-    def __init__(self, group_name):
-        self.members = {}
-        self.name = group_name
-    
-    def __setitem__(self, name, item):
-        self.members[ name ] = item
-    
-    def __getitem__(self, name):
-        return self.members[ name ]
-    
-    def put(self, obj):
-        self.members[ obj.get_name() ] = obj
-    
-    def is_link_ready(self):
-        for name in self.members:
-            if not self.members[name].is_link_ready():
-                return False
-        return True
-    
-    def get_name(self):
-        return self.name
-    
-    def unload(self):
-        for name in self.members:
-            self.members[name].unload()
-    
-    def lookup(self, **kw):
-        for elem in self.members:
-            found = True
-            obj = self.members[ elem ]
-            for key in kw:
-                if obj.get( key, None ) != kw[key] and obj.get( ":" + key, None ) != kw[key]:
-                    found = False
-            if found:
-                return obj
-                    
-    
-    def get_link_map(self):
-        out = {}
-        for name in self.members:
-            lmap = self.members[ name ].get_link_map()
-            for ltype in lmap:
-                if ltype not in out:
-                    out[ ltype ] = []
-                for lname in lmap[ltype]:
-                    if lname not in out[ltype]:
-                        out[ltype].append( lname )
-        return out
-    
 
 class BrowserCompiler(object):
     

@@ -21,7 +21,10 @@ class GenomicSegment(CGData.BaseTable.BaseTable):
                 "chrom_start" : { "type" : "int" },
                 "chrom_end" :   { "type" : "int" },
                 "value" : { "type" : "float" }
-            }
+            },
+            "links" : {
+            
+            } 
         }
 
     def __init__(self):
