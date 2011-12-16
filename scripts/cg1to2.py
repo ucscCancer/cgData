@@ -156,7 +156,7 @@ class CG1to2:
 		meta['cgdata']['links'] = []
 		for key in meta:
 			if key.startswith( ":" ) :
-				meta['cgdata']['links'].append( { 'type' : key[1:], 'name' : meta[key] } )
+				meta['cgdata'][ key[1:] ] = meta[key]
 				rmlist.append(key)
 		for key in rmlist:
 			del meta[key]

@@ -13,7 +13,9 @@ class IDMap(CGData.BaseTable.BaseTable):
                 "child"
             ],
             "groupKey" : "id",
-            "optional" : ["child"]
+            "columnDef" : {
+                "child" : { "optional" : True }
+            }
     }
     
     def __init__(self):

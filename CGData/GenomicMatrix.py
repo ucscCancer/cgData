@@ -12,7 +12,10 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
             "rowType" : "probeMap",
             "colType" : "idMap",
             "valueType" : "float",
-            "nullString" : "NA"
+            "nullString" : "NA",
+            "links" : {
+                "dataSubType" : {}
+            }
         }    
 
     def __init__(self):
@@ -25,10 +28,7 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
         return self.get_col_list()
     
     def get_data_subtype(self):
-        for a in self.get('cgdata', {}).get('links', []):
-            if a['type'] == 'dataSubType':
-                return a['name']
-        return None
+        return self.get('cgdata', {}).get('dataSubType', None)
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

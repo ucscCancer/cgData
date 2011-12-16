@@ -141,18 +141,17 @@ class CGObjectBase(dict):
     
     def get_link_map(self):
         out = {}
-        if 'links' in self['cgdata']:
-            pred = "link"
-            out[pred] = {}
-            for link in self['cgdata']['links']:
-                out[pred][ link['type'] ] = link['name']
+        if "cgformat" in self:
+            if "links" in self["cgformat"]:
+                for field in self['cgformat']['links']:
+                    out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
         for e in ['columnKeyMap', 'rowKeyMap' ]:
             if e in self['cgdata']:
                 if e not in out:
                     out[e] = {}
                 link = self['cgdata'][e]
                 out[e][ link['type'] ] = link['name']
-
+        print "linkmap", self.get_name(), self.get_type(), out
         return out
 
     def add_history(self, desc):

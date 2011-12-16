@@ -11,7 +11,10 @@ class AliasMap(CGData.BaseTable.BaseTable):
             "probe",
             "alias"
             ],
-            "groupKey" : "probe"
+            "groupKey" : "probe",
+            "links" : {
+                "assembly" : {}            
+            }
         }
         
     def __init__(self):

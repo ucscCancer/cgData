@@ -21,16 +21,16 @@ class TestCase(unittest.TestCase):
         print mapTypes
         assert "probe" in mapTypes
         
-        print ds['genomicMatrix']['test.genomicMatrix'].get_link_map()
+        print ds['genomicMatrix']['test'].get_link_map()
         
         ms = ds.find_map_links('id', None, None, 'genomicMatrix', None)
-        assert ms[0]['name'] == "test.genomicMatrix"
+        assert ms[0]['name'] == "test"
         
         ms = ds.find_map_links('id', None, 'rowKeyMap', None, None)
-        assert ms[0]['name'] == "test.clinicalMatrix"
+        assert ms[0]['name'] == "test"
 
-        fs = ds.find_file_links('genomicMatrix', 'test.genomicMatrix', None, 'id', None)
-        assert fs[0]['name'] == "test.sampleMap"
+        fs = ds.find_file_links('genomicMatrix', 'test', None, 'id', None)
+        assert fs[0]['name'] == "test"
         
 
 

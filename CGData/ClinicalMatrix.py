@@ -17,7 +17,6 @@ class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
 
     def __init__(self):
         super(ClinicalMatrix, self).__init__()
-        self[':clinicalFeature'] = '__null__'
 
     def __guess_type__(self, values):
         type = 'float'

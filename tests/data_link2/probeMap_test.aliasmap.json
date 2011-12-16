@@ -1,1 +1,1 @@
-{"dbXRef": "ucscGenomeBrowser_hg18", "author": "", "title": "test probeMap", "note": "a note", "cgdata": {"links": [{"type": "assembly", "name": "hg18"}], "columnKeyMap": {"type": "probe", "name": "test"}, "type": "aliasMap", "name": "test.probemap", "version": "7/27/2011"}, "date": "7/27/2011"}
+{"dbXRef": "ucscGenomeBrowser_hg18", "author": "", "title": "test probeMap", "note": "a note", "cgdata": {"assembly": "hg18", "name": "test", "links": [], "columnKeyMap": {"type": "probe", "name": "test"}, "version": "7/27/2011", "type": "aliasMap"}, "date": "7/27/2011"}

@@ -23,7 +23,8 @@ class GenomicSegment(CGData.BaseTable.BaseTable):
                 "value" : { "type" : "float" }
             },
             "links" : {
-            
+                "assembly" : {},
+                "dataSubType" : {}
             } 
         }
 
