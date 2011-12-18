@@ -12,19 +12,19 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         CGData.CGDataMatrixObject.__init__(self)
         self.col_map = None
         self.row_map = None
-        self.rows = None
+        self.matrix = None
         if self.__format__["valueType"] == 'float':
             self.element_type = float
 
     def free(self):
         self.col_map = {}
         self.row_map = {}    
-        self.rows = []
+        self.matrix = []
 
     def read(self, handle, skip_vals=False):
         self.col_map = {}
         self.row_map = {}    
-        self.rows = []
+        self.matrix = []
         pos_hash = None
         for row in csv.reader(handle, delimiter="\t"):
             if pos_hash is None:
@@ -46,8 +46,8 @@ class BaseMatrix(CGData.CGDataMatrixObject):
                         i = pos_hash[col] + 1
                         if row[i] != 'NA' and row[i] != 'null' and row[i] != 'NONE' and row[i] != "N/A" and len(row[i]):
                             newRow[i - 1] = self.element_type(row[i])
-                self.row_map[row[0]] = len(self.rows)
-                self.rows.append(newRow)
+                self.row_map[row[0]] = len(self.matrix)
+                self.matrix.append(newRow)
         self.col_map = {}
         for col in pos_hash:
             self.col_map[col] = pos_hash[col]
@@ -103,7 +103,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         return self.col_map[col]
     
     def get_row_count(self):
-        return len(self.rows)
+        return len(self.row_map)
         
     def get_col_count(self):
         return len(self.col_map)
@@ -111,7 +111,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     def get_row(self, row_name):
         if not self.loaded:
             self.load( )
-        return self.rows[ self.row_map[row_name] ]
+        return self.matrix[ self.row_map[row_name] ]
     
     def get_col(self, col_name):
         if not self.loaded:
@@ -122,7 +122,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         return out
     
     def get_val(self, col, row):
-        return self.rows[self.row_map[row]][self.col_map[col]]
+        return self.matrix[self.row_map[row]][self.col_map[col]]
 
     def col_rename(self, old_col, new_col):
         """
