@@ -114,6 +114,27 @@ class CGObjectBase(dict):
             self.write(dhandle)
             dhandle.close()            
     
+    def load_keyset(self, key_predicate):
+        if self.path is not None:
+            if self.zip is None:
+                if os.path.exists(self.path):
+                    dhandle = open(self.path)
+                    out = self.read_keyset(dhandle, key_predicate)
+                    for a in out:
+                        yield a
+                    dhandle.close()
+            else:
+                z = ZipFile(self.zip)
+                dhandle = z.open(self.path)
+                out = self.read_keyset(dhandle, key_predicate)
+                for a in out:
+                    yield a
+                dhandle.close()
+                z.close()
+        
+    def read_keyset(self, handle, key_predicate=None):
+        raise UnimplementedException()
+    
     def read(self, handle):
         """
         The read method is implemented by the subclass that 

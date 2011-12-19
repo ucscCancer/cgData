@@ -113,8 +113,9 @@ class ORMTypeSet:
     
 
 class ORM(object):
-    def __init__(self, path):
+    def __init__(self, path, options={}):
         self.path = path
+        self.options = options
         self.engine = sqlalchemy.create_engine('sqlite:///%s.sqlite' % (path),
                        echo=False)
         self.metadata = sqlalchemy.MetaData(bind=self.engine)
@@ -125,7 +126,8 @@ class ORM(object):
         if not self.fileTable.exists():
             self.fileTable.create()
         
-        self.h5 = h5py.File('%s.hdf5' % (path))
+        if self.options.get('storeMatrix', True):
+            self.h5 = h5py.File('%s.hdf5' % (path))
     
     def get_format_table(self, format):
         
@@ -241,10 +243,8 @@ class ORM(object):
             
             print "fileID", fileRecord.fileID
             print table
-            if obj.get_type() not in self.h5:
-                self.h5.create_group(obj.get_type())
             
-            if obj.__format__['form'] == 'table':
+            if obj['cgformat']['form'] == 'table':
                 obj.load()
                 for row in obj.row_iter():
                     a = {}
@@ -254,43 +254,52 @@ class ORM(object):
                     sess.execute( table.insert(a) )
                 obj.unload()
             
-            if obj.__format__['form'] == 'matrix':
+            if obj['cgformat']['form'] == 'matrix':
                 count = 0
-                obj.load()
-                for row in obj.get_row_list():
-                    rowNum = obj.get_row_pos(row)                    
+                storeMatrix = self.options.get('storeMatrix', True)
+                for row in obj.load_keyset("rowKeySrc"):
+                    rowNum = None
+                    if storeMatrix:
+                        rowNum = obj.get_row_pos(row)                    
                     a = { 'fileID' : fileRecord.fileID, 'name' : row, 'axis' : 0, 'pos' : rowNum }
                     sess.execute( table.insert(a) )
                     count += 1
                     if count % 1000 == 0:
                         sess.flush()
                     
-                for col in obj.get_col_list():
-                    colNum = obj.get_col_pos(col)                    
+                for col in obj.load_keyset("columnKeySrc"):
+                    colNum = None
+                    if storeMatrix:
+                        colNum = obj.get_col_pos(col)                    
                     a = { 'fileID' : fileRecord.fileID, 'name' : col, 'axis' : 1, 'pos' : colNum }
                     sess.execute( table.insert(a) )
                     count += 1
                     if count % 1000 == 0:
                         sess.flush()
                 
-                dsetName = "/%s/%s" % (obj.get_type(), obj.get_name())
-                if dsetName not in self.h5:
-                    if obj.__format__['valueType'] == 'float':                            
-                        dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), 'f')
-                    if obj.__format__['valueType'] == 'str':                            
-                        dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), h5py.new_vlen(str))
-                else:
-                    dset = self.h5[dsetName]
-                for row in obj.get_row_list():
-                    d = obj.get_row(row)
-                    for i in range(len(d)):
-                        if d[i] is None:
-                            d[i] = numpy.nan
-                    dset[ obj.get_row_pos(row) ] = d
+                if storeMatrix:
+                    if obj.get_type() not in self.h5:
+                        self.h5.create_group(obj.get_type())
 
-                obj.unload()
-                  
+                    dsetName = "/%s/%s" % (obj.get_type(), obj.get_name())
+                    if dsetName not in self.h5:
+                        if obj.__format__['valueType'] == 'float':                            
+                            dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), 'f')
+                        if obj.__format__['valueType'] == 'str':                            
+                            dset = self.h5.create_dataset(dsetName, (obj.get_row_count(), obj.get_col_count()), h5py.new_vlen(str))
+                    else:
+                        dset = self.h5[dsetName]
+                    for row in obj.get_row_list():
+                        d = obj.get_row(row)
+                        for i in range(len(d)):
+                            if d[i] is None:
+                                d[i] = numpy.nan
+                        dset[ obj.get_row_pos(row) ] = d
+
+                obj.unload()     
+                print "checking sum"             
                 fileRecord.md5 = self.md5check(obj.path)
+                print "check done"             
                 sess.flush()
 
 

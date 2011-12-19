@@ -15,7 +15,7 @@ from getopt import getopt
 includeList = None
 
 if __name__ == "__main__":
-    opts, args = getopt( sys.argv[1:], "bp:f:vo:" )
+    opts, args = getopt( sys.argv[1:], "bp:f:vo:s" )
     params = {}
     outFile = "test"
     params['binary'] = False
@@ -34,20 +34,21 @@ if __name__ == "__main__":
         if a == "-b":
             params['binary'] = True
         if a == "-o":
-			outFile = o
+            outFile = o
+        if a == "-s":
+            params['storeMatrix'] = False
             
-    ds = CGData.DataSet.DataSet(params)
+    ds = CGData.DataSet.DataSet()
     ds.scan_dirs(args)
-    sess = CGData.ORM.ORM(outFile)
+    sess = CGData.ORM.ORM(outFile, params)
     for t in ds:
         for name in ds[t]:
             print "Scanning ", t, name 
             try:
                 if not sess.loaded( ds[t][name].path, md5Check=False ):
-                    ds[t][name].load()
                     print "Storing ", t, name 
                     sess.write( ds[t][name] )
                 ds[t][name].unload()
-            except Exception as e:
+            except IOError as e:
                 print e
     sess.commit()
