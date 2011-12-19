@@ -140,6 +140,9 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     def get_col_count(self):
         return len(self.col_map)
     
+    def get_shape(self):
+        return len(self.row_map), len(self.col_map)
+    
     def get_row(self, row_name):
         if not self.loaded:
             self.load( )
@@ -147,6 +150,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
             return self.matrix[ self.row_map[row_name] ]
         else:
             return self.matrix[ self.row_map[row_name] ].tolist()[0]
+
     def get_col(self, col_name):
         if not self.loaded:
             self.load( )
@@ -162,6 +166,39 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         if isinstance(self.matrix, list):
             return self.matrix[self.row_map[row_name]][self.col_map[col_name]]
         return self.matrix[self.row_map[row_name],self.col_map[col_name]]
+
+    def col_rename(self, old_col, new_col):
+        """
+        Rename a column
+        """
+        if old_col in self.col_list:
+            self.row_list[new_col] = self.row_list[old_col]
+            del self.sample_list[old_col]
+
+    def row_rename(self, old_row, new_row):
+        """
+        Rename a column
+        """
+        self.row_hash[new_row] = self.row_hash[old_row]
+        del self.row_hash[old_row]
+    
+    def del_row(self, row):
+        """
+        Delete a row from the matrix
+        """
+        del self.row_hash[row]
+        
+    def del_col(self, col):
+        """
+        Delete a column from the matrix
+        """
+        i = self.col_list[col]
+        del self.col_list[col]
+        for a in self.col_list:
+            if self.col_list[a] > i:
+                self.col_list[a] -= 1
+        for row in self.row_hash:
+            del self.row_hash[row][i]
     
     def add(self, col, row, value):
         """
