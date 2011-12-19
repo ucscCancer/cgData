@@ -290,7 +290,8 @@ CREATE TABLE clinical_%s (
         for target in sortedSamples(matrix.get_row_list()):
             a = []
             for col in self.orig_order:
-                val = matrix.get_val( row=target, col=col )
+                val = matrix.get_val( row_name=target, col_name=col )
+                print val
                 if val is None or val == "null" or len(val) == 0 :
                     a.append("\\N")
                 else:
@@ -325,7 +326,7 @@ CREATE TABLE clinical_%s (
             # get unique list of values by converting to a set & back.
             # also, drop null values.
             values = list(set([v for v in cmatrix.get_col(key) if v not in ["null", "None", "NA"] and v is not None and len(v)]))
-
+            print values
             if not key in types:
                 types[key] = cmatrix.__guess_type__(values)
             print types[key]
