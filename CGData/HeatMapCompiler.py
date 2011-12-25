@@ -52,6 +52,9 @@ CREATE TABLE %s (
 ) engine 'MyISAM';
 """
 
+NULL_VALUES = ['NULL', 'NONE', 'NA', '']
+
+
 dataSubTypeMap = {
     'cna': 'CNV',
     'geneExp': 'expression',
@@ -204,6 +207,7 @@ class BrowserCompiler(object):
 
 
 def sortedSamples(samples):
+    print samples
     import os, re
     # Check for numeric sample ids. Allow for a common prefix
     # before the number.
@@ -214,7 +218,7 @@ def sortedSamples(samples):
     else:
         return sorted(samples)
 
-
+        
 class TrackClinical:
     type_name = "trackClinical"
     DATA_FORM = None
@@ -241,15 +245,23 @@ class TrackClinical:
     def gen_sql(self, id_table):
         CGData.log("ClincalTrack SQL " + self.get_name())
 
-        features = self.members["featureDescription"].get_feature_map()
+        features = {}
+        fmap = self.members["featureDescription"].get_feature_map()
+        for feat in fmap:
+            features[feat] = {}
+            for ent in fmap[feat]:
+                features[feat][ent] = []
+                for val in fmap[feat][ent]:
+                    features[feat][ent].append( val.value )
+
         matrix = self.members["clinicalMatrix"]
         # e.g. { 'HER2+': 'category', ...}
-        explicit_types = dict((f, features[f]['valueType'][0].value) for f in features if 'valueType' in features[f])
+        explicit_types = dict((f, features[f]['valueType'][0]) for f in features if 'valueType' in features[f])
         print "presets:", explicit_types
         self.feature_type_setup(explicit_types)
         for a in features:
             if "stateOrder" in features[a]:
-                read = csv.reader( [features[a]["stateOrder"][0].value], skipinitialspace=True)
+                read = csv.reader( [features[a]["stateOrder"][0]], skipinitialspace=True)
                 enums = read.next()
                 i = 0
                 for e in self.enum_map[a]:
@@ -263,65 +275,86 @@ class TrackClinical:
 
 
     def gen_sql_clinicalMatrix(self, id_table, features=None):
-        
         matrix = self.members["clinicalMatrix"]
-        
         CGData.log( "Writing Clinical %s SQL" % (matrix.get_name()))
-                
+        
+        features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
+
         table_name = matrix.get_name()
         clinical_table = 'clinical_' + table_name
-        yield "drop table if exists %s;" % ( clinical_table )
+        yield "DROP TABLE IF EXISTS %s;\n" % ( clinical_table )
+        yield "DELETE codes FROM codes, colDb WHERE codes.feature = colDb.id AND colDb.clinicalTable = '%s';\n" % clinical_table
+        yield "DELETE FROM colDb WHERE clinicalTable = '%s';\n" % clinical_table
 
-        yield """
-CREATE TABLE clinical_%s (
-\tsampleID int,
-\tsampleName ENUM ('%s')""" % ( table_name, "','".join(map(lambda s: sql_fix(s), sortedSamples(matrix.get_row_list()))) )
+        
+        # colDb
+        i = 0;
+        for name in self.col_order:
+            shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0]
+            longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0]
+            filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
+            visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0]
+            priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0])
+            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);" % \
+                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), clinical_table, filter, visibility, priority)
+            yield "SET @col%d=LAST_INSERT_ID();\n" % i
+            i += 1
 
-        print "enum", self.enum_map
+        # codes
+        i = 0;
+        values = {}
         for col in self.col_order:
             if ( self.enum_map.has_key( col ) ):
-                yield ",\n\t`%s` ENUM( '%s' ) default NULL" % (col.strip(), "','".join( sql_fix(a) for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]) ) )
+                values[col] = {}
+                j = 0
+                for a in sorted(self.enum_map[ col ].keys(), lambda x,y: self.enum_map[col][x]-self.enum_map[col][y]):
+                    yield "INSERT INTO codes(feature,ordering,value) VALUES (@col%d, %d, '%s'); SET @val%d_%d=LAST_INSERT_ID();\n" % (i, j, sql_fix(a), i, j)
+                    values[col][a] = "@val%d_%d" % (i, j)
+                    j += 1
+            i += 1
+
+
+        yield "CREATE TABLE %s (sampleID INT NOT NULL UNIQUE" % clinical_table
+
+        for col in self.col_order:
+            if col == 'sampleName':
+                yield ",\n\tsampleName INT UNSIGNED NOT NULL UNIQUE"
             else:
-                yield ",\n\t`%s` FLOAT default NULL" % (col.strip())
+                if self.enum_map.has_key(col):
+                    yield ",\n\t`%s` INT UNSIGNED DEFAULT NULL" % (col.strip())
+                else:
+                    yield ",\n\t`%s` FLOAT DEFAULT NULL" % (col.strip())
         yield """
     ) engine 'MyISAM';
     """
 
         for target in sortedSamples(matrix.get_row_list()):
             a = []
-            for col in self.orig_order:
-                val = matrix.get_val( row_name=target, col_name=col )
-                print val
-                if val is None or val == "null" or len(val) == 0 :
+            for col,orig in zip(self.col_order, self.orig_order):
+                if col == 'sampleName':
+                    val = target
+                else:
+                    val = matrix.get_val( row_name=target, col_name=orig )
+                if val is None or val.upper() in NULL_VALUES:
                     a.append("\\N")
                 else:
-                    a.append( "'" + sql_fix(val) + "'" )
-            yield u"INSERT INTO %s VALUES ( %d, '%s', %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), sql_fix(target), u",".join(a) )
+                    if col in self.enum_map:
+                        a.append(values[col][val])
+                    else:
+                        a.append(val)
+            yield u"INSERT INTO %s VALUES ( %d, %s );\n" % ( clinical_table, id_table.get( table_name + ':sample_id', target ), u",".join(a) )
 
-
-        yield "DELETE from colDb where clinicalTable = '%s';" % clinical_table
-
-        yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', 'on',1);\n" % \
-                ( 'sampleName', 'sample name', 'sample name', 'sampleName', clinical_table, 'coded' )
-
-
-        i = 0;
-        for name in self.col_order:
-            shortLabel = name if name not in features or 'shortTitle' not in features[name] else features[name]['shortTitle'][0].value
-            longLabel = name if name not in features or 'longTitle' not in features[name] else features[name]['longTitle'][0].value
-            filter = 'coded' if self.enum_map.has_key(name) else 'minMax'
-            visibility = ('on' if i < 10 else 'off') if name not in features or 'visibility' not in features[name] else features[name]['visibility'][0].value
-            priority = 1 if name not in features or 'priority' not in features[name] else float(features[name]['priority'][0].value)
-            yield "INSERT INTO colDb(name, shortLabel,longLabel,valField,clinicalTable,filterType,visibility,priority) VALUES( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %f);\n" % \
-                    ( sql_fix(name), sql_fix(shortLabel), sql_fix(longLabel), sql_fix(name), "clinical_" + table_name, filter, visibility, priority)
-            i += 1
 
 
     def feature_type_setup(self, types = {}):
         
         cmatrix = self.members['clinicalMatrix']
+        cmatrix.load()
         self.float_map = {}
         self.enum_map = {}
+        print cmatrix.get_row_list()
+        self.enum_map['sampleName'] = dict((k,v) for k,v in zip(sortedSamples(cmatrix.get_row_list()), range(0,len(cmatrix.get_row_list()))))
+
         for key in cmatrix.get_col_list():
             # get unique list of values by converting to a set & back.
             # also, drop null values.

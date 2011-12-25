@@ -5,6 +5,7 @@ import json
 import functools
 from zipfile import ZipFile
 import sys
+import hashlib
 """
 CGData object style:
 

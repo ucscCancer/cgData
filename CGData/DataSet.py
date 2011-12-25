@@ -3,6 +3,7 @@ import os
 import CGData
 from glob import glob
 import json
+import re
 
 class DataSet(dict):
     

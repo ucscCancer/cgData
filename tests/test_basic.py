@@ -1,84 +1,11 @@
 #!/usr/bin/env python
 
 import unittest
-import os
 
-import subprocess
-import shutil
-import MySQLdb
-import MySQLSandbox
+from utils import CGDataTestCase
 
-class TestCase(unittest.TestCase):
-    tolerance = 0.001 # floating point tolerance
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            shutil.rmtree('out')
-        except:
-            pass
-        cls.sandbox = MySQLSandbox.Sandbox()
-        db = MySQLdb.connect(read_default_file=cls.sandbox.defaults)
-        cls.c = db.cursor()
-        # create raDb and hg18
-        cls.c.execute("""
-create database hg18;
-use hg18;
-
-CREATE TABLE colDb (
-    `id` int(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    name varchar(255),	# Column name
-    shortLabel varchar(255),	# Short label
-    longLabel varchar(255),	# Long label
-    valField varchar(255),	# Val field name
-    clinicalTable varchar(255),	# Table of clinical data
-    priority float,	# Priority
-    filterType varchar(255),	# Filter Type - minMax or coded
-    visibility varchar(255),	# Visibility
-    groupName varchar(255)	# Group Name
-) engine 'MyISAM';
-
-CREATE TABLE raDb (
-    name varchar(255),	# Table name for genomic data
-    downSampleTable varchar(255),	# Down-sampled table
-    sampleTable varchar(255),	# Sample table
-    clinicalTable varchar(255),	# Clinical table
-    columnTable varchar(255),	# Column table
-    shortLabel varchar(255),	# Short label
-    longLabel varchar(255),	# Long label
-    expCount int unsigned,	# Number of samples
-    groupName varchar(255),	# Group name
-    microscope varchar(255),	# hgMicroscope on/off flag
-    aliasTable varchar(255),	# Probe to gene mapping
-    dataType varchar(255),	# data type (bed 15)
-    platform varchar(255),	# Expression, SNP, etc.
-    security varchar(255),	# Security setting (public, private)
-    profile varchar(255),	# Database profile
-    gain float,	# Gain
-    priority float,	# Priority for sorting
-    url varchar(255),	# Pubmed URL
-    wrangler varchar(255),	# Wrangler
-    citation varchar(255),	# Citation
-    article_title longblob,	# Title of publication
-    author_list longblob,	# Author list
-    wrangling_procedure longblob,	# Wrangling
-              #Indices
-    PRIMARY KEY(name)
-);
-""")
-        while cls.c.nextset() is not None: pass
-
-        cmd = '../scripts/genHeatmapSQL.py data_basic2; cat out/* | mysql --defaults-file=%s hg18;' % cls.sandbox.defaults
-        f = open('test.log', 'a')
-        p = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
-        p.communicate()
-        f.close()
-        if p.returncode != 0:
-            raise subprocess.CalledProcessError(p.returncode, cmd)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.sandbox.shutdown()
+class TestCase(CGDataTestCase):
+    datadir = "data_basic2"
 
     def test_sample(self):
         self.c.execute("""select id, sampleName from sample_test""")
@@ -110,30 +37,30 @@ CREATE TABLE raDb (
         self.c.execute("""select name, shortLabel, longLabel, valField, clinicalTable, priority, filterType, visibility, groupName from colDb""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 3)                  # three features (sampleName plus two in the matrix)
-        self.assertEqual(rows[0][0], 'sampleName')      # name
-        self.assertEqual(rows[0][1], 'sample name')     # short
-        self.assertEqual(rows[0][2], 'sample name')     # long
-        self.assertEqual(rows[0][3], 'sampleName')      # field
+        self.assertEqual(rows[0][0], 'age')             # name
+        self.assertEqual(rows[0][1], 'age')             # short
+        self.assertEqual(rows[0][2], 'age')             # long
+        self.assertEqual(rows[0][3], 'age')             # field
         self.assertEqual(rows[0][4], 'clinical_test')   # table
         self.assertEqual(rows[0][5], 1)                 # priority
-        self.assertEqual(rows[0][6], 'coded')           # filterType
+        self.assertEqual(rows[0][6], 'minMax')          # filterType
         self.assertEqual(rows[0][7], 'on')              # visibility
         self.assertEqual(rows[0][8], None)              # groupName
 
-        self.assertEqual(rows[1][0], 'age')             # name
-        self.assertEqual(rows[1][1], 'age')             # short
-        self.assertEqual(rows[1][2], 'age')             # long
-        self.assertEqual(rows[1][3], 'age')             # field
+        self.assertEqual(rows[1][0], 'status')          # name
+        self.assertEqual(rows[1][1], 'status')          # short
+        self.assertEqual(rows[1][2], 'status')          # long
+        self.assertEqual(rows[1][3], 'status')          # field
         self.assertEqual(rows[1][4], 'clinical_test')   # table
         self.assertEqual(rows[1][5], 1)                 # priority
-        self.assertEqual(rows[1][6], 'minMax')          # filterType
+        self.assertEqual(rows[1][6], 'coded')           # filterType
         self.assertEqual(rows[1][7], 'on')              # visibility
         self.assertEqual(rows[1][8], None)              # groupName
 
-        self.assertEqual(rows[2][0], 'status')          # name
-        self.assertEqual(rows[2][1], 'status')          # short
-        self.assertEqual(rows[2][2], 'status')          # long
-        self.assertEqual(rows[2][3], 'status')          # field
+        self.assertEqual(rows[2][0], 'sampleName')      # name
+        self.assertEqual(rows[2][1], 'Sample name')     # short
+        self.assertEqual(rows[2][2], 'Sample name')     # long
+        self.assertEqual(rows[2][3], 'sampleName')      # field
         self.assertEqual(rows[2][4], 'clinical_test')   # table
         self.assertEqual(rows[2][5], 1)                 # priority
         self.assertEqual(rows[2][6], 'coded')           # filterType
@@ -141,7 +68,10 @@ CREATE TABLE raDb (
         self.assertEqual(rows[2][8], None)              # groupName
 
     def test_clinical(self):
-        self.c.execute("""select sampleID,sampleName,age,status from clinical_test""")
+        self.c.execute("""SELECT sampleID, c1.value, age, c2.value FROM codes AS c1, clinical_test"""
+                + """ LEFT JOIN codes AS c2 ON `status` = c2.id"""
+                + """ WHERE c1.id = clinical_test.sampleName;""")
+
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 1)          # one sample x one probe
         self.assertEqual(rows[0][0], 0)         # id
