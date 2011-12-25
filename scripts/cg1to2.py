@@ -153,7 +153,6 @@ class CG1to2:
 			del meta[":sampleMap"]
 		
 		rmlist = []
-		meta['cgdata']['links'] = []
 		for key in meta:
 			if key.startswith( ":" ) :
 				meta['cgdata'][ key[1:] ] = meta[key]
