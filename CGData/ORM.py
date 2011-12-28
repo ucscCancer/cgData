@@ -56,15 +56,13 @@ class ORMMatrixBase(CGData.CGDataMatrixObject):
         self.__format__ = json.loads(f.format)
         self.table = self.parent.get_format_table( self.__format__ )
         self.dataset = self.parent.h5[ "/%s/%s" % (f.type, f.name) ]
-        
-        sess = self.parent.session_maker()
-        
+                
         self.col_map = {}        
-        for e in sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==1 ) ).all():
+        for e in self.sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==1 ) ).all():
             self.col_map[e[0]] = e[1]
 
         self.row_map = {}        
-        for e in sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==0 ) ).all():
+        for e in self.sess.query( self.table.c.name, self.table.c.pos ).filter( and_( self.table.c.fileID == self.fileInfo.fileID, self.table.c.axis==0 ) ).all():
             self.row_map[e[0]] = e[1]
         
         
@@ -107,13 +105,11 @@ class ORMTypeSet:
         self.parent = parent
     
     def __iter__(self):
-        sess = self.parent.session_maker()
-        for a in sess.query(cgDB).filter(cgDB.type == self.type).all():
+        for a in self.sess.query(cgDB).filter(cgDB.type == self.type).all():
             yield a.name
     
     def __getitem__(self, name):
-        sess = self.parent.session_maker()
-        f = sess.query(cgDB).filter( sqlalchemy.and_( cgDB.type == self.type , cgDB.name == name ) ).first()
+        f = self.sess.query(cgDB).filter( sqlalchemy.and_( cgDB.type == self.type , cgDB.name == name ) ).first()
         if f is not None:
             format = json.loads(f.format)
             if format['form'] == "matrix":
@@ -134,6 +130,7 @@ class ORM(CGData.DataSet.DataSetBase):
         self.fileTable = cgDB.__table__
         self.linkTable = cgLink.__table__
         self.session_maker = sqlalchemy.orm.sessionmaker(bind=self.engine)
+        self.sess = self.session_maker()
 
         if not self.fileTable.exists():
             self.fileTable.create()
@@ -201,8 +198,7 @@ class ORM(CGData.DataSet.DataSetBase):
 
 
     def get_type_list(self):
-        sess = self.session_maker()
-        for row in sess.query( sqlalchemy.distinct(cgDB.type) ).all():
+        for row in self.sess.query( sqlalchemy.distinct(cgDB.type) ).all():
             yield row[0]
         
     
@@ -221,8 +217,7 @@ class ORM(CGData.DataSet.DataSetBase):
     
     def loaded( self, path, md5Check=False ):
         obj = CGData.light_load(path)
-        sess = self.session_maker()
-        for row in sess.query( cgDB ).filter(
+        for row in self.sess.query( cgDB ).filter(
                 sqlalchemy.and_(
                     cgDB.type == obj.__format__['name'],
                     cgDB.name == obj.get_name()
@@ -238,10 +233,9 @@ class ORM(CGData.DataSet.DataSetBase):
         return False
     
     def get_or_create_filerecord(self, file_type, file_name):
-        sess = self.session_maker()
         #self.metadata.create_all(self.engine)
         fileRecord = None
-        for row in sess.query( cgDB ).filter(
+        for row in self.sess.query( cgDB ).filter(
             sqlalchemy.and_(
                 cgDB.type == file_type,
                 cgDB.name == file_name
@@ -252,8 +246,8 @@ class ORM(CGData.DataSet.DataSetBase):
             fileRecord = cgDB()     
             fileRecord.type = file_type
             fileRecord.name = file_name    
-            sess.add( fileRecord )
-            sess.flush()
+            self.sess.add( fileRecord )
+            self.sess.flush()
         return fileRecord
 
     def write(self, obj):        
@@ -261,7 +255,6 @@ class ORM(CGData.DataSet.DataSetBase):
         if table is not None:
             if not table.exists():
                 table.create()
-            sess = self.session_maker()
             #self.metadata.create_all(self.engine)
             fileRecord = self.get_or_create_filerecord( obj.__format__['name'], obj.get_name() )
 
@@ -271,16 +264,16 @@ class ORM(CGData.DataSet.DataSetBase):
                 print lmap
                 other = self.get_or_create_filerecord( lmap[pred]['type'], lmap[pred]['name'] )
                 link = cgLink( fileRecord.fileID, other.fileID, pred )
-                sess.add( link )
-            sess.flush()
-            sess.execute( table.delete( table.c.fileID == fileRecord.fileID ) )
+                self.sess.add( link )
+            self.sess.flush()
+            self.sess.execute( table.delete( table.c.fileID == fileRecord.fileID ) )
             
             
             
             #if obj.__format__['form'] == 'matrix':
             #    self.h5.delete( "/%s/%s" % (obj.__format__['name'], obj.get_name()) )
             fileRecord.md5 = ""
-            sess.flush()        
+            self.sess.flush()        
             
             print "fileID", fileRecord.fileID
             print table
@@ -292,7 +285,7 @@ class ORM(CGData.DataSet.DataSetBase):
                     for c in obj.__format__['columnOrder']:
                         a[c] = getattr(row, c)
                     #print a
-                    sess.execute( table.insert(a) )
+                    self.sess.execute( table.insert(a) )
                 obj.unload()
             
             if obj['cgformat']['form'] == 'matrix':
@@ -306,20 +299,20 @@ class ORM(CGData.DataSet.DataSetBase):
                     if storeMatrix:
                         rowNum = obj.get_row_pos(row)                    
                     a = { 'fileID' : fileRecord.fileID, 'name' : row, 'axis' : 0, 'pos' : rowNum }
-                    sess.execute( table.insert(a) )
+                    self.sess.execute( table.insert(a) )
                     count += 1
                     if count % 1000 == 0:
-                        sess.flush()
+                        self.sess.flush()
                     
                 for col in obj.load_keyset("columnKeySrc"):
                     colNum = None
                     if storeMatrix:
                         colNum = obj.get_col_pos(col)                    
                     a = { 'fileID' : fileRecord.fileID, 'name' : col, 'axis' : 1, 'pos' : colNum }
-                    sess.execute( table.insert(a) )
+                    self.sess.execute( table.insert(a) )
                     count += 1
                     if count % 1000 == 0:
-                        sess.flush()
+                        self.sess.flush()
                 
                 if storeMatrix:
                     if obj.get_type() not in self.h5:
@@ -344,10 +337,10 @@ class ORM(CGData.DataSet.DataSetBase):
                 print "checking sum"             
                 fileRecord.md5 = self.md5check(obj.path)
                 print "check done"             
-                sess.flush()
+                self.sess.flush()
 
 
-            sess.commit()
+            self.sess.commit()
             
     
     def close(self):
