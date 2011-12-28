@@ -130,10 +130,10 @@ class BrowserCompiler(object):
             idName = idList[0].dst_name
             print "idDag:", idName
             idmap = {}
-            for row in self.set_hash.query( src_type='id', src_name=idName ):
-                if row.dst_type not in idmap:
-                    idmap[row.dst_type] = []
-                idmap[row.dst_type].append( row.dst_name )
+            for row in self.set_hash.query( dst_type='id', dst_name=idName ):
+                if row.src_type not in idmap:
+                    idmap[row.src_type] = []
+                idmap[row.src_type].append( row.src_name )
             
             print idmap 
             
@@ -149,10 +149,10 @@ class BrowserCompiler(object):
             probeName = probeList[0].dst_name
             
             #find probeMap that connects to probe
-            probeMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="probeMap" )
+            probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeMap" )
             probeMapName = probeMapList[0].dst_name
             #find aliasMap that connects to probe
-            aliasMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="aliasMap" )
+            aliasMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" )
             aliasMapName = aliasMapList[0].dst_name
             
             print probeMapName, aliasMapName
@@ -180,9 +180,8 @@ class BrowserCompiler(object):
             print "matrix link", cmatrix.get_link_map()
             if 'columnKeyMap' in cmatrix.get_link_map():
                 featureDescList = self.set_hash.query( 
-                    src_type="clinicalFeature", 
-                    src_name=cmatrix.get_link_map()['columnKeyMap']['name'],
-                    dst_type="featureDescription"
+                    dst_type="clinicalFeature", 
+                    dst_name=cmatrix.get_link_map()['columnKeyMap']['name']
                 )
                 featureDescName = featureDescList[0].dst_name
                 tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )

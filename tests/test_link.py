@@ -33,12 +33,13 @@ class TestCase(unittest.TestCase):
         assert ms[0].dst_type == "id"
         assert ms[0].dst_name == "test"
         
-        ms = ds.query(src_type='id', predicate='rowKeyMap')
-        assert ms[0].src_name == "test"
-        assert ms[0].src_type == "id"        
-        assert ms[0].predicate == "rowKeyMap"        
-        assert ms[0].dst_type == "clinicalMatrix"
+        ms = ds.query(dst_type='id', predicate='rowKeyMap')
+        assert len(ms) == 1
         assert ms[0].dst_name == "test"
+        assert ms[0].dst_type == "id"        
+        assert ms[0].predicate == "rowKeyMap"        
+        assert ms[0].src_type == "clinicalMatrix"
+        assert ms[0].src_name == "test"
 
 
 def main():
