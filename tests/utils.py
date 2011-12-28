@@ -4,6 +4,9 @@ import shutil
 import MySQLdb
 import MySQLSandbox
 
+import CGData.DataSet
+import CGData.HeatMapCompiler
+
 class CGDataTestCase(unittest.TestCase):
     tolerance = 0.001 # floating point tolerance
 
@@ -72,7 +75,14 @@ CREATE TABLE codes (
 """)
         while cls.c.nextset() is not None: pass
 
-        cmd = '../scripts/genHeatmapSQL.py %s; cat out/* | mysql --defaults-file=%s hg18;' % (cls.datadir, cls.sandbox.defaults)
+        #cmd = '../scripts/genHeatmapSQL.py %s; cat out/* | mysql --defaults-file=%s hg18;' % (cls.datadir, cls.sandbox.defaults)
+        
+        ds = CGData.DataSet.DataSet()
+        ds.scan_dirs([cls.datadir])
+        cg = CGData.HeatMapCompiler.BrowserCompiler(ds)
+        cg.gen_sql()
+        cmd = 'cat out/* | mysql --defaults-file=%s hg18;' % (cls.sandbox.defaults)
+        
         f = open('test.log', 'a')
         p = subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
         p.communicate()

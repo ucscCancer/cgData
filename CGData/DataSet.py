@@ -5,120 +5,103 @@ from glob import glob
 import json
 import re
 
-class DataSet(dict):
+
+class DataSetBase(dict):
+    
+    def get_file_types(self):
+        raise CGData.UnimplementedException
+
+    def query(self):
+        raise CGData.UnimplementedException
+
+
+class DataSet(DataSetBase):
     
     def __init__(self,params={}):
         self.params = params
-        self.file_links = None
-        self.map_links = None
+        self.links = None
         super(DataSet,self).__init__()
-
 
     def get_file_types(self):
         return self.keys()
     
     def get_map_types(self):
-        if self.file_links is None:
+        if self.links is None:
             self.build_link_map()
         out = {}
-        for ftype in self.file_links:
-            for fname in self.file_links[ftype]:
-                for pred in self.file_links[ftype][fname]:
-                    for mtype in self.file_links[ftype][fname][pred]:
+        for ftype in self.links:
+            for fname in self.links[ftype]:
+                for pred in self.links[ftype][fname]:
+                    for mtype in self.links[ftype][fname][pred]:
                         out[ mtype ] = True
         return out.keys()
     
     def get_map_links(self,type):
-        if self.file_links is None:
+        if self.links is None:
             self.build_link_map()
-        return self.map_links[type]
+        return self.links[type]
     
-    def find_map_links(self, map_type=None, map_name=None, predicate=None, file_type=None, file_name=None):
-        if self.file_links is None:
+    def query(self, src_type=None, src_name=None, predicate=None, dst_type=None, dst_name=None):
+        if self.links is None:
             self.build_link_map()
         out = []
         include = [True,True,True,True,True]
-        for mtype in self.map_links:
+        for mtype in self.links:
             include[0] = False
-            if map_type is None or mtype == map_type:   
+            if src_type is None or mtype == src_type:   
                 include[0] = True
-            for mname in self.map_links[mtype]:
+            for mname in self.links[mtype]:
                 include[1] = False
-                if map_name is None or mname == map_name:
+                if src_name is None or mname == src_name:
                     include[1] = True
-                for mpredicate in self.map_links[mtype][mname]:
+                for mpredicate in self.links[mtype][mname]:
                     include[2] = False
                     if predicate is None or mpredicate == predicate:
                         include[2] = True
-                    for m_file_type in self.map_links[mtype][mname][mpredicate]:
+                    for m_file_type in self.links[mtype][mname][mpredicate]:
                         include[3] = False
-                        if file_type is None or m_file_type == file_type:
+                        if dst_type is None or m_file_type == dst_type:
                             include[3] = True
-                        for m_file_name in self.map_links[mtype][mname][mpredicate][m_file_type]:
+                        for m_file_name in self.links[mtype][mname][mpredicate][m_file_type]:
                             include[4] = False
-                            if file_name is None or file_name == m_file_name:
+                            if dst_name is None or dst_name == m_file_name:
                                 include[4] = True
                             if False not in include:
                                 out.append( { 'type' : m_file_type, 'name' : m_file_name } )
         return out            
     
-    def find_file_links(self, file_type=None, file_name=None, predicate=None, map_type=None, map_name=None):
-        if self.file_links is None:
-            self.build_link_map()
-        out = []
-        include = [True,True,True,True,True]
-        for ftype in self.file_links:
-            include[0] = False
-            if file_type is None or file_type == ftype:
-                include[0] = True
-            for fname in self.file_links[ftype]:
-                include[1] = False
-                if file_name is None or fname == file_name:
-                    include[1] = True
-                for fpred in self.file_links[ftype][fname]:
-                    include[2] = False
-                    if predicate is None or fpred == predicate:
-                        include[2] = True
-                    for mtype in self.file_links[ftype][fname][fpred]:
-                        include[3] = False
-                        if map_type is None or mtype == map_type:
-                            include[3] = True
-                        
-                        mname = self.file_links[ftype][fname][fpred][mtype]
-                        include[4] = False
-                        if map_name is None or map_name == mname:
-                            include[4] = True
-                        
-                        if False not in include:
-                            out.append( {'type' : mtype, 'name' : mname } )
-                            
-        return out
     
     def build_link_map(self):
-        self.file_links = {}
-        self.map_links = {}
-        for d_type in self.keys():
-            self.file_links[d_type] = {}
-            dmap = self.get(d_type)
-            for d_name in dmap:
-                lmap = dmap[d_name].get_link_map()
-                self.file_links[d_type][d_name] = lmap
-                
+        self.links = {}
+        for s_type in self.keys():
+            if s_type not in self.links:
+                self.links[s_type] = {}
+            dmap = self.get(s_type)
+            for s_name in dmap:
+                if s_name not in self.links[s_type]:
+                    self.links[s_type][s_name] = {}
+                lmap = dmap[s_name].get_link_map()
                 for pred in lmap:
-                    for mtype in lmap[pred]:
-                        if mtype not in self.map_links:
-                            self.map_links[mtype] = {}
-                        mname = lmap[pred][mtype]
-                        if mname not in self.map_links[mtype]:
-                            self.map_links[mtype][mname] = {}
-                        
-                        if pred not in self.map_links[mtype][mname]:
-                            self.map_links[mtype][mname][pred] = {}
-                        
-                        if d_type not in self.map_links[mtype][mname][pred]:
-                            self.map_links[mtype][mname][pred][d_type] = []
-                                
-                            self.map_links[mtype][mname][pred][d_type].append(d_name)
+                    d_type = lmap[pred]['type']
+                    d_name = lmap[pred]['name']
+                    if d_type not in self.links:
+                        self.links[d_type] = {}
+                    if d_name not in self.links[d_type]:
+                        self.links[d_type][d_name] = {}           
+                                     
+                    if pred not in self.links[s_type][s_name]:
+                        self.links[s_type][s_name][pred] = {}
+                    if pred not in self.links[d_type][d_name]:
+                        self.links[d_type][d_name][pred] = {}
+                    
+                    if d_type not in self.links[s_type][s_name][pred]:
+                        self.links[s_type][s_name][pred][d_type] = {}                               
+                    self.links[s_type][s_name][pred][d_type][d_name]= 1
+                    
+                    if s_type not in self.links[d_type][d_name][pred]:
+                        self.links[d_type][d_name][pred][s_type] = {}                               
+                    self.links[d_type][d_name][pred][s_type][s_name]= -1
+        print self.links
 
     def scan_dirs(self, dirs):
         for dir in dirs:

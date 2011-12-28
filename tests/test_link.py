@@ -23,13 +23,13 @@ class TestCase(unittest.TestCase):
         
         print ds['genomicMatrix']['test'].get_link_map()
         
-        ms = ds.find_map_links('id', None, None, 'genomicMatrix', None)
+        ms = ds.query(src_type='id', dst_type='genomicMatrix')
         assert ms[0]['name'] == "test"
         
-        ms = ds.find_map_links('id', None, 'rowKeyMap', None, None)
+        ms = ds.query(src_type='id', predicate='rowKeyMap')
         assert ms[0]['name'] == "test"
 
-        fs = ds.find_file_links('genomicMatrix', 'test', None, 'id', None)
+        fs = ds.query(src_type='genomicMatrix', src_name='test', dst_type='id')
         assert fs[0]['name'] == "test"
         
 

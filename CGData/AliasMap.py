@@ -13,7 +13,8 @@ class AliasMap(CGData.BaseTable.BaseTable):
             ],
             "groupKey" : "probe",
             "links" : {
-                "assembly" : {}            
+                "assembly" : {},
+                "probe" : {}     
             }
         }
         

@@ -1,5 +1,6 @@
 
 import CGData
+import CGData.DataSet
 import os
 import sqlalchemy
 import sqlalchemy.orm
@@ -25,16 +26,26 @@ class cgDB(Base):
     type = sqlalchemy.Column(sqlalchemy.String)
     name = sqlalchemy.Column(sqlalchemy.String)
     md5 = sqlalchemy.Column(sqlalchemy.String)
-    format = sqlalchemy.Column(sqlalchemy.String)
     meta = sqlalchemy.Column(sqlalchemy.Text)
 
+class cgLink(Base):
+    __tablename__ = "cgLink"
+    linkID = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
+    src_file = sqlalchemy.Column(sqlalchemy.Integer)
+    dst_file = sqlalchemy.Column(sqlalchemy.Integer)
+    predicate = sqlalchemy.Column(sqlalchemy.String)
+    
+    def __init__(self, src_file, dst_file, predicate):
+        self.src_file = src_file
+        self.dst_file = dst_file
+        self.linkID = "%s_%s" % (src_file, dst_file)
+        self.predicate = predicate
 
 class ORMTableBase(CGData.CGObjectBase):
     def __init__(self, parent, f):
         self.parent = parent
         self.fileInfo = f
         self.update( json.loads(f.meta) )
-        self.__format__ = json.loads(f.format)
         self.table = self.parent.get_format_table( self.__format__ )
 
 class ORMMatrixBase(CGData.CGDataMatrixObject):
@@ -112,7 +123,7 @@ class ORMTypeSet:
             
     
 
-class ORM(object):
+class ORM(CGData.DataSet.DataSetBase):
     def __init__(self, path, options={}):
         self.path = path
         self.options = options
@@ -121,11 +132,15 @@ class ORM(object):
         self.metadata = sqlalchemy.MetaData(bind=self.engine)
         Base.metadata.bind = self.engine
         self.fileTable = cgDB.__table__
+        self.linkTable = cgLink.__table__
         self.session_maker = sqlalchemy.orm.sessionmaker(bind=self.engine)
 
         if not self.fileTable.exists():
             self.fileTable.create()
-        
+
+        if not self.linkTable.exists():
+            self.linkTable.create()
+
         if self.options.get('storeMatrix', True):
             self.h5 = h5py.File('%s.hdf5' % (path))
     
@@ -171,6 +186,20 @@ class ORM(object):
     def __getitem__(self, item):
         return ORMTypeSet(self,item)
     
+    def add_all(self, ds):
+        for t in ds:
+            for name in ds[t]:
+                try:
+                    if not self.loaded( ds[t][name].path, md5Check=False ):
+                        print "Storing ", t, name 
+                        self.write( ds[t][name] )
+                    ds[t][name].unload()
+                except IOError as e:
+                    print e
+        self.commit()
+
+
+
     def get_type_list(self):
         sess = self.session_maker()
         for row in sess.query( sqlalchemy.distinct(cgDB.type) ).all():
@@ -208,34 +237,46 @@ class ORM(object):
                 return True
         return False
     
-    def write(self, obj):
-        
+    def get_or_create_filerecord(self, file_type, file_name):
+        sess = self.session_maker()
+        #self.metadata.create_all(self.engine)
+        fileRecord = None
+        for row in sess.query( cgDB ).filter(
+            sqlalchemy.and_(
+                cgDB.type == file_type,
+                cgDB.name == file_name
+            )
+        ).all():
+            fileRecord = row
+        if fileRecord is None:
+            fileRecord = cgDB()     
+            fileRecord.type = file_type
+            fileRecord.name = file_name    
+            sess.add( fileRecord )
+            sess.flush()
+        return fileRecord
+
+    def write(self, obj):        
         table = self.get_format_table(obj.__format__)
         if table is not None:
             if not table.exists():
                 table.create()
             sess = self.session_maker()
             #self.metadata.create_all(self.engine)
-            fileRecord = None
-            for row in sess.query( cgDB ).filter(
-                sqlalchemy.and_(
-                    cgDB.type == obj.__format__['name'],
-                    cgDB.name == obj.get_name()
-                )
-            ).all():
-                print "found", row
-                fileRecord = row
-            if fileRecord is None:
-                fileRecord = cgDB()     
-                fileRecord.type = obj.__format__['name']
-                fileRecord.name = obj.get_name()    
-                fileRecord.meta = json.dumps(obj)
-                fileRecord.format = json.dumps(obj.__format__)
-                sess.add( fileRecord )
-                sess.flush()
-                print "inserted", fileRecord.fileID
-                
+            fileRecord = self.get_or_create_filerecord( obj.__format__['name'], obj.get_name() )
+
+            fileRecord.meta = json.dumps(obj)
+            lmap = obj.get_link_map()
+            for pred in lmap:
+                print lmap
+                other = self.get_or_create_filerecord( lmap[pred]['type'], lmap[pred]['name'] )
+                link = cgLink( fileRecord.fileID, other.fileID, pred )
+                sess.add( link )
+            sess.flush()
             sess.execute( table.delete( table.c.fileID == fileRecord.fileID ) )
+            
+            
+            
             #if obj.__format__['form'] == 'matrix':
             #    self.h5.delete( "/%s/%s" % (obj.__format__['name'], obj.get_name()) )
             fileRecord.md5 = ""
@@ -257,6 +298,9 @@ class ORM(object):
             if obj['cgformat']['form'] == 'matrix':
                 count = 0
                 storeMatrix = self.options.get('storeMatrix', True)
+                if storeMatrix:
+                    obj.load()
+
                 for row in obj.load_keyset("rowKeySrc"):
                     rowNum = None
                     if storeMatrix:
@@ -305,7 +349,9 @@ class ORM(object):
 
             sess.commit()
             
-       
+    
+    def close(self):
+        self.commit()
     
     def commit(self):
         pass

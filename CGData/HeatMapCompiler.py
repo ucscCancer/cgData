@@ -123,15 +123,14 @@ class BrowserCompiler(object):
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
             
             #query to fine all id spaces that link to current genomic matrix
-            idList = self.set_hash.find_file_links(file_type="genomicMatrix", file_name=gmatrix_name, predicate="columnKeyMap", map_type='id')
-            print self.set_hash.file_links
+            idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeyMap", dst_type='id')
             if len(idList) == 0:
                 error("IDmap not found")
                 pass
             idName = idList[0]['name']
-            
+            print "idDag:", idName
             idmap = {}
-            for row in self.set_hash.find_map_links( 'id', idName ):
+            for row in self.set_hash.query( src_type='id', src_name=idName ):
                 if row['type'] not in idmap:
                     idmap[row['type']] = []
                 idmap[row['type']].append( row['name'] )
@@ -146,14 +145,14 @@ class BrowserCompiler(object):
             )
             
             #query to find the probe key space that matches the current probemap
-            probeList = self.set_hash.find_file_links( file_type="genomicMatrix", file_name=gmatrix_name, map_type="probe" )
+            probeList = self.set_hash.query( src_type="genomicMatrix", src_name=gmatrix_name, dst_type="probe" )
             probeName = probeList[0]['name']
             
             #find probeMap that connects to probe
-            probeMapList = self.set_hash.find_map_links( map_type="probe", map_name=probeName, file_type="probeMap" )
+            probeMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="probeMap" )
             probeMapName = probeMapList[0]['name']
             #find aliasMap that connects to probe
-            aliasMapList = self.set_hash.find_map_links( map_type="probe", map_name=probeName, file_type="aliasMap" )
+            aliasMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="aliasMap" )
             aliasMapName = aliasMapList[0]['name']
             
             print probeMapName, aliasMapName
@@ -180,10 +179,10 @@ class BrowserCompiler(object):
             
             print "matrix link", cmatrix.get_link_map()
             if 'columnKeyMap' in cmatrix.get_link_map():
-                featureDescList = self.set_hash.find_map_links( 
-                    map_type="clinicalFeature", 
-                    map_name=cmatrix.get_link_map()['columnKeyMap']['clinicalFeature'],
-                    file_type="featureDescription"
+                featureDescList = self.set_hash.query( 
+                    src_type="clinicalFeature", 
+                    src_name=cmatrix.get_link_map()['columnKeyMap']['name'],
+                    dst_type="featureDescription"
                 )
                 featureDescName = featureDescList[0]['name']
                 tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )

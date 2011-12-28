@@ -9,13 +9,13 @@ class TableRow(object):
         pass
         
     def __str__(self):
-        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnOrder']) + ">"
+        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self__format__['columnOrder']) + ">"
 
 
 class BaseTable(CGObjectBase):
     def __init__(self):
         super(BaseTable,self).__init__()        
-        self.__row_class__ = type( "TableRow_" + self.__format__['name'], (TableRow,), dict(__format__=self.__format__) )        
+        self.__row_class__ = type( "TableRow_" + self['cgformat']['name'], (TableRow,), dict(__format__=self.__format__) )        
         self.free()
     
     def free(self):
@@ -23,28 +23,28 @@ class BaseTable(CGObjectBase):
         self.secondKey = None
         self.groupKey = None
         self.loaded = False
-        if 'primaryKey' in self.__format__:
-            self.firstKey = self.__format__['primaryKey']
-            setattr(self, self.__format__['primaryKey'] + "_map", {} )
+        if 'primaryKey' in self['cgformat']:
+            self.firstKey = self['cgformat']['primaryKey']
+            setattr(self, self['cgformat']['primaryKey'] + "_map", {} )
             self.groupKey = False
         
         #setup the map for groupKeys
-        if 'groupKey' in self.__format__:
-            self.firstKey = self.__format__['groupKey']
-            setattr(self, self.__format__['groupKey'] + "_map", {} )
+        if 'groupKey' in self['cgformat']:
+            self.firstKey = self['cgformat']['groupKey']
+            setattr(self, self['cgformat']['groupKey'] + "_map", {} )
             self.groupKey = True
         
-        if 'secondaryKey' in self.__format__:
-            self.secondKey = self.__format__['secondaryKey']
+        if 'secondaryKey' in self['cgformat']:
+            self.secondKey = self['cgformat']['secondaryKey']
     
     def read(self, handle):
-        cols = self.__format__['columnOrder']
+        cols = self['cgformat']['columnOrder']
         colType = {}
         for col in cols:
-            if 'columnDef' in self.__format__ and col in self.__format__['columnDef']:
-                if self.__format__['columnDef'][col]['type'] == 'float':
+            if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'type' in self['cgformat']['columnDef'][col]:
+                if self['cgformat']['columnDef'][col]['type'] == 'float':
                     colType[col] = float
-                elif self.__format__['columnDef'][col]['type'] == 'int':
+                elif self['cgformat']['columnDef'][col]['type'] == 'int':
                     colType[col] = int
                 else:
                     colType[col] = str
