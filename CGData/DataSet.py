@@ -15,6 +15,18 @@ class DataSetBase(dict):
         raise CGData.UnimplementedException
 
 
+class Link(object):
+	def __init__(self, src_type, src_name, predicate, dst_type, dst_name):
+		self.src_type = src_type
+		self.src_name = src_name
+		self.predicate = predicate
+		self.dst_type = dst_type
+		self.dst_name = dst_name
+	
+	def __str__(self):
+		return "(%s,%s) %s (%s,%s)" % (self.src_type, self.src_name, self.predicate, self.dst_type, self.dst_name)
+		
+
 class DataSet(DataSetBase):
     
     def __init__(self,params={}):
@@ -67,7 +79,8 @@ class DataSet(DataSetBase):
                             if dst_name is None or dst_name == m_file_name:
                                 include[4] = True
                             if False not in include:
-                                out.append( { 'type' : m_file_type, 'name' : m_file_name } )
+								
+                                out.append( Link(mtype, mname, mpredicate, m_file_type, m_file_name) )
         return out            
     
     

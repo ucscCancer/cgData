@@ -127,13 +127,13 @@ class BrowserCompiler(object):
             if len(idList) == 0:
                 error("IDmap not found")
                 pass
-            idName = idList[0]['name']
+            idName = idList[0].dst_name
             print "idDag:", idName
             idmap = {}
             for row in self.set_hash.query( src_type='id', src_name=idName ):
-                if row['type'] not in idmap:
-                    idmap[row['type']] = []
-                idmap[row['type']].append( row['name'] )
+                if row.dst_type not in idmap:
+                    idmap[row.dst_type] = []
+                idmap[row.dst_type].append( row.dst_name )
             
             print idmap 
             
@@ -146,14 +146,14 @@ class BrowserCompiler(object):
             
             #query to find the probe key space that matches the current probemap
             probeList = self.set_hash.query( src_type="genomicMatrix", src_name=gmatrix_name, dst_type="probe" )
-            probeName = probeList[0]['name']
+            probeName = probeList[0].dst_name
             
             #find probeMap that connects to probe
             probeMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="probeMap" )
-            probeMapName = probeMapList[0]['name']
+            probeMapName = probeMapList[0].dst_name
             #find aliasMap that connects to probe
             aliasMapList = self.set_hash.query( src_type="probe", src_name=probeName, dst_type="aliasMap" )
-            aliasMapName = aliasMapList[0]['name']
+            aliasMapName = aliasMapList[0].dst_name
             
             print probeMapName, aliasMapName
 
@@ -184,7 +184,7 @@ class BrowserCompiler(object):
                     src_name=cmatrix.get_link_map()['columnKeyMap']['name'],
                     dst_type="featureDescription"
                 )
-                featureDescName = featureDescList[0]['name']
+                featureDescName = featureDescList[0].dst_name
                 tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )
             else:
                 tc.merge( featureDescription=CGData.FeatureDescription.NullClinicalFeature() )

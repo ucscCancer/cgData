@@ -4,6 +4,7 @@ import CGData.DataSet
 import os
 import sqlalchemy
 import sqlalchemy.orm
+from sqlalchemy.orm import aliased
 from sqlalchemy import and_
 from sqlalchemy.ext.declarative import declarative_base
 import hashlib
@@ -341,8 +342,27 @@ class ORM(CGData.DataSet.DataSetBase):
 
 
             self.sess.commit()
-            
     
+    def query(self, src_type=None, src_name=None, predicate=None, dst_type=None, dst_name=None): 
+        src_alias = aliased(cgDB)
+        dst_alias = aliased(cgDB)
+        f = [ and_(cgLink.src_file == src_alias.fileID, cgLink.dst_file == dst_alias.fileID)  ]
+        if src_type is not None:
+            f.append( src_alias.type == src_type )
+        if src_name is not None:
+            f.append( src_alias.name == src_name )
+        if dst_type is not None:
+            f.append( dst_alias.type == dst_type )
+        if dst_name is not None:
+            f.append( dst_alias.name == dst_name )
+        if predicate is not None:
+            f.append( cgLink.predicate == predicate )
+        
+        out = []
+        for l, s, d in self.sess.query( cgLink, src_alias, dst_alias ).filter( and_(*f) ).all():
+            out.append( CGData.DataSet.Link( s.type, s.name, l.predicate, d.type, d.name ) )
+        return out
+        
     def close(self):
         self.commit()
     

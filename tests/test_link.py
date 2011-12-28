@@ -21,17 +21,24 @@ class TestCase(unittest.TestCase):
         print mapTypes
         assert "probe" in mapTypes
         
-        print ds['genomicMatrix']['test'].get_link_map()
+        ms = ds['genomicMatrix']['test'].get_link_map()
+        assert "rowKeyMap" in ms
+        assert "columnKeyMap" in ms
         
-        ms = ds.query(src_type='id', dst_type='genomicMatrix')
-        assert ms[0]['name'] == "test"
+        ms = ds.query(dst_type='id', src_type='genomicMatrix')
+        assert len(ms) == 1
+        assert ms[0].src_name == "test"
+        assert ms[0].src_type == "genomicMatrix"        
+        assert ms[0].predicate == "columnKeyMap"        
+        assert ms[0].dst_type == "id"
+        assert ms[0].dst_name == "test"
         
         ms = ds.query(src_type='id', predicate='rowKeyMap')
-        assert ms[0]['name'] == "test"
-
-        fs = ds.query(src_type='genomicMatrix', src_name='test', dst_type='id')
-        assert fs[0]['name'] == "test"
-        
+        assert ms[0].src_name == "test"
+        assert ms[0].src_type == "id"        
+        assert ms[0].predicate == "rowKeyMap"        
+        assert ms[0].dst_type == "clinicalMatrix"
+        assert ms[0].dst_name == "test"
 
 
 def main():
