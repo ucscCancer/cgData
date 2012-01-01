@@ -17,6 +17,7 @@ class CG1to2:
 		'genomicMatrix' : 'genomicMatrix',
 		#'dataSubType' : 'copy',
 		#'assembly' : 'copy',
+		'refGene' : 'copy',
 		'probeMap' : 'probeMap',
 		'genomicSegment' : 'genomicSegment'
 	}

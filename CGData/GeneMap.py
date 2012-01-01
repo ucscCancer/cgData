@@ -4,6 +4,7 @@ import csv
 import sys
 import re
 
+import CGData.GenomicMatrix
 
 class ProbeMapper(object):
     """
@@ -81,3 +82,73 @@ optionMap = {
     "m": gene_simple_meth_overlap,
     "e": exon_overlap,
 }
+
+
+
+def genomicSegment2Matrix(genomicSegment, refGene, probeMapper):
+    """
+    Take a genomicSegment map, compare it against a refGene table,
+    and contruct a genomicMatrix
+    """
+    out = CGData.GenomicMatrix.GenomicMatrix()
+    out.init_blank( rows=refGene.get_gene_list(), cols=genomicSegment.get_id_list() )
+    for id in genomicSegment.get_id_list():
+        for segment in genomicSegment.get_by_id(id):
+            for hit in probeMapper.find_overlap( segment, refGene ):
+                out.set_val(row_name=hit.name, col_name=segment.id, value=segment.value )
+    return out
+
+
+def filter_longest_form(refgene):
+    """
+    take a refgene table and filter multiple gene isoforms down to the longest
+    """
+    ng = CGData.RefGene.RefGene()
+    for g in refgene.get_gene_list():
+        longest = None
+        length = 0
+        for elem in refgene.get_gene(g):
+            newLength = elem.chrom_end - elem.chrom_start
+            if newLength > length:
+                length = newLength
+                longest = elem
+        ng.add(longest)
+    return ng
+
+
+def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
+    ng = filter_longest_form(refGene)
+    #enumerate the col order of the sample ids
+    idList = genomicSegment.get_id_list()
+    
+    geneList = ng.get_gene_list()
+    
+    out = CGData.GenomicMatrix.GenomicMatrix()
+    out.init_blank( rows=geneList, cols=idList )
+    
+    #read through the segment one sample id at a time
+    for id in idList:   
+        segmentMap = {}
+        for segment in genomicSegment.get_by_id(id):
+            for hit in probeMapper.find_overlap( segment, ng ):
+                span = float(min(segment.chrom_end, hit.chrom_end) - max(segment.chrom_start, hit.chrom_start)) / float(hit.chrom_end - hit.chrom_start)
+                #if hit.name not in segmentMap:
+                #    segmentMap[hit.name] = []
+                try:
+                    segmentMap[hit.name].append(
+                        ( span, segment.value )
+                    )
+                except KeyError:
+                    segmentMap[hit.name] = [
+                        ( span, segment.value )
+                    ]
+        
+        for gene in segmentMap:
+            mapInfo = segmentMap[gene]
+            coverage = sum( i[0] for i in mapInfo )
+            assert coverage <= 1.0
+            value = sum( i[0]*i[1] for i in mapInfo )
+            #print coverage, value, value/coverage, segmentMap[gene]
+            out.set_val(row_name=gene, col_name=id, value=value/coverage)
+
+    return out

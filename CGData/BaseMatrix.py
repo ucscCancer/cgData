@@ -9,7 +9,7 @@ except ImportError:
     numpy = None
 
 class BaseMatrix(CGData.CGDataMatrixObject):
-    
+    corner_name = "#"
     element_type = str
     null_type = None
     def __init__(self):
@@ -22,6 +22,18 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         self.col_map = {}
         self.row_map = {}    
         self.matrix = None
+    
+    def init_blank(self, cols, rows):
+        if numpy is not None:
+            self.matrix = numpy.matrix( numpy.zeros( (len(rows), len(cols)),  dtype=self.element_type) )
+            self.matrix.fill( numpy.nan )
+        else:
+            self.matrix = [[null_type]*len(cols)]*len(rows)
+        for i, c in enumerate(cols):
+            self.col_map[c] = i
+        for i, r in enumerate(rows):
+            self.row_map[r] = i
+        self.loaded = True
 
     def read(self, handle, skip_vals=False):
         self.col_map = {}
@@ -71,7 +83,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         
         write.writerow([self.corner_name] + col_list)
         for rowName in self.row_map:
-            out = [probe]
+            out = [rowName]
             row = self.get_row(rowName)
             for col in col_list:
                 val = row[self.col_map[col]]
@@ -166,6 +178,12 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         if isinstance(self.matrix, list):
             return self.matrix[self.row_map[row_name]][self.col_map[col_name]]
         return self.matrix[self.row_map[row_name],self.col_map[col_name]]
+    
+    def set_val(self, col_name, row_name, value):
+        if isinstance(self.matrix, list):
+            self.matrix[self.row_map[row_name]][self.col_map[col_name]] = value
+        else:
+            self.matrix[self.row_map[row_name],self.col_map[col_name]] = value
 
     def col_rename(self, old_col, new_col):
         """
@@ -200,25 +218,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         for row in self.row_hash:
             del self.row_hash[row][i]
     
-    def add(self, col, row, value):
-        """
-        Put a value into particular cell, adding new 
-        columns or rows if needed
-        
-        col -- name of column
-        row -- name of column
-        value -- value to be inserted
-        """
-        if not col in self.col_list:
-            self.col_list[col] = len(self.col_list)
-            for r in self.row_hash:
-                self.row_hash[r].append(self.null_type)
-
-        if not row in self.row_hash:
-            self.row_hash[row] = [self.null_type] * (len(self.col_list))
-
-        self.row_hash[row][self.col_list[col]] = value
-
+    
     def join(self, matrix):
         """
         Insert values from matrix into the current matrix
