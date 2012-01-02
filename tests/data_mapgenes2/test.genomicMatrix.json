@@ -1,0 +1,1 @@
+{"cgdata": {"name": "jhu-usc.edu_READ_HumanMethylation27_20110912", "rowKeyMap": {"type": "probe", "name": "illuminaHumanMethylation27"}, "columnKeyMap": {"type": "id", "name": "tcga"}, "version": "2012-01-01", "type": "genomicMatrix", "dataSubType": "DNAMethylation"}, "dataProducer": "Remus TCGA Import", "redistribution": "yes", "accessMap": "public"}

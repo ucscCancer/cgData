@@ -9,7 +9,7 @@ class TableRow(object):
         pass
         
     def __str__(self):
-        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self__format__['columnOrder']) + ">"
+        return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnOrder']) + ">"
 
 
 class BaseTable(CGObjectBase):

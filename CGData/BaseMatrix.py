@@ -41,7 +41,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         pos_hash = None
 
         if numpy is not None:
-            txtMatrix = numpy.loadtxt(handle, delimiter="\t", dtype=str)
+            txtMatrix = numpy.loadtxt(handle, delimiter="\t", comments="%%%%%%%%%%%%%%", dtype=str)
             txtMatrix[ txtMatrix=="NA" ] = 'nan'
             self.matrix = numpy.matrix(txtMatrix[1:,1:], dtype=self.element_type)
             for i, col in enumerate( txtMatrix[0,1:] ):

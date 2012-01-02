@@ -152,3 +152,27 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
             out.set_val(row_name=gene, col_name=id, value=value/coverage)
 
     return out
+
+
+
+def aliasRemap(genomicMatrix, aliasMap):
+    
+    am = {}
+    for probe in aliasMap.get_probe_list():
+        for alias in aliasMap.get_by_probe(probe):
+            if alias not in am:
+                am[alias.alias] = {}
+            am[alias.alias][probe] = True
+        
+    out = CGData.GenomicMatrix.GenomicMatrix()
+    out.init_blank( rows=am.keys(), cols=genomicMatrix.get_col_list() )
+    
+    for a in am:
+        for sample in genomicMatrix.get_col_list():
+            o = []
+            for p in am[a]:
+                o.append( genomicMatrix.get_val( col_name=sample, row_name=p) )
+            out.set_val(col_name=sample, row_name=a, value=sum(o) / float(len(o)))
+    
+    return out
+    

@@ -1,0 +1,1 @@
+{":dataSubType": "DNAMethylation", "redistribution": "yes", "name": "jhu-usc.edu_READ_HumanMethylation27_20110912", ":sampleMap": "tcga", "dataProducer": "Remus TCGA Import", ":probeMap": "illuminaHumanMethylation27", "type": "genomicMatrix", "accessMap": "public"}
