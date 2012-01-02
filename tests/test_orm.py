@@ -10,9 +10,11 @@ import CGData.DataSet
 class TestCase(unittest.TestCase):
     def test_load(self):
         
-        os.unlink( "testfile.orm.sqlite" )
-        os.unlink( "testfile.orm.hdf5" )
-        
+        if os.path.exists("test.orm.sqlite"):
+                os.unlink( "testfile.orm.sqlite" )
+        if os.path.exists("testfile.orm.hdf5"):
+                os.unlink( "testfile.orm.hdf5" )
+            
         ds = CGData.DataSet.DataSet()
         ds.scan_dirs( ["data_basic2/"] )
         
