@@ -12,12 +12,14 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     corner_name = "#"
     element_type = str
     null_type = None
-    def __init__(self):
+    def __init__(self,type=str):
         CGData.CGDataMatrixObject.__init__(self)
         self.free()
         if 'cgformat' in self and 'valueType' in self['cgformat']:
             if self['cgformat']["valueType"] == 'float':
                 self.element_type = float
+        else:
+            self.element_type = type
 
     def free(self):
         self.col_map = {}

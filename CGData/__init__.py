@@ -168,7 +168,7 @@ class CGObjectBase(dict):
                 for field in self['cgformat']['links']:
 					if field in self['cgdata']:
 						out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
-        for e in ['columnKeyMap', 'rowKeyMap' ]:
+        for e in ['columnKeySrc', 'rowKeySrc' ]:
             if e in self['cgdata']:
                 if e not in out:
                     out[e] = {}

@@ -123,7 +123,7 @@ class BrowserCompiler(object):
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
             
             #query to fine all id spaces that link to current genomic matrix
-            idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeyMap", dst_type='idDAG')
+            idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeySrc", dst_type='idDAG')
             if len(idList) == 0:
                 error("IDDag not found")
                 pass
@@ -178,10 +178,10 @@ class BrowserCompiler(object):
             tc.merge( clinicalMatrix=cmatrix )
             
             print "matrix link", cmatrix.get_link_map()
-            if 'columnKeyMap' in cmatrix.get_link_map():
+            if 'columnKeySrc' in cmatrix.get_link_map():
                 featureDescList = self.set_hash.query( 
                     dst_type="clinicalFeature", 
-                    dst_name=cmatrix.get_link_map()['columnKeyMap']['name']
+                    dst_name=cmatrix.get_link_map()['columnKeySrc']['name']
                 )
                 featureDescName = featureDescList[0].dst_name
                 tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )

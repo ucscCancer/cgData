@@ -22,22 +22,22 @@ class TestCase(unittest.TestCase):
         assert "probe" in mapTypes
         
         ms = ds['genomicMatrix']['test'].get_link_map()
-        assert "rowKeyMap" in ms
-        assert "columnKeyMap" in ms
+        assert "rowKeySrc" in ms
+        assert "columnKeySrc" in ms
         
-        ms = ds.query(dst_type='id', src_type='genomicMatrix')
+        ms = ds.query(dst_type='idDAG', src_type='genomicMatrix')
         assert len(ms) == 1
         assert ms[0].src_name == "test"
         assert ms[0].src_type == "genomicMatrix"        
-        assert ms[0].predicate == "columnKeyMap"        
-        assert ms[0].dst_type == "id"
+        assert ms[0].predicate == "columnKeySrc"        
+        assert ms[0].dst_type == "idDAG"
         assert ms[0].dst_name == "test"
         
-        ms = ds.query(dst_type='id', predicate='rowKeyMap')
+        ms = ds.query(dst_type='idDAG', predicate='rowKeySrc')
         assert len(ms) == 1
         assert ms[0].dst_name == "test"
-        assert ms[0].dst_type == "id"        
-        assert ms[0].predicate == "rowKeyMap"        
+        assert ms[0].dst_type == "idDAG"        
+        assert ms[0].predicate == "rowKeySrc"        
         assert ms[0].src_type == "clinicalMatrix"
         assert ms[0].src_name == "test"
 

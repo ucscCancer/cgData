@@ -55,10 +55,10 @@ class CG1to2:
 	def probeMap(self, path):		
 		meta = self.getmeta(path)
 		if 'group' in meta and meta['group'] is not None:
-			meta['cgdata'] = { 'columnKeyMap' : { 'type' :'probe', 'name' : meta['group'] } }
+			meta['cgdata'] = { 'columnKeySrc' : { 'type' :'probe', 'name' : meta['group'] } }
 			del meta['group']
 		else:
-			meta['cgdata'] = { 'columnKeyMap' : { 'type' :'probe', 'name' :meta['name'] } }
+			meta['cgdata'] = { 'columnKeySrc' : { 'type' :'probe', 'name' :meta['name'] } }
 			
 		meta = self.meta_adjust(meta) 
 		handle = open( self.getdst(path), "w" )
@@ -91,21 +91,21 @@ class CG1to2:
 	def sampleMap(self,path):
 		meta = self.getmeta(path)
 		meta['type'] = "idDAG"
-		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'idDAG', 'name' : meta['name'] } }
+		meta['cgdata'] = { 'columnKeySrc' : { 'type' : 'idDAG', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
 		
 	def clinicalFeature(self,path):
 		meta = self.getmeta(path)
 		meta['type'] = 'featureDescription'
-		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta['name'] } }
+		meta['cgdata'] = { 'columnKeySrc' : { 'type' : 'clinicalFeature', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
 	
 	
 	def genomicMatrix(self,path):
 		meta = self.getmeta(path)
 		meta['cgdata'] = { 
-			'rowKeyMap' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
-			'columnKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
+			'rowKeySrc' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
+			'columnKeySrc' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 		}
 		del meta[':sampleMap']
 		del meta[':probeMap']
@@ -114,7 +114,7 @@ class CG1to2:
 	def genomicSegment(self,path):
 		meta = self.getmeta(path)
 		meta['cgdata'] = { 
-			'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
+			'rowKeySrc' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 		}
 		del meta[':sampleMap']
 		self.copy( path, self.meta_adjust(meta) )
@@ -123,13 +123,13 @@ class CG1to2:
 		meta = self.getmeta(path)
 		if ":clinicalFeature" in meta:
 			meta['cgdata'] = { 
-				'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
-				'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
+				'columnKeySrc' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
+				'rowKeySrc' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 			}
 			del meta[':clinicalFeature']
 		else:
 			meta['cgdata'] = { 
-				'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
+				'rowKeySrc' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 			}
 		del meta[':sampleMap']
 		self.copy( path, self.meta_adjust(meta) )
