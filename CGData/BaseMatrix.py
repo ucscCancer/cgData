@@ -15,8 +15,9 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     def __init__(self):
         CGData.CGDataMatrixObject.__init__(self)
         self.free()
-        if self.__format__["valueType"] == 'float':
-            self.element_type = float
+        if 'cgformat' in self and 'valueType' in self['cgformat']:
+            if self['cgformat']["valueType"] == 'float':
+                self.element_type = float
 
     def free(self):
         self.col_map = {}
