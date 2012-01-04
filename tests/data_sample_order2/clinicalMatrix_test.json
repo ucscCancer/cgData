@@ -1,1 +1,1 @@
-{"cgdata": {"rowKeyMap": {"type": "id", "name": "test"}, "version": "2011-12-25", "type": "clinicalMatrix", "name": "test"}, "author": "Chris Szeto"}
+{"cgdata": {"rowKeyMap": {"type": "idDAG", "name": "test"}, "version": "2012-01-04", "type": "clinicalMatrix", "name": "test"}, "author": "Chris Szeto"}

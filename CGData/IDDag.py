@@ -3,9 +3,9 @@ import CGData.BaseTable
 
 
 
-class IDMap(CGData.BaseTable.BaseTable):
+class IDDag(CGData.BaseTable.BaseTable):
     __format__ = {
-            "name" : "idMap",
+            "name" : "idDAG",
             "type" : "type",
             "form" : "table",
             "columnOrder" : [

@@ -90,8 +90,8 @@ class CG1to2:
 		
 	def sampleMap(self,path):
 		meta = self.getmeta(path)
-		meta['type'] = "idMap"
-		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'id', 'name' : meta['name'] } }
+		meta['type'] = "idDAG"
+		meta['cgdata'] = { 'columnKeyMap' : { 'type' : 'idDAG', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
 		
 	def clinicalFeature(self,path):
@@ -105,7 +105,7 @@ class CG1to2:
 		meta = self.getmeta(path)
 		meta['cgdata'] = { 
 			'rowKeyMap' : { 'type' : 'probe', 'name' : meta[":probeMap"] },
-			'columnKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+			'columnKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 		}
 		del meta[':sampleMap']
 		del meta[':probeMap']
@@ -114,7 +114,7 @@ class CG1to2:
 	def genomicSegment(self,path):
 		meta = self.getmeta(path)
 		meta['cgdata'] = { 
-			'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+			'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 		}
 		del meta[':sampleMap']
 		self.copy( path, self.meta_adjust(meta) )
@@ -124,12 +124,12 @@ class CG1to2:
 		if ":clinicalFeature" in meta:
 			meta['cgdata'] = { 
 				'columnKeyMap' : { 'type' : 'clinicalFeature', 'name' : meta[":clinicalFeature"] },
-				'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+				'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 			}
 			del meta[':clinicalFeature']
 		else:
 			meta['cgdata'] = { 
-				'rowKeyMap' : { 'type' : 'id', 'name' : meta[":sampleMap"] }		
+				'rowKeyMap' : { 'type' : 'idDAG', 'name' : meta[":sampleMap"] }		
 			}
 		del meta[':sampleMap']
 		self.copy( path, self.meta_adjust(meta) )

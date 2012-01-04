@@ -22,7 +22,7 @@ OBJECT_MAP = {
     'genomicMatrix': ('CGData.GenomicMatrix', 'GenomicMatrix'),
     'probeMap': ('CGData.ProbeMap', 'ProbeMap'),
     'aliasMap' : ('CGData.AliasMap', 'AliasMap'),
-    'idMap': ('CGData.IDMap', 'IDMap'),
+    'idDAG': ('CGData.IDDag', 'IDDag'),
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
     'assembly': ('CGData.Assembly', 'Assembly'),

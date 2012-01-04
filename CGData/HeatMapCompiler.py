@@ -123,14 +123,14 @@ class BrowserCompiler(object):
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
             
             #query to fine all id spaces that link to current genomic matrix
-            idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeyMap", dst_type='id')
+            idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeyMap", dst_type='idDAG')
             if len(idList) == 0:
-                error("IDmap not found")
+                error("IDDag not found")
                 pass
             idName = idList[0].dst_name
             print "idDag:", idName
             idmap = {}
-            for row in self.set_hash.query( dst_type='id', dst_name=idName ):
+            for row in self.set_hash.query( dst_type='idDAG', dst_name=idName ):
                 if row.src_type not in idmap:
                     idmap[row.src_type] = []
                 idmap[row.src_type].append( row.src_name )
@@ -140,7 +140,7 @@ class BrowserCompiler(object):
             tg = TrackGenomic()
             tg.merge( 
                 genomicMatrix=gmatrix, 
-                idMap=self.set_hash['idMap'][idName], 
+                idMap=self.set_hash['idDAG'][idName], 
                 clinicalMatrix=self.set_hash['clinicalMatrix'][idmap['clinicalMatrix'][0]]
             )
             
