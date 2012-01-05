@@ -55,10 +55,10 @@ class CG1to2:
 	def probeMap(self, path):		
 		meta = self.getmeta(path)
 		if 'group' in meta and meta['group'] is not None:
-			meta['cgdata'] = { 'columnKeySrc' : { 'type' :'probe', 'name' : meta['group'] } }
+			meta['cgdata'] = { 'rowKeySrc' : { 'type' :'probe', 'name' : meta['group'] } }
 			del meta['group']
 		else:
-			meta['cgdata'] = { 'columnKeySrc' : { 'type' :'probe', 'name' :meta['name'] } }
+			meta['cgdata'] = { 'rowKeySrc' : { 'type' :'probe', 'name' :meta['name'] } }
 			
 		meta = self.meta_adjust(meta) 
 		handle = open( self.getdst(path), "w" )
@@ -91,13 +91,12 @@ class CG1to2:
 	def sampleMap(self,path):
 		meta = self.getmeta(path)
 		meta['type'] = "idDAG"
-		meta['cgdata'] = { 'columnKeySrc' : { 'type' : 'idDAG', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
 		
 	def clinicalFeature(self,path):
 		meta = self.getmeta(path)
 		meta['type'] = 'featureDescription'
-		meta['cgdata'] = { 'columnKeySrc' : { 'type' : 'clinicalFeature', 'name' : meta['name'] } }
+		meta['cgdata'] = { 'rowKeySrc' : { 'type' : 'clinicalFeature', 'name' : meta['name'] } }
 		self.copy(path,self.meta_adjust(meta))
 	
 	

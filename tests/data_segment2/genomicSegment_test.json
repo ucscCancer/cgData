@@ -1,1 +1,1 @@
-{"cgdata": {"type": "genomicSegment", "version": "2012-01-04", "rowKeySrc": {"type": "idDAG", "name": "tcga"}, "name": "broad.mit.edu_BRCA_Genome_Wide_SNP_6_20111207", "dataSubType": "cna"}, "dataProducer": "Remus TCGA Import", "redistribution": "yes", "accessMap": "public"}
+{"cgdata": {"type": "genomicSegment", "version": "2012-01-05", "rowKeySrc": {"type": "idDAG", "name": "tcga"}, "name": "broad.mit.edu_BRCA_Genome_Wide_SNP_6_20111207", "dataSubType": "cna"}, "dataProducer": "Remus TCGA Import", "redistribution": "yes", "accessMap": "public"}

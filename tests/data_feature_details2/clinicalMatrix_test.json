@@ -1,1 +1,1 @@
-{"author": "Chris Szeto", "cgdata": {"type": "clinicalMatrix", "columnKeySrc": {"type": "clinicalFeature", "name": "test"}, "rowKeySrc": {"type": "idDAG", "name": "test"}, "name": "test", "version": "2012-01-04"}}
+{"author": "Chris Szeto", "cgdata": {"type": "clinicalMatrix", "columnKeySrc": {"type": "clinicalFeature", "name": "test"}, "rowKeySrc": {"type": "idDAG", "name": "test"}, "name": "test", "version": "2012-01-05"}}
