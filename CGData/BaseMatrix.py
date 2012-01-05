@@ -45,8 +45,19 @@ class BaseMatrix(CGData.CGDataMatrixObject):
 
         if numpy is not None:
             txtMatrix = numpy.loadtxt(handle, delimiter="\t", comments="%%%%%%%%%%%%%%", dtype=str)
-            txtMatrix[ txtMatrix=="NA" ] = 'nan'
-            self.matrix = numpy.matrix(txtMatrix[1:,1:], dtype=self.element_type)
+            if self.element_type == float:
+                txtMatrix[ txtMatrix=="NA" ] = 'nan'
+                self.matrix = numpy.matrix( numpy.zeros( (txtMatrix.shape[0]-1, txtMatrix.shape[1]-1) ) )
+                self.matrix.fill(numpy.nan)
+                for i in range(self.matrix.shape[0]):
+                    for j in range(self.matrix.shape[1]):
+                        try:
+                            self.matrix[i,j] = self.element_type(txtMatrix[i+1,j+1])
+                        except ValueError:
+                            pass
+            else:
+                self.matrix = numpy.matrix(txtMatrix[1:,1:], dtype=self.element_type)
+                
             for i, col in enumerate( txtMatrix[0,1:] ):
                 self.col_map[col] = i
             for i, row in enumerate( txtMatrix[1:,0] ):
