@@ -128,14 +128,12 @@ class BrowserCompiler(object):
                 error("IDDag not found")
                 pass
             idName = idList[0].dst_name
-            print "idDag:", idName
+            log( "Using idDag: " + idName)
             idmap = {}
             for row in self.set_hash.query( dst_type='idDAG', dst_name=idName ):
                 if row.src_type not in idmap:
                     idmap[row.src_type] = []
                 idmap[row.src_type].append( row.src_name )
-            
-            print idmap 
             
             tg = TrackGenomic()
             tg.merge( 
@@ -150,13 +148,14 @@ class BrowserCompiler(object):
             
             #find probeMap that connects to probe
             probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeMap" )
-            probeMapName = probeMapList[0].dst_name
+            if len(probeMapList) == 0:
+                warn("ProbeMap not found: " + probeName )
+                continue
+            probeMapName = probeMapList[0].src_name
             #find aliasMap that connects to probe
             aliasMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" )
-            aliasMapName = aliasMapList[0].dst_name
+            aliasMapName = aliasMapList[0].src_name
             
-            print probeMapName, aliasMapName
-
             
             tg.merge(
                 probeMap = self.set_hash['probeMap'][probeMapName],
@@ -177,7 +176,6 @@ class BrowserCompiler(object):
             tc = TrackClinical()
             tc.merge( clinicalMatrix=cmatrix )
             
-            print "matrix link", cmatrix.get_link_map()
             if 'columnKeySrc' in cmatrix.get_link_map():
                 featureDescList = self.set_hash.query( 
                     dst_type="clinicalFeature", 
@@ -205,7 +203,6 @@ class BrowserCompiler(object):
 
 
 def sortedSamples(samples):
-    print samples
     import os, re
     # Check for numeric sample ids. Allow for a common prefix
     # before the number.
@@ -255,7 +252,6 @@ class TrackClinical:
         matrix = self.members["clinicalMatrix"]
         # e.g. { 'HER2+': 'category', ...}
         explicit_types = dict((f, features[f]['valueType'][0]) for f in features if 'valueType' in features[f])
-        print "presets:", explicit_types
         self.feature_type_setup(explicit_types)
         for a in features:
             if "stateOrder" in features[a]:
@@ -350,24 +346,19 @@ class TrackClinical:
         cmatrix.load()
         self.float_map = {}
         self.enum_map = {}
-        print cmatrix.get_row_list()
         self.enum_map['sampleName'] = dict((k,v) for k,v in zip(sortedSamples(cmatrix.get_row_list()), range(0,len(cmatrix.get_row_list()))))
 
         for key in cmatrix.get_col_list():
             # get unique list of values by converting to a set & back.
             # also, drop null values.
             values = list(set([v for v in cmatrix.get_col(key) if v not in ["null", "None", "NA"] and v is not None and len(v)]))
-            print values
             if not key in types:
                 types[key] = cmatrix.__guess_type__(values)
-            print types[key]
             if len(values) > 0: # drop empty columns. XXX is this correct behavior?
                 if types[key] in ['float']:
                     self.float_map[key] = True
                 else:
                     self.enum_map[key] = dict((enum, order) for enum, order in zip(sorted(values), range(len(values))))
-        print self.enum_map
-        print self.float_map
         id_map = {}
         id_num = 0
         prior = 1

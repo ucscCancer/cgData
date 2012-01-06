@@ -111,11 +111,7 @@ class DataSet(DataSetBase):
                         self.links[s_type][s_name][pred][d_type] = {}                               
                     self.links[s_type][s_name][pred][d_type][d_name]= 1
                     
-                    #if s_type not in self.links[d_type][d_name][pred]:
-                    #    self.links[d_type][d_name][pred][s_type] = {}                               
-                    #self.links[d_type][d_name][pred][s_type][s_name]= -1
-        print self.links
-
+        
     def scan_dirs(self, dirs):
         for dir in dirs:
             CGData.log("SCANNING DIR: %s" % (dir))
