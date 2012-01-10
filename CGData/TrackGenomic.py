@@ -3,6 +3,7 @@ import CGData
 import binascii
 import struct
 from CGData.SQLUtil import *
+import json
 
 CREATE_BED = """
 CREATE TABLE %s (
@@ -77,8 +78,17 @@ class TrackGenomic(CGData.CGMergeObject):
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
 
+        other = {}
+        for attr in ['wrangler', 'wrangling_procedure', 'url', 'citation', 'description']:
+            if attr in gmatrix:
+                other[attr] = gmatrix[attr]
+        if 'dataProducer' in gmatrix:
+            other['author_list'] = gmatrix['dataProducer']
+        if 'articleTitle' in gmatrix:
+            other['article_title'] = gmatrix['articleTitle']
+
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s);\n" % \
+        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + clinical_table_base, "colDb",
                 "genomic_" + table_base + "_alias",
@@ -98,6 +108,7 @@ class TrackGenomic(CGData.CGMergeObject):
                 "'%s'"%sql_fix(gmatrix['citation']) if 'citation' in gmatrix else '\N',
                 "'%s'"%sql_fix(gmatrix['dataProducer']) if 'dataProducer' in gmatrix else '\N',
                 "'%s'"%sql_fix(gmatrix['wrangling_procedure']) if 'wrangling_procedure' in gmatrix else '\N',
+                sql_fix(json.dumps(other)),
                 )
         
         # write out the sample table
