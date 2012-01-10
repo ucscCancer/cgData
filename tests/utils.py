@@ -58,6 +58,7 @@ CREATE TABLE raDb (
     article_title longblob,	# Title of publication
     author_list longblob,	# Author list
     wrangling_procedure longblob,	# Wrangling
+    other longblob,	# Other
               #Indices
     PRIMARY KEY(name)
 );

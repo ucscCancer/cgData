@@ -100,7 +100,8 @@ class TestCase(CGDataTestCase):
                 'thickEnd', 'reserved', 'blockCount', 'blockSizes', 'chromStarts', 'expCount', 'expIds', 'expScores'])
 
     def test_raDb(self):
-        self.c.execute("""select name,downSampleTable,sampleTable,clinicalTable,columnTable,shortLabel,longLabel,expCount,groupName,microscope,aliasTable,dataType,platform,security,profile,wrangler,url,article_title,citation,author_list,wrangling_procedure,gain from raDb""")
+        import json
+        self.c.execute("""select name,downSampleTable,sampleTable,clinicalTable,columnTable,shortLabel,longLabel,expCount,groupName,microscope,aliasTable,dataType,platform,security,profile,wrangler,url,article_title,citation,author_list,wrangling_procedure,gain,other from raDb""")
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 1)                          # one track
         self.assertEqual(rows[0][0], 'genomic_test')            # name
@@ -125,6 +126,11 @@ class TestCase(CGDataTestCase):
         self.assertEqual(rows[0][19], 'author1,author2')        # author_list
         self.assertEqual(rows[0][20], 'wrangling procedure')    # wrangling_procedure
         self.assertEqual(rows[0][21], 1.25)                     # gain
+
+        other = json.loads(rows[0][22])
+        expected = { 'url': 'http://url.com', 'article_title': 'test1 article title', 'citation': 'track cite', 'author_list': 'author1,author2',
+                'wrangler': 'wrangler', 'wrangling_procedure': 'wrangling procedure', 'description': 'track description'}
+        self.assertEqual(other, expected)
 
 def main():
     sys.argv = sys.argv[:1]
