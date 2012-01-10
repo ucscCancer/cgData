@@ -162,7 +162,7 @@ CREATE TABLE genomic_%s_alias (
             if pset is not None:
                 for probe in pset:
                     istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
-                            ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
+                            ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start-1, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
                     yield istr
             else:
                 missingProbeCount += 1

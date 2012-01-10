@@ -84,7 +84,7 @@ class TestCase(CGDataTestCase):
         rows = self.c.fetchall()
         self.assertEqual(len(rows), 1)          # one sample x one probe
         self.assertEqual(rows[0][0], 'chrX')    # chrom
-        self.assertEqual(rows[0][1], 1)         # start
+        self.assertEqual(rows[0][1], 0)         # start
         self.assertEqual(rows[0][2], 10)        # end
         self.assertEqual(rows[0][3], 'probe1')  # name
         self.assertEqual(rows[0][4], 1)         # count
