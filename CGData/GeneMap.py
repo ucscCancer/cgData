@@ -166,13 +166,15 @@ def aliasRemap(genomicMatrix, aliasMap):
         
     out = CGData.GenomicMatrix.GenomicMatrix()
     out.init_blank( rows=am.keys(), cols=genomicMatrix.get_col_list() )
-    
+    probeMap = genomicMatrix.get_row_map()
     for a in am:
         for sample in genomicMatrix.get_col_list():
             o = []
             for p in am[a]:
-                o.append( genomicMatrix.get_val( col_name=sample, row_name=p) )
-            out.set_val(col_name=sample, row_name=a, value=sum(o) / float(len(o)))
+                if p in probeMap:
+                    o.append( genomicMatrix.get_val( col_name=sample, row_name=p) )
+            if len(o):
+                out.set_val(col_name=sample, row_name=a, value=sum(o) / float(len(o)))
     
     return out
     

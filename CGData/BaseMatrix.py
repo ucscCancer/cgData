@@ -166,6 +166,12 @@ class BaseMatrix(CGData.CGDataMatrixObject):
     def get_col_count(self):
         return len(self.col_map)
     
+    def get_row_map(self):
+        return copy(self.row_map)
+
+    def get_col_map(self):
+        return copy(self.col_map)
+    
     def get_shape(self):
         return len(self.row_map), len(self.col_map)
     
