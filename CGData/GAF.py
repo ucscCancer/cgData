@@ -65,8 +65,10 @@ class GafLine(object):
         return self.feature_id
 
 
-class Gaf(CGData.CGDataSetObject):
-
+class Gaf(CGData.CGObjectBase):
+    """
+    GAF file reader
+    """
     def __init__(self):
         CGData.BaseObject.__init__(self)
         self.gafData = []
