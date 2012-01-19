@@ -94,7 +94,8 @@ class BaseTable(CGObjectBase):
             return self.__get_firstmap__().values      
         if item == "get_" + self.firstKey + "_map":
             return self.__get_firstmap__
-                
+        if item == "has_" + self.firstKey:
+            return self.__get_firstmap__().__contains__
         raise AttributeError(item)
     
     def __get_firstmap__(self):

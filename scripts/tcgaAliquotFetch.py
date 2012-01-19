@@ -29,15 +29,17 @@ handle.close()
 
 out = open( sys.argv[1], "w")
 for e in data:
-	out.write( "%s\t%s\n" % (e["Participant ID"],e["Sample ID"]))
-	out.write( "%s\t%s\n" % (e["Sample ID"], e["Analyte ID"]))
-	out.write( "%s\t%s\n" % (e["Analyte ID"], e["Aliquot ID"]))
+	out.write( "%s\t%s\t%s\n" % (e["Participant ID"],e["Sample ID"], "sample"))
+	out.write( "%s\t%s\t%s\n" % (e["Sample ID"], e["Analyte ID"], "analyte"))
+	out.write( "%s\t%s\t%s\n" % (e["Analyte ID"], e["Aliquot ID"], "aliquot"))
 out.close()
 
 meta = {
-	'type' : 'sampleMap',
-	'name' : 'tcga',
-	'timestamp' : datetime.date.today().isoformat() 
+	'cgdata': {
+		'type' : 'idDAG',
+		'name' : 'tcga.idDAG',
+		'version' : datetime.date.today().isoformat() 
+	}
 }
 
 out = open(sys.argv[1] + ".json", "w")

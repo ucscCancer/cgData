@@ -296,7 +296,7 @@ def load(path, zip=None):
         out.load(data_path)
         return out
     else:
-        raise FormatException("%s class not found" % (meta['type']))
+        raise FormatException("%s class not found" % (meta['cgdata']['type']))
 
 
 def light_load(path, zip=None):
