@@ -174,7 +174,6 @@ class CGObjectBase(dict):
                     out[e] = {}
                 link = self['cgdata'][e]
                 out[e] = { 'type' : link['type'], 'name' : link['name'] }
-        print "linkmap", self.get_name(), self.get_type(), out
         return out
 
     def add_history(self, desc):
