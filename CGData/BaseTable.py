@@ -11,6 +11,9 @@ class TableRow(object):
     def __str__(self):
         return "<" + ",".join( "%s=%s" % (col, getattr(self,col)) for col in self.__format__['columnOrder']) + ">"
 
+class InvalidFormat(Exception):
+    def __init__(self, txt):
+        Exception.__init__(self, txt)
 
 class BaseTable(CGObjectBase):
     def __init__(self):
@@ -58,7 +61,17 @@ class BaseTable(CGObjectBase):
         for row in read:
             r = self.__row_class__()
             for i, col in enumerate(cols):
-                setattr(r, col, colType[col](row[i]))
+                isOptional = False
+                if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'optional' in self['cgformat']['columnDef'][col]:
+                    isOptional = self['cgformat']['columnDef'][col]['optional']
+                if len(row) > i:
+                    setattr(r, col, colType[col](row[i]))
+                else:
+                    if isOptional:
+                        setattr(r, col, None)
+                    else:
+                        raise InvalidFormat("missing colum " + col)
+                        
             if not self.groupKey:
                 if self.secondKey is not None:
                     key1 = getattr(r, self.firstKey )                    
