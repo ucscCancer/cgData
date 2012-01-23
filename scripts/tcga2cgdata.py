@@ -217,6 +217,7 @@ class TCGAClinialScan:
         
         name = None
         patient = {}
+        patientName = None
         for node in dom.childNodes[0].childNodes:
             if node.nodeType == node.ELEMENT_NODE:
                 if node.localName == 'patient':
@@ -224,6 +225,7 @@ class TCGAClinialScan:
                         if elm.nodeType == elm.ELEMENT_NODE:
                             if ( elm.localName == 'bcr_patient_barcode' ):
                                 name = getText( elm.childNodes )
+                                patientName = name
                             if ( elm.getAttribute( 'procurement_status' ) == "Completed" ):
                                 patient[ elm.localName ] = {}
                                 patient[ elm.localName ]['value'] = getText( elm.childNodes )
@@ -250,7 +252,7 @@ class TCGAClinialScan:
                                             sampleData[ value.localName ] = {}
                                             sampleData[ value.localName ]['value'] = getText( value.childNodes )
                                             
-                                patientName = re.sub( r'\-...$', "", name )
+                                #patientName = re.sub( r'\-...$', "", name )
                                 self.emit( name, sampleData, "sample" )
                                 self.emit( name, patient, "sample")
 
@@ -266,8 +268,8 @@ class TCGAClinialScan:
                                             drugData[ value.localName ] = {}
                                             drugData[ value.localName ]['value'] = getText( value.childNodes )
                                             
-                                patientName = re.sub( r'\-...$', "", name )
-                                self.emit( name, drugData, "drug" )
+                                #patientName = re.sub( r'\-...$', "", name )
+                                self.emit( patientName, drugData, "drug" )
 
                     if samples.nodeType == samples.ELEMENT_NODE and samples.localName == 'radiations':
                         for rad in samples.childNodes:
@@ -281,8 +283,8 @@ class TCGAClinialScan:
                                             radData[ value.localName ] = {}
                                             radData[ value.localName ]['value'] = getText( value.childNodes )
                                             
-                                patientName = re.sub( r'\-...$', "", name )
-                                self.emit( name, radData, "radiation" )
+                                #patientName = re.sub( r'\-...$', "", name )
+                                self.emit( patientName, radData, "radiation" )
 
     def emit(self, key, data, port):
         if port not in self.out:
@@ -421,9 +423,17 @@ class GeneticDataCompile:
         if matrixFile is not None:
             matrixFile.close()
             matrixName = self.config["baseName"]    
-            matrixInfo = { 'type' : 'genomicMatrix', 'name' : matrixName, 'dataProducer' : 'Remus TCGA Import', "accessMap" : "public", "redistribution" : "yes" }
-            for key in [ ':probeMap', ':dataSubType', ':sampleMap' ]:
-                matrixInfo[ key ] = self.config[key]    
+            matrixInfo = { 
+                'cgdata' : {
+                    'type' : 'genomicMatrix', 
+                    'name' : matrixName, 
+                },
+                'dataProducer' : 'Remus TCGA Import', 
+                "accessMap" : "public", 
+                "redistribution" : "yes" 
+            }
+            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "probe", "name" : self.conf[":probeMap"] }
+            matrixInfo['cgdata']['rowKeySrc'] =    { "type" : "idDAG", "name" : 'tcga' }
             self.emitFile( os.path.join(self.config['outdir'], matrixName), matrixInfo, "%s/matrix_file"  % (self.config['workdir']) )
 
 
@@ -482,14 +492,20 @@ class ClinicalDataCompile:
                 for col in value:
                     matrix[key][col] = value[col]
                     if col not in colEnum:
-                        colEnum[col] = len(colEnum)
+                        if not self.config['sanitize'] or col not in [ 'race', 'ethnicity' ]:
+                            colEnum[col] = len(colEnum)
             
-            outname = matrixName
+            outname = self.config["baseName"] + "_" + matrixName
             
             fileInfo = {
-                "type" : "clinicalMatrix",
-                "name" : outname,
-                ":sampleMap" : "tcga"
+                "cgdata" : {
+                    "type" : "clinicalMatrix",
+                    "name" : outname,
+                    "rowKeySrc" : {
+                        "type" : "idDAG",
+                        "name" : "tcga"
+                    }
+                }
             }
             handle = open( os.path.join(self.config['workdir'], matrixName + "_file"), "w")
             cols = [None] * (len(colEnum))
@@ -570,6 +586,7 @@ class TCGAExtract:
         config['baseName'] = self.options.basename + "_" + nameSuffix
         config['workdir'] = workdir
         config['outdir'] = self.options.outdir
+        config['sanitize'] = self.options.sanitize
         
         comp = config['compile'](workdir, config)
         comp.run()
@@ -802,6 +819,7 @@ if __name__ == "__main__":
     parser.add_option("-d", "--download", dest="download", help="Download files for archive", default=None)
     parser.add_option("-e", "--level", dest="level", help="Data Level ", default="3")
     parser.add_option("-s", "--check-sum", dest="checksum", help="Check project md5", default=None)
+    parser.add_option("-r", "--sanitize", dest="sanitize", action="store_true", help="Remove race/ethnicity from clinical data", default=False) 
       
     
     options, args = parser.parse_args()
