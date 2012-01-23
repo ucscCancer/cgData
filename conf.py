@@ -13,6 +13,7 @@
 
 import sys, os
 
+sys.path.insert(0, "./scripts")
 sys.path.insert(0, "./")
 
 # If extensions (or modules to document with autodoc) are in another directory,

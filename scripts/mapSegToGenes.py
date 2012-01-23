@@ -7,18 +7,20 @@ import CGData.GeneMap
 import CGData.RefGene
 import CGData.GenomicMatrix
 
-handle = open( sys.argv[1] )
-sg = CGData.GenomicSegment.GenomicSegment()
-sg.read( handle )
-handle.close()
+if __name__ == "__main__":
 
-handle = open( sys.argv[2] )
-rg = CGData.RefGene.RefGene()
-rg.read( handle )
-handle.close()
+    handle = open( sys.argv[1] )
+    sg = CGData.GenomicSegment.GenomicSegment()
+    sg.read( handle )
+    handle.close()
 
-pm = CGData.GeneMap.ProbeMapper('b')
+    handle = open( sys.argv[2] )
+    rg = CGData.RefGene.RefGene()
+    rg.read( handle )
+    handle.close()
 
-out = CGData.GeneMap.genomicSegment2Matrix(sg,rg,pm)
+    pm = CGData.GeneMap.ProbeMapper('b')
 
-out.write( sys.stdout )     
+    out = CGData.GeneMap.genomicSegment2Matrix(sg,rg,pm)
+
+    out.write( sys.stdout )     

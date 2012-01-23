@@ -1,6 +1,49 @@
 #!/usr/bin/env python
 
 
+"""
+Script to scan and extract TCGA data and compile it into the cgData
+
+Usage::
+    
+    tcga2cgdata.py [options]
+
+Options::
+    
+      -h, --help            show this help message and exit
+      -a, --platform-list   Get list of platforms
+      -p PLATFORM, --platform=PLATFORM
+                            Platform Selection
+      -l, --supported       List Supported Platforms
+      -f FILELIST, --filelist=FILELIST
+                            List files needed to convert TCGA project basename
+                            into cgData
+      -b BASENAME, --basename=BASENAME
+                            Convert TCGA project basename into cgData
+      -m MIRROR, --mirror=MIRROR
+                            Mirror Location
+      -w WORKDIR_BASE, --workdir=WORKDIR_BASE
+                            Working directory
+      -o OUTDIR, --out-dir=OUTDIR
+                            Working directory
+      -c CANCER, --cancer=CANCER
+                            List Archives by cancer type
+      -d DOWNLOAD, --download=DOWNLOAD
+                            Download files for archive
+      -e LEVEL, --level=LEVEL
+                            Data Level
+      -s CHECKSUM, --check-sum=CHECKSUM
+                            Check project md5
+      -r, --sanitize        Remove race/ethnicity from clinical data
+
+
+Example::
+    
+    ./scripts/tcga2cgdata.py -b intgen.org_KIRC_bio -m /inside/depot -e 1 -r -w tmp
+
+
+"""
+
 from xml.dom.minidom import parseString
 import urllib
 import urllib2

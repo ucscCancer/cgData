@@ -40,9 +40,10 @@ def dependancy_graph(c):
                     print a, field, c[type][a][field]
 
 
+if __name__ == "__main__":
 
-c = CGData.DataSet.DataSet()
-c.scan_dirs(sys.argv[1:])
-dependancy_graph(c)
-#linkSpace = matrixNetwork(c)
+    c = CGData.DataSet.DataSet()
+    c.scan_dirs(sys.argv[1:])
+    dependancy_graph(c)
+    #linkSpace = matrixNetwork(c)
 
