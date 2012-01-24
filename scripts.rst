@@ -3,6 +3,14 @@
 Included Scripts
 ================
 
+probeMapRefGene
+===============
+.. automodule:: probeMapRefGene
+    :members:
+
+
+
+
 Bed2ProbeMap
 ============
 .. automodule:: bed2probeMap

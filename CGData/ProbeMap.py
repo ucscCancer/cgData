@@ -15,8 +15,8 @@ class ProbeMap(CGData.BaseTable.BaseTable):
             ],
             "primaryKey" : "probe",
             "columnDef" : {
-				"chrome_start" : { "type" : "int", "index" : 1 },
-				"chrome_end" : { "type" : "int", "index" : 1 }
+				"chrom_start" : { "type" : "int", "index" : 1 },
+				"chrom_end" : { "type" : "int", "index" : 1 }
             }
         }
         

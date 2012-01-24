@@ -58,6 +58,7 @@ def exon_overlap(start, end, strand, gene):
     if gene.strand != strand and gene.strand != '.' and strand != '.':
         return False
     for i in range(int(gene.ex_count)):
+        #print type(start), type(end), gene.chrom_start, gene.chrom_end, type(gene.ex_start[i]), type(gene.ex_end[i])
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
             return True
     return False
