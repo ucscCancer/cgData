@@ -44,7 +44,11 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         pos_hash = None
 
         if numpy is not None:
-            txtMatrix = numpy.loadtxt(handle, delimiter="\t", comments="%%%%%%%%%%%%%%", dtype=str)
+            #txtMatrix = numpy.loadtxt(handle, delimiter="\t", comments="%%%%%%%%%%%%%%", dtype=str)
+            t = []
+            for line in handle:
+                t.append(line.replace("\n", "").split("\t"))
+            txtMatrix = numpy.array(t)
             if self.element_type == float:
                 txtMatrix[ txtMatrix=="NA" ] = 'nan'
                 txtMatrix[ txtMatrix=="null" ] = 'nan'
