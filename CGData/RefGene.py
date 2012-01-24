@@ -28,12 +28,12 @@ class GeneInfo(object):
     chrom, strand, start, end, ex_count, ex_start, ex_end, hugo):
         self.chrom = chrom
         self.strand = strand
-        self.chrom_start = int(start)
+        self.chrom_start = int(start)+1
         self.chrom_end = int(end)
         self.ex_count = ex_count
         self.ex_start = []
         for p in re_comma_end.sub("", ex_start).split(','):
-            self.ex_start.append(int(p))
+            self.ex_start.append(int(p)+1)
         self.ex_end = []
         for p in re_comma_end.sub("", ex_end).split(','):
             self.ex_end.append(int(p))
