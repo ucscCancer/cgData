@@ -27,7 +27,8 @@ OBJECT_MAP = {
     'dataSubType': ('CGData.DataSubType', 'DataSubType'),
     'assembly': ('CGData.Assembly', 'Assembly'),
     'featureDescription': ('CGData.FeatureDescription', 'FeatureDescription'),
-    'refGene' : ('CGData.RefGene', 'RefGene')
+    'refGene' : ('CGData.RefGene', 'RefGene'),
+    'idList' : ('CGData.IDList', 'IDList')
 }
 
 class FormatException(Exception):
@@ -166,8 +167,8 @@ class CGObjectBase(dict):
         if "cgformat" in self:
             if "links" in self["cgformat"]:
                 for field in self['cgformat']['links']:
-					if field in self['cgdata']:
-						out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
+                    if field in self['cgdata']:
+                        out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
         for e in ['columnKeySrc', 'rowKeySrc' ]:
             if e in self['cgdata']:
                 if e not in out:

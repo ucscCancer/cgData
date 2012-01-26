@@ -1,0 +1,8 @@
+{
+"cgdata" : {
+"type" : "idList",
+"name" : "tcga.kirc.samples",
+"version" : "2011-12-26"
+},
+"notes" : "extracted from file Kidney_Freeze 1 4_Samples_2011-12-26.xlsx"
+}
