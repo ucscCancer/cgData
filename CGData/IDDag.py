@@ -22,6 +22,33 @@ class IDDag(CGData.BaseTable.BaseTable):
     
     def __init__(self):
         CGData.BaseTable.BaseTable.__init__(self)
+        self.graph = None
+    
+    def _build_graph(self):
+        self.graph = {}    
+        self.rev_graph = {}    
+        for pid in self.get_id_list():
+            if pid not in self.graph:
+                self.graph[pid] = {}
+            p = self.get_by_id(pid)
+            for cid in p:
+                self.graph[pid][cid.child] = True
+                if cid.child not in self.rev_graph:
+                    self.rev_graph[cid.child] = {}
+                self.rev_graph[cid.child][cid.id] = True
+                
+    def is_descendant(self, parent, child):
+        if self.graph is None:
+            self._build_graph()
+        
+        cid = child
+        while cid in self.rev_graph:
+            cid = self.rev_graph[cid].keys()[0]
+            if cid == parent:
+                return True
+        return False
+            
+        
 
 
 
