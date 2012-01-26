@@ -43,7 +43,8 @@ class ProbeMapper(object):
 def block_both_strand(start, end, strand, gene):
     """
     Check is segment is between gene start and end, either strand
-    Code 'b'
+    
+    **Code 'b'**
     """
     if gene.chrom_end > start and gene.chrom_start < end:
         return True
@@ -52,7 +53,8 @@ def block_both_strand(start, end, strand, gene):
 def block_same_strand(start, end, strand, gene):
     """
     Check is segment is on same strand, between gene start and end
-    Code 's'
+    
+    **Code 's'**
     """
     if gene.chrom_end > start and gene.chrom_start < end and strand == gene.strand:
         return True
@@ -62,7 +64,8 @@ def block_same_strand(start, end, strand, gene):
 def exon_same_strand(start, end, strand, gene):
     """
     Check is segment is on same strand, and occurs on an exon
-    Code 'g'
+    
+    **Code 'g'**
     """
 
     if gene.strand != strand:
@@ -76,7 +79,8 @@ def exon_same_strand(start, end, strand, gene):
 def exon_both_strand(start, end, strand, gene):
     """
     Check is segment occurs on an exon, on either stand
-    Code 'e'
+    
+    **Code 'e'**
     """
     for i in range(int(gene.ex_count)):
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
