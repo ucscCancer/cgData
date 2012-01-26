@@ -174,7 +174,7 @@ class TCGAGeneticFileScan:
                     colName = line.rstrip().split("\t")                     
                     if colName[0] == "Hybridization REF":
                         mode=2
-                    elif colName[0] == "Chromosome":
+                    elif colName[0] == "Chromosome" or colName[0] == "chromosome":
                         mode=1
                         target=os.path.basename( self.path ).split('.')[0] #seg files are named by the filename before the '.' extention
                     elif colName[1] == "chrom":
@@ -447,20 +447,27 @@ class GeneticDataCompile:
                 for target in tEnum:
                     out[ tEnum[ target ] ] = target
                 matrixFile.write( "%s\t%s\n" % ( "#probe", "\t".join( out ) ) )        
-                probeField = self.config['probeField']
+                probeFields = self.config['probeField']
             
             if curName != key:
                 if curName is not None:
                     out = ["NA"] * len(tEnum)
-                    for target in curData:
-                        out[ tEnum[ tTrans[ target ] ] ] = str( curData[ target ] )
-                    matrixFile.write( "%s\t%s\n" % ( curName, "\t".join( out ) ) )                
+                    try:
+                        for target in curData:
+                            out[ tEnum[ tTrans[ target ] ] ] = str( curData[ target ] )
+                        matrixFile.write( "%s\t%s\n" % ( curName, "\t".join( out ) ) )  
+                    except KeyError:
+                        self.addError( "TargetInfo Not Found: %s" % (target))
                 curName = key
                 curData = {}
             if "target" in value:
-                curData[ value[ "target" ] ] = value[ probeField ]
+                for probeField in probeFields:
+                    if probeField in value:
+                        curData[ value[ "target" ] ] = value[ probeField ]
             elif "file" in value:
-                curData[ value[ "file" ] ] = value[ probeField ]
+                for probeField in probeFields:
+                    if probeField in value:
+                        curData[ value[ "file" ] ] = value[ probeField ]
                 
             
         if matrixFile is not None:
@@ -475,8 +482,11 @@ class GeneticDataCompile:
                 "accessMap" : "public", 
                 "redistribution" : "yes" 
             }
-            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "probe", "name" : self.conf[":probeMap"] }
+            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
             matrixInfo['cgdata']['rowKeySrc'] =    { "type" : "idDAG", "name" : 'tcga' }
+            for key in self.config['meta']:
+                matrixInfo[key] = self.config['meta'][key]
+
             self.emitFile( os.path.join(self.config['outdir'], matrixName), matrixInfo, "%s/matrix_file"  % (self.config['workdir']) )
 
 
@@ -498,9 +508,22 @@ class GeneticDataCompile:
         if segFile is not None:
             segFile.close()
             matrixName = self.config["baseName"]
-            matrixInfo = { 'type' : 'genomicSegment', 'name' : matrixName, 'dataProducer' : 'Remus TCGA Import', "accessMap" : "public", "redistribution" : "yes" }
-            for key in [ ':dataSubType', ':sampleMap' ]:
-                matrixInfo[ key ] = self.config[key]
+            matrixInfo = { 
+                'cgdata': {
+                    'type' : 'genomicSegment', 
+                    'name' : matrixName, 
+                    'columnKeySrc' : {
+                        'type' :  'idDAG',
+                        'name' : self.config[":sampleMap"]
+                    },
+                    'dataSubType' : self.config[":dataSubType"]
+                },
+                'dataProducer' : 'Remus TCGA Import',
+                "accessMap" : "public", "redistribution" : "yes" 
+            }
+            for key in self.config['meta']:
+                matrixInfo[key] = self.config['meta'][key]
+
             self.emitFile( os.path.join(self.config['outdir'], matrixName), matrixInfo, "%s/segment_file"  % (self.config['workdir']) )        
 
     def emitFile(self, name, meta, file):
@@ -550,6 +573,8 @@ class ClinicalDataCompile:
                     }
                 }
             }
+            for key in self.config['meta']:
+                fileInfo[key] = self.config['meta'][key]
             handle = open( os.path.join(self.config['workdir'], matrixName + "_file"), "w")
             cols = [None] * (len(colEnum))
             for col in colEnum:
@@ -581,13 +606,23 @@ class TCGAExtract:
         dates = []
         q = CustomQuery("Archive[@baseName=%s][@isLatest=1][ArchiveType[@type=Level_%s]]" % (self.options.basename, self.options.level))
         urls = {}
+        meta = None
+        platform = None
         for e in q:
             dates.append( datetime.datetime.strptime( e['addedDate'], "%m-%d-%Y" ) )
-            q2 = CustomQuery(e['platform'])
-            platform = None
-            for e2 in q2:
-                print e2
-                platform = e2['alias']
+            if meta is None:
+                meta = {}            
+                for e2 in CustomQuery(e['platform']):
+                    platform = e2['alias']
+                    meta['platform'] = e2['alias']
+                    meta['platform_title'] = e2['displayName']
+                for e2 in CustomQuery(e['disease']):
+                    meta['disease_abbr'] = e2['abbreviation']
+                    meta['disease_title'] = e2['name']
+                for e2 in CustomQuery(e['center']):
+                    meta['center_title'] = e2['displayName']
+                    meta['center'] = e2['name']
+                
             urls[ self.options.mirror + e['deployLocation'] ] = platform
 
         q = CustomQuery("Archive[@baseName=%s][@isLatest=1][ArchiveType[@type=mage-tab]]" % (self.options.basename))
@@ -625,11 +660,14 @@ class TCGAExtract:
             t = TarballExtract(f, config, workdir )
             t.run()
                     
-        
+        config['meta'] = meta
         config['baseName'] = self.options.basename + "_" + nameSuffix
         config['workdir'] = workdir
         config['outdir'] = self.options.outdir
-        config['sanitize'] = self.options.sanitize
+        try:
+            config['sanitize'] = self.options.sanitize
+        except AttributeError:
+            config['sanitize'] = False
         
         comp = config['compile'](workdir, config)
         comp.run()
@@ -660,7 +698,7 @@ tcgaConfig = {
         ':probeMap': 'hugo',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'log2 lowess normalized (cy5/cy3) collapsed by gene symbol',
+        'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -669,7 +707,7 @@ tcgaConfig = {
         ':probeMap': 'hugo',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'log2 lowess normalized (cy5/cy3) collapsed by gene symbol',
+        'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -678,7 +716,7 @@ tcgaConfig = {
         ':probeMap': 'hugo',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'log2 lowess normalized (cy5/cy3) collapsed by gene symbol',
+        'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -687,7 +725,7 @@ tcgaConfig = {
         ':probeMap': 'hugo',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'log2 lowess normalized (cy5/cy3) collapsed by gene symbol',
+        'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -695,7 +733,7 @@ tcgaConfig = {
         ':dataSubType': 'cna',
         ':sampleMap': 'tcga',
         'dataType': 'genomicSegment',
-        'probeField': 'seg.mean',
+        'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -704,7 +742,7 @@ tcgaConfig = {
         ':dataSubType': 'cna',
         ':sampleMap': 'tcga',
         'dataType': 'genomicSegment',
-        'probeField': 'seg.mean',
+        'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -713,7 +751,7 @@ tcgaConfig = {
         ':probeMap': 'agilentHumanMiRNA',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'unc_DWD_Batch_adjusted',
+        'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -722,7 +760,7 @@ tcgaConfig = {
         ':probeMap': 'agilentHumanMiRNA',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'unc_DWD_Batch_adjusted',
+        'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -730,7 +768,7 @@ tcgaConfig = {
         ':dataSubType': 'cna',
         ':sampleMap': 'tcga',
         'dataType': 'genomicSegment',
-        'probeField': 'Segment_Mean',
+        'probeField': ['Segment_Mean'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -740,7 +778,7 @@ tcgaConfig = {
         'chromeField': 'Chromosome',
         'dataType': 'genomicSegment',
         'endField': 'End',
-        'probeField': 'Segment_Mean',
+        'probeField': ['Segment_Mean'],
         'startField': 'Start',
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
@@ -750,7 +788,7 @@ tcgaConfig = {
         ':probeMap': 'affyU133a',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'Signal',
+        'probeField': ['Signal'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -759,7 +797,7 @@ tcgaConfig = {
         ':probeMap': 'hugo',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
-        'probeField': 'Signal',
+        'probeField': ['Signal'],
         'fileInclude' :  '^.*gene.txt$|^.*sdrf.txt$',
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
@@ -768,7 +806,7 @@ tcgaConfig = {
         ':dataSubType': 'cna',
         ':sampleMap': 'tcga',
         'dataType': 'genomicSegment',
-        'probeField': 'mean',
+        'probeField': ['mean'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -776,7 +814,7 @@ tcgaConfig = {
         ':dataSubType': 'cna',
         ':sampleMap': 'tcga',
         'dataType': 'genomicSegment',
-        'probeField': 'mean',  
+        'probeField': ['mean'],  
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -786,7 +824,7 @@ tcgaConfig = {
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
-        'probeField': 'Beta_Value',
+        'probeField': ['Beta_Value', 'Beta_value'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -796,7 +834,7 @@ tcgaConfig = {
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
-        'probeField': 'Beta_value',
+        'probeField': ['Beta_value'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
@@ -804,7 +842,7 @@ tcgaConfig = {
         ':sampleMap': 'tcga',
         ':dataSubType': 'geneExp',
         'fileInclude': '^.*annotated.gene.quantification.txt$|^.*sdrf.txt$',
-        'probeField': 'RPKM',
+        'probeField': ['RPKM'],
         ':probeMap': 'hugo',
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile

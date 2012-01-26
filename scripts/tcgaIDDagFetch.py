@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 
+"""
+
+Script to fetch idDAG description of tcga ids from the DCC servers
+
+usage::
+    ./tcgaIDDagFetch.py <outfileName>
+
+"""
+
 import sys
 import csv
 import json
@@ -8,7 +17,7 @@ import datetime
 
 url = "http://tcga-data.nci.nih.gov/datareports/aliquotIdBreakdownExport.htm?exportType=csv&cols=aliquotId,analyteId,sampleId,participantId"
 
-if __name__ == "__main__":
+def write_tcgaIDDag(dst):
     handle = urlopen(url)
     reader = csv.reader(handle)
 
@@ -28,11 +37,11 @@ if __name__ == "__main__":
     handle.close()
 
 
-    out = open( sys.argv[1], "w")
+    out = open( dst, "w")
     for e in data:
-        out.write( "%s\t%s\t%s\n" % (e["Participant ID"],e["Sample ID"], "sample"))
-        out.write( "%s\t%s\t%s\n" % (e["Sample ID"], e["Analyte ID"], "analyte"))
-        out.write( "%s\t%s\t%s\n" % (e["Analyte ID"], e["Aliquot ID"], "aliquot"))
+        out.write( "%s\t%s\n" % (e["Participant ID"],e["Sample ID"]))
+        out.write( "%s\t%s\n" % (e["Sample ID"], e["Analyte ID"]))
+        out.write( "%s\t%s\n" % (e["Analyte ID"], e["Aliquot ID"]))
     out.close()
 
     meta = {
@@ -43,6 +52,10 @@ if __name__ == "__main__":
         }
     }
 
-    out = open(sys.argv[1] + ".json", "w")
+    out = open(dst + ".json", "w")
     out.write(json.dumps(meta))
     out.close()
+
+
+if __name__ == "__main__":
+    write_tcgaIDDag(sys.argv[1])
