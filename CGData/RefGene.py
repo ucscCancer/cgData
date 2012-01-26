@@ -8,6 +8,8 @@ COL_CHROM = 2
 COL_STRAND = 3
 COL_START = 4
 COL_END = 5
+COL_CDSTART = 6
+COL_CDEND = 7
 COL_EXCOUNT = 8
 COL_EXSTART = 9
 COL_EXEND = 10
@@ -25,11 +27,14 @@ class GeneInfo(object):
     """
 
     def __init__(self,
-    chrom, strand, start, end, ex_count, ex_start, ex_end, hugo):
+    chrom, strand, start, end, cd_start, cd_end, ex_count, ex_start, ex_end, hugo):
         self.chrom = chrom
         self.strand = strand
         self.chrom_start = int(start)+1
         self.chrom_end = int(end)
+        self.coding_start = int(cd_start)+1
+        self.coding_endig = int(cd_end)
+        
         self.ex_count = ex_count
         self.ex_start = []
         for p in re_comma_end.sub("", ex_start).split(','):
@@ -61,6 +66,8 @@ class RefGene(CGData.CGObjectBase):
                 row[COL_STRAND],
                 row[COL_START],
                 row[COL_END],
+                row[COL_CDSTART],
+                row[COL_CDEND],
                 row[COL_EXCOUNT],
                 row[COL_EXSTART],
                 row[COL_EXEND],

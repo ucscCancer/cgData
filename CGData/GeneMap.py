@@ -40,34 +40,49 @@ class ProbeMapper(object):
 #
 
 
-def gene_overlap(start, end, strand, gene):
-    if ((gene.strand == strand or strand == '.' or gene.strand == '.')
-    and gene.chrom_end > start
-    and gene.chrom_start < end):
-        return True
-    return False
-
-
-def block_overlap(start, end, strand, gene):
+def block_both_strand(start, end, strand, gene):
+    """
+    Check is segment is between gene start and end, either strand
+    Code 'b'
+    """
     if gene.chrom_end > start and gene.chrom_start < end:
         return True
     return False
 
+def block_same_strand(start, end, strand, gene):
+    """
+    Check is segment is on same strand, between gene start and end
+    Code 's'
+    """
+    if gene.chrom_end > start and gene.chrom_start < end and strand == gene.strand:
+        return True
+    return False
 
-def exon_overlap(start, end, strand, gene):
-    if gene.strand != strand and gene.strand != '.' and strand != '.':
+
+def exon_same_strand(start, end, strand, gene):
+    """
+    Check is segment is on same strand, and occurs on an exon
+    Code 'g'
+    """
+
+    if gene.strand != strand:
         return False
     for i in range(int(gene.ex_count)):
-        #print type(start), type(end), gene.chrom_start, gene.chrom_end, type(gene.ex_start[i]), type(gene.ex_end[i])
         if gene.ex_end[i] > start and gene.ex_start[i] < end:
             return True
     return False
 
 
-def gene_simple_meth_overlap(start, end, strand, gene):
-    if gene.chrom_end > start and gene.chrom_start < end:
-        return True
+def exon_both_strand(start, end, strand, gene):
+    """
+    Check is segment occurs on an exon, on either stand
+    Code 'e'
+    """
+    for i in range(int(gene.ex_count)):
+        if gene.ex_end[i] > start and gene.ex_start[i] < end:
+            return True
     return False
+
 
 ###ADD MORE FUNCTIONS HERE
 
@@ -78,10 +93,10 @@ def gene_simple_meth_overlap(start, end, strand, gene):
 ###for example '-m' maps to gene_simple_meth_overlap
 
 optionMap = {
-    "g": gene_overlap,
-    "b": block_overlap,
-    "m": gene_simple_meth_overlap,
-    "e": exon_overlap,
+    "b": block_both_strand,
+    "s": block_same_strand,
+    "g": exon_same_strand,
+    "e": exon_both_strand
 }
 
 

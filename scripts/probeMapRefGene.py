@@ -18,22 +18,23 @@ Options:
 """
 import sys
 import csv
-
+import os
 from optparse import OptionParser
 
 import CGData.ProbeMap
 import CGData.GeneMap
 import CGData.RefGene
-
+import json
 
 dataSubTypeMap = {
-    'geneExp' : 'e',
+    'geneExp' : 'g',
     'cna' : 'b',
-    'PARADIGM': 'e',
-    'DNAMethylation' : 'm',
-    'PARADIGM.pathlette' : 'e',
-    'RPPA' : 'b',
-    'SNP' : 'b'
+    'PARADIGM': 'g',
+    'DNAMethylation' : 'b',
+    'PARADIGM.pathlette' : 'g',
+    'RPPA' : 'g',
+    'SNP' : 'b',
+    'siRNAViability' : 'g'
 }
 
 if __name__ == "__main__":
@@ -44,11 +45,19 @@ if __name__ == "__main__":
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
     options, args = parser.parse_args()
 
+    pm_meta = {}
     handle = open( args[0] )
     pm = CGData.ProbeMap.ProbeMap()
     pm.read( handle )
     pm.loaded = True
     handle.close()
+    
+    if os.path.exists( args[0] + ".json" ):
+        handle = open( args[0] + ".json" )
+        pm_meta = json.loads( handle.read() )
+        handle.close()
+    else:
+        pm_meta = { "cgdata" : { "name" : os.path.basename(args[0])} }
 
     handle = open( args[1] )
     rg = CGData.RefGene.RefGene()
@@ -57,6 +66,7 @@ if __name__ == "__main__":
     
     mapper = CGData.GeneMap.ProbeMapper(dataSubTypeMap[options.dataSubType])
     
+    ohandle = open(options.output, "w")    
     for probeName in pm.get_probe_list():
         hits = {}
         probe = pm.get_by_probe(probeName)
@@ -64,11 +74,18 @@ if __name__ == "__main__":
             hits[hit.name] = True
         
         if options.version1:
-            print "%s\t%s\t%s\t%s\t%s" % (probeName, ",".join(hits.keys()), probe.chrom_start, probe.chrom_end, probe.strand)                
+            ohandle.write( "%s\t%s\t%s\t%s\t%s\n" % (probeName, ",".join(hits.keys()), probe.chrom_start, probe.chrom_end, probe.strand) )
         else:
             for hit in hits:
-                print "%s\t%s" % (probeName, hit)
+                ohandle.write("%s\t%s\n" % (probeName, hit))
     
-    #out = CGData.GeneMap.genomicSegment2MatrixNorm(sg,rg,pm)
-    #out.save(options.out)
-
+    ohandle.close()
+    ohandle = open(options.output + ".json", "w")
+    
+    if options.version1:
+        ohandle.write( json.dumps( {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} ) )
+    else:
+        ohandle.write( json.dumps( { "cgdata" : {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} } ) )        
+    ohandle.close()
+    
+    
