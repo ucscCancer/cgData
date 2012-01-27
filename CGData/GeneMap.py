@@ -46,7 +46,7 @@ def block_both_strand(start, end, strand, gene):
     
     **Code 'b'**
     """
-    if gene.chrom_end > start and gene.chrom_start < end:
+    if gene.chrom_end >= start and gene.chrom_start <= end:
         return True
     return False
 
@@ -56,7 +56,7 @@ def block_same_strand(start, end, strand, gene):
     
     **Code 's'**
     """
-    if gene.chrom_end > start and gene.chrom_start < end and strand == gene.strand:
+    if gene.chrom_end >= start and gene.chrom_start <= end and strand == gene.strand:
         return True
     return False
 
@@ -71,7 +71,7 @@ def exon_same_strand(start, end, strand, gene):
     if gene.strand != strand:
         return False
     for i in range(int(gene.ex_count)):
-        if gene.ex_end[i] > start and gene.ex_start[i] < end:
+        if gene.ex_end[i] >= start and gene.ex_start[i] <= end:
             return True
     return False
 
@@ -83,7 +83,7 @@ def exon_both_strand(start, end, strand, gene):
     **Code 'e'**
     """
     for i in range(int(gene.ex_count)):
-        if gene.ex_end[i] > start and gene.ex_start[i] < end:
+        if gene.ex_end[i] >= start and gene.ex_start[i] <= end:
             return True
     return False
 
