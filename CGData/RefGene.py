@@ -35,7 +35,7 @@ class GeneInfo(object):
         self.cds_start = int(cds_start)+1
         self.cds_end = int(cds_end)
         
-        self.ex_count = ex_count
+        self.ex_count = int(ex_count)
         self.ex_start = []
         for p in re_comma_end.sub("", ex_start).split(','):
             self.ex_start.append(int(p)+1)

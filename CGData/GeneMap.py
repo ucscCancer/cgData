@@ -87,7 +87,25 @@ def exon_both_strand(start, end, strand, gene):
             return True
     return False
 
+def block_same_strand_coverage75(start, end, strand, gene):
+    if gene.chrom_end >= start and gene.chrom_start <= end and strand == gene.strand:
+        cov = min(gene.chrom_end,end) - max(gene.chrom_start, start)
+        if float(cov) / float(end - start) > 0.75:
+            return True
+    return False
 
+
+def exon_same_strand_coverage75(start, end, strand, gene):
+    if strand != gene.strand:
+        return False
+    cov = 0
+    for i in range(int(gene.ex_count)):
+        if gene.ex_end[i] >= start and gene.ex_start[i] <= end:
+            cov += min(gene.ex_end[i],end) - max(gene.ex_start[i], start)
+    if float(cov) / float(end - start) > 0.75:
+        return True
+    return False
+    
 ###ADD MORE FUNCTIONS HERE
 
 
