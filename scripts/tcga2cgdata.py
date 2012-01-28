@@ -477,13 +477,14 @@ class GeneticDataCompile:
                 'cgdata' : {
                     'type' : 'genomicMatrix', 
                     'name' : matrixName, 
+                    "version" : self.config['version']
                 },
                 'dataProducer' : 'Remus TCGA Import', 
                 "accessMap" : "public", 
                 "redistribution" : "yes" 
             }
-            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
-            matrixInfo['cgdata']['rowKeySrc'] =    { "type" : "idDAG", "name" : 'tcga' }
+            matrixInfo['cgdata']['rowKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
+            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "idDAG", "name" : 'tcga.iddag' }
             for key in self.config['meta']:
                 matrixInfo[key] = self.config['meta'][key]
 
@@ -512,7 +513,8 @@ class GeneticDataCompile:
                 'cgdata': {
                     'type' : 'genomicSegment', 
                     'name' : matrixName, 
-                    'columnKeySrc' : {
+                    "version" : self.config['version'],
+                    'rowKeySrc' : {
                         'type' :  'idDAG',
                         'name' : self.config[":sampleMap"]
                     },
@@ -567,6 +569,7 @@ class ClinicalDataCompile:
                 "cgdata" : {
                     "type" : "clinicalMatrix",
                     "name" : outname,
+                    "version" : self.config['version'],
                     "rowKeySrc" : {
                         "type" : "idDAG",
                         "name" : "tcga"
@@ -640,7 +643,7 @@ class TCGAExtract:
             return
         dates.sort()
         dates.reverse()
-        nameSuffix = dates[0].strftime( "%Y%m%d" )
+        versionDate = dates[0].strftime( "%Y-%m-%d" )
 
         
         for f in urls:
@@ -661,7 +664,8 @@ class TCGAExtract:
             t.run()
                     
         config['meta'] = meta
-        config['baseName'] = self.options.basename + "_" + nameSuffix
+        config['baseName'] = self.options.basename
+        config['version'] = versionDate
         config['workdir'] = workdir
         config['outdir'] = self.options.outdir
         try:
@@ -820,7 +824,7 @@ tcgaConfig = {
     },
     'HumanMethylation27': {
         ':dataSubType': 'DNAMethylation',
-        ':probeMap': 'illuminaHumanMethylation27',
+        ':probeMap': 'illuminaMethyl27K_gpl8490',
         ':sampleMap': 'tcga',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
