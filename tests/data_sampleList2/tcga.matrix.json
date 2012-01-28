@@ -1,0 +1,1 @@
+{"cgdata": {"rowKeySrc": {"type": "idDAG", "name": "tcga.iddag"}, "columnKeySrc": {"type": "probe", "name": "illuminaHumanMethylation27"}, "type": "genomicMatrix", "name": "tcga.testMatrix"}, "dataProducer": "Remus TCGA Import", "redistribution": "yes", "accessMap": "public"}
