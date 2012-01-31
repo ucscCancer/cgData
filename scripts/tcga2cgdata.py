@@ -478,14 +478,15 @@ class GeneticDataCompile:
                 'cgdata' : {
                     'type' : 'genomicMatrix', 
                     'name' : matrixName, 
-                    "version" : self.config['version']
+                    "version" : self.config['version'],
+					'dataSubType' : self.config[":dataSubType"]
                 },
                 'dataProducer' : 'Remus TCGA Import', 
                 "accessMap" : "public", 
                 "redistribution" : "yes" 
             }
             matrixInfo['cgdata']['rowKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
-            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "idDAG", "name" : 'tcga.iddag' }
+            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "idDAG", "name" :  self.config[":sampleMap"] }
             for key in self.config['meta']:
                 matrixInfo[key] = self.config['meta'][key]
 
@@ -573,7 +574,7 @@ class ClinicalDataCompile:
                     "version" : self.config['version'],
                     "rowKeySrc" : {
                         "type" : "idDAG",
-                        "name" : "tcga"
+                        "name" : self.config[":sampleMap"]
                     }
                 }
             }
@@ -703,7 +704,7 @@ tcgaConfig = {
     'AgilentG4502A_07': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -712,7 +713,7 @@ tcgaConfig = {
     'AgilentG4502A_07_1': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -721,7 +722,7 @@ tcgaConfig = {
     'AgilentG4502A_07_2': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -730,7 +731,7 @@ tcgaConfig = {
     'AgilentG4502A_07_3': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -738,7 +739,7 @@ tcgaConfig = {
     },
     'CGH-1x1M_G4447A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
@@ -747,7 +748,7 @@ tcgaConfig = {
     'Genome_Wide_SNP_6': {
         ':assembly': 'hg18',
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
@@ -756,7 +757,7 @@ tcgaConfig = {
     'H-miRNA_8x15K': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'agilentHumanMiRNA',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
@@ -765,7 +766,7 @@ tcgaConfig = {
     'H-miRNA_8x15Kv2': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'agilentHumanMiRNA',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
@@ -773,7 +774,7 @@ tcgaConfig = {
     },
     'HG-CGH-244A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['Segment_Mean'],
         'extract' : TCGAGeneticFileScan,
@@ -781,7 +782,7 @@ tcgaConfig = {
     },
     'HG-CGH-415K_G4124A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'chromeField': 'Chromosome',
         'dataType': 'genomicSegment',
         'endField': 'End',
@@ -793,7 +794,7 @@ tcgaConfig = {
     'HT_HG-U133A': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'affyU133a',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['Signal'],
         'extract' : TCGAGeneticFileScan,
@@ -802,7 +803,7 @@ tcgaConfig = {
     'HuEx-1_0-st-v2': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['Signal'],
         'fileInclude' :  '^.*gene.txt$|^.*sdrf.txt$',
@@ -811,7 +812,7 @@ tcgaConfig = {
     },
     'Human1MDuo': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['mean'],
         'extract' : TCGAGeneticFileScan,
@@ -819,7 +820,7 @@ tcgaConfig = {
     },
     'HumanHap550': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['mean'],  
         'extract' : TCGAGeneticFileScan,
@@ -828,7 +829,7 @@ tcgaConfig = {
     'HumanMethylation27': {
         ':dataSubType': 'DNAMethylation',
         ':probeMap': 'illuminaMethyl27K_gpl8490',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
         'probeField': ['Beta_Value', 'Beta_value'],
@@ -838,7 +839,7 @@ tcgaConfig = {
     'HumanMethylation450': {
         ':dataSubType': 'DNAMethylation',
         ':probeMap': 'illuminaHumanMethylation450',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
         'probeField': ['Beta_value'],
@@ -846,7 +847,7 @@ tcgaConfig = {
         'compile' : GeneticDataCompile
     },
     'IlluminaHiSeq_RNASeq': {
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         ':dataSubType': 'geneExp',
         'fileInclude': '^.*annotated.gene.quantification.txt$|^.*sdrf.txt$',
         'probeField': ['RPKM'],
@@ -855,6 +856,7 @@ tcgaConfig = {
         'compile' : GeneticDataCompile
     },
     'bio' : {
+		':sampleMap': 'tcga.iddag',
         'fileInclude': '.*.xml$',
         'extract' : TCGAClinialScan,
         'compile' : ClinicalDataCompile
