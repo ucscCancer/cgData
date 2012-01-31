@@ -27,21 +27,22 @@ import CGData.RefGene
 import json
 
 dataSubTypeMap = {
-    'geneExp' : 'g',
-    'cna' : 'b',
-    'PARADIGM': 'g',
-    'DNAMethylation' : 'b',
-    'PARADIGM.pathlette' : 'g',
-    'RPPA' : 'g',
-    'SNP' : 'b',
-    'siRNAViability' : 'g'
+    'geneExp' : { 'same_strand' : True, 'exons' : True },
+    'cna' : { 'same_strand' : False, 'exons' : False },
+    'PARADIGM':  { 'same_strand' : False, 'exons' : False },
+    'DNAMethylation' :  { 'same_strand' : False, 'exons' : False, "tss_window_start" : -1500, "cds_window_end" : 0 },
+    'PARADIGM.pathlette' : { 'same_strand' : False, 'exons' : False },
+    'RPPA' : { 'same_strand' : False, 'exons' : False },
+    'SNP' : { 'same_strand' : False, 'exons' : False },
+    'siRNAViability' : { 'same_strand' : False, 'exons' : False }
 }
 
 if __name__ == "__main__":
     usage = "usage: %prog [options] <probeMapFile> <refGeneFile>"
     parser = OptionParser(usage=usage)
-    parser.add_option("-d", "--datasub-type", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
+    parser.add_option("-d", "--dataSubType", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
     parser.add_option("-1", "--cgdata-v1", dest="version1", action="store_true", help="output cgdata v1 probemap", default=False)
+    parser.add_option("-n", "--minCoverage", dest="minCoverage", type="float", help="Min coverage", default=None)
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
     options, args = parser.parse_args()
 
@@ -64,13 +65,18 @@ if __name__ == "__main__":
     rg.read( handle )
     handle.close()
     
-    mapper = CGData.GeneMap.ProbeMapper(dataSubTypeMap[options.dataSubType])
+    mapper = CGData.GeneMap.ProbeMapper()
+    
+    conf = dataSubTypeMap[ options.dataSubType ]
+    if options.minCoverage is not None:
+		conf['coverage'] = options.minCoverage
+    intersector = CGData.GeneMap.Intersector( **conf )
     
     ohandle = open(options.output, "w")    
     for probeName in pm.get_probe_list():
         hits = {}
         probe = pm.get_by_probe(probeName)
-        for hit in mapper.find_overlap(probe, rg):
+        for hit in mapper.find_overlap(probe, rg, intersector.hit):
             hits[hit.name] = True
         
         if options.version1:

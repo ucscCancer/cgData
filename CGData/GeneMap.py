@@ -105,7 +105,81 @@ def exon_same_strand_coverage75(start, end, strand, gene):
     if float(cov) / float(end - start) > 0.75:
         return True
     return False
+
+
+class Intersector:
+    def __init__(self, same_strand=True, exons=False, coverage=None, cds_window_start=None, cds_window_end=None, tss_window_start=None, tss_window_end=None):
+        self.same_strand = same_strand
+        self.exons = exons
+        self.coverage = coverage
+        self.tss_window_start = tss_window_start
+        self.tss_window_end = tss_window_end
+        self.cds_window_start = cds_window_start
+        self.cds_window_end = cds_window_end
     
+    def hit(self, start, end, strand, gene):
+        if self.same_strand and strand != gene.strand:
+            return False
+
+        if self.exons:
+            cov = 0
+            for i in range(int(gene.ex_count)):
+                if gene.ex_end[i] >= start and gene.ex_start[i] <= end:
+                    cov += min(gene.ex_end[i],end) - max(gene.ex_start[i], start)
+            if self.coverage is None and cov > 0:
+                return True
+            else:
+                if float(cov) / float(end - start) > self.coverage:
+                    return True
+        else:
+            if self.tss_window_start is None or self.tss_window_end is None:            
+                if gene.chrom_end >= start and gene.chrom_start <= end:
+                    cov = min(gene.chrom_end,end) - max(gene.chrom_start, start)
+                    if self.coverage is None and cov > 0:
+                        return True
+                    else:
+                        if float(cov) / float(end - start) > 0.75:
+                            return True
+            else:
+                wStart = gene.chrom_start
+                wEnd   = gene.chrom_end
+                
+                if self.cds_window_start is not None:                
+                    if gene.strand == "+":
+                        wStart = gene.cds_start + self.cds_window_start
+                    if gene.strand == "-":
+                        wStart = gene.cds_end - self.cds_window_start
+                if self.cds_window_end is not None:                
+                    if gene.strand == "+":
+                        wEnd = gene.cds_start + self.cds_window_end
+                    if gene.strand == "-":
+                        wEnd = gene.cds_end - self.cds_window_end
+                
+                if self.tss_window_start is not None:                
+                    if gene.strand == "+":
+                        wStart = gene.chrom_start + self.tss_window_start
+                    if gene.strand == "-":
+                        wStart = gene.chrom_end - self.tss_window_start
+                if self.cds_window_end is not None:                
+                    if gene.strand == "+":
+                        wEnd = gene.chrom_start + self.tss_window_end
+                    if gene.strand == "-":
+                        wEnd = gene.chrom_end - self.tss_window_end
+                
+                cstart = min(wEnd, wStart)
+                cend = max(wEnd, wStart)
+                if cend >= start and cstart <= end:
+                    cov = min(gene.chrom_end,end) - max(gene.chrom_start, start)
+                    if self.coverage is None and cov > 0:
+                        return True
+                    else:
+                        if float(cov) / float(end - start) > 0.75:
+                            return True
+    
+        return False
+
+        
+
 ###ADD MORE FUNCTIONS HERE
 
 
