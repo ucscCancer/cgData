@@ -121,7 +121,7 @@ class IDReducer(object):
             rmap[col] = rval
         out = CGData.GenomicMatrix.GenomicMatrix()
         out.init_blank( cols=ncols.keys(), rows=matrix.get_row_list() )
-        
+        out.update(matrix)
         for row in matrix.get_row_list():
             for col in ncols:
                 tmp = []
