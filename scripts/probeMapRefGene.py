@@ -40,8 +40,9 @@ dataSubTypeMap = {
 if __name__ == "__main__":
     usage = "usage: %prog [options] <probeMapFile> <refGeneFile>"
     parser = OptionParser(usage=usage)
-    parser.add_option("-d", "--datasub-type", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
+    parser.add_option("-d", "--dataSubType", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
     parser.add_option("-1", "--cgdata-v1", dest="version1", action="store_true", help="output cgdata v1 probemap", default=False)
+    parser.add_option("-n", "--minCoverage", dest="minCoverage", type="float", help="Min coverage", default=0.0)
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
     options, args = parser.parse_args()
 
