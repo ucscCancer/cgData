@@ -35,6 +35,9 @@ class TestCase(unittest.TestCase):
     def test_DNA_methylation_probes(self):
         subprocess.check_call( "../scripts/probeMapRefGene.py  --dataSubType=DNAMethylation --minCoverage=75 --output=outputFile data_mapgenes2/test.probeMap data_mapgenes2/test.refgene", shell=True )
 
+    def test_DNA_methylation_probes(self):
+        subprocess.check_call( "../scripts/probeMapRefGene.py  --dataSubType=DNAMethylation --minCoverage=75 --start_rel_tss -1500 --end_rel_cdsStart 0 --output=outputFile data_mapgenes2/test.probeMap data_mapgenes2/test.refgene", shell=True )
+
 
 def main():
     sys.argv = sys.argv[:1]

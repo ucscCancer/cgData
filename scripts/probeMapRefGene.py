@@ -29,12 +29,12 @@ import json
 dataSubTypeMap = {
     'geneExp' : { 'same_strand' : True, 'exons' : True },
     'cna' : { 'same_strand' : False, 'exons' : False },
-    'PARADIGM':  { 'same_strand' : False, 'exons' : False },
-    'DNAMethylation' :  { 'same_strand' : False, 'exons' : False, "tss_window_start" : -1500, "cds_window_end" : 0 },
-    'PARADIGM.pathlette' : { 'same_strand' : False, 'exons' : False },
-    'RPPA' : { 'same_strand' : False, 'exons' : False },
-    'SNP' : { 'same_strand' : False, 'exons' : False },
-    'siRNAViability' : { 'same_strand' : False, 'exons' : False }
+    'PARADIGM':  { 'same_strand' : True, 'exons' : True },
+    'DNAMethylation' :  { 'same_strand' : False, 'exons' : False},
+    'PARADIGM.pathlette' : { 'same_strand' : True, 'exons' : True },
+    'RPPA' : { 'same_strand' : True, 'exons' : True },
+    'SNP' : { 'same_strand' : False, 'exons' : True },
+    'siRNAViability' : { 'same_strand' : True, 'exons' : True }
 }
 
 if __name__ == "__main__":
@@ -42,8 +42,13 @@ if __name__ == "__main__":
     parser = OptionParser(usage=usage)
     parser.add_option("-d", "--dataSubType", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
     parser.add_option("-1", "--cgdata-v1", dest="version1", action="store_true", help="output cgdata v1 probemap", default=False)
-    parser.add_option("-n", "--minCoverage", dest="minCoverage", type="float", help="Min coverage", default=None)
+    parser.add_option("-n", "--minCoverage", dest="coverage", type="float", help="Min coverage", default=None)
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
+    parser.add_option("--start_rel_tss", dest="start_rel_tss", type="int", default=None)
+    parser.add_option("--end_rel_tss", dest="end_rel_tss", type="int", default=None)
+    parser.add_option("--start_rel_cdsStart", dest="start_rel_cdsStart", type="int", default=None)
+    parser.add_option("--end_rel_cdsStart", dest="end_rel_cdsStart", type="int", default=None)
+    
     options, args = parser.parse_args()
 
     pm_meta = {}
@@ -68,8 +73,9 @@ if __name__ == "__main__":
     mapper = CGData.GeneMap.ProbeMapper()
     
     conf = dataSubTypeMap[ options.dataSubType ]
-    if options.minCoverage is not None:
-		conf['coverage'] = options.minCoverage
+    for a in [ 'coverage', 'start_rel_tss', 'end_rel_tss', 'start_rel_cdsStart', 'end_rel_cdsStart' ]:
+        if getattr(options, a) is not None:
+            conf[a] = getattr(options, a)
     intersector = CGData.GeneMap.Intersector( **conf )
     
     ohandle = open(options.output, "w")    
