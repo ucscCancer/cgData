@@ -74,6 +74,8 @@ def col_fix( name ):
 def sql_fix( name ):
     return name.replace("\\", "\\\\").replace("'", "\\'")
 
+def tableName_fix(name):
+    return name.replace(".", "_").replace("-", "_")
 
 class CGIDTable(object):
     
@@ -126,14 +128,22 @@ class BrowserCompiler(object):
             idList = self.set_hash.query(src_type="genomicMatrix", src_name=gmatrix_name, predicate="columnKeySrc", dst_type='idDAG')
             if len(idList) == 0:
                 error("IDDag not found")
-                pass
+                continue
             idName = idList[0].dst_name
             log( "Using idDag: " + idName)
+            if 'idDAG' not in self.set_hash or idName not in self.set_hash['idDAG']:
+                error("idDAG for %s not found\n" % (idName))
+                continue
+                
             idmap = {}
             for row in self.set_hash.query( dst_type='idDAG', dst_name=idName ):
                 if row.src_type not in idmap:
                     idmap[row.src_type] = []
                 idmap[row.src_type].append( row.src_name )
+            
+            if 'clinicalMatrix' not in idmap:
+                error("Clinical Matrix for %s not found" % (gmatrix_name))
+                continue
             
             tg = TrackGenomic()
             tg.merge( 
@@ -149,7 +159,7 @@ class BrowserCompiler(object):
             #find probeMap that connects to probe
             probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeMap" )
             if len(probeMapList) == 0:
-                warn("ProbeMap not found: " + probeName )
+                error("ProbeMap not found: " + probeName )
                 continue
             probeMapName = probeMapList[0].src_name
             #find aliasMap that connects to probe
@@ -182,6 +192,9 @@ class BrowserCompiler(object):
                     dst_name=cmatrix.get_link_map()['columnKeySrc']['name']
                 )
                 featureDescName = featureDescList[0].dst_name
+                if 'featureDescription' not in self.set_hash or featureDescName not in self.set_hash['featureDescription']:
+                    error("Clinical Feature Desc %s not found" % (featureDescName))
+                    continue                
                 tc.merge( featureDescription=self.set_hash['featureDescription'][featureDescName] )
             else:
                 tc.merge( featureDescription=CGData.FeatureDescription.NullClinicalFeature() )
@@ -274,7 +287,7 @@ class TrackClinical:
         
         features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
 
-        table_name = matrix.get_name()
+        table_name = tableName_fix(matrix.get_name())
         clinical_table = 'clinical_' + table_name
         yield "DROP TABLE IF EXISTS %s;\n" % ( clinical_table )
         yield "DELETE codes FROM codes, colDb WHERE codes.feature = colDb.id AND colDb.clinicalTable = '%s';\n" % clinical_table
@@ -431,18 +444,26 @@ class TrackGenomic:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
         
-        table_base = self.get_name()
+        table_base = tableName_fix(self.get_name())
         CGData.log("Writing Track %s" % (table_base))
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
-
+        
+        shortTitle = gmatrix.get_name()
+        longTitle = gmatrix.get_name()
+        if 'shortTitle' in gmatrix:
+            shortTitle = gmatrix['shortTitle']
+        if 'longTitle' in gmatrix:
+            shortTitle = gmatrix['longTitle']
+            
+        
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s);\n" % \
             ( "genomic_" + table_base, "sample_" + table_base,
                 "clinical_" + clinical_table_base, "colDb",
                 "genomic_" + table_base + "_alias",
-                sql_fix(gmatrix['shortTitle']),
-                sql_fix(gmatrix['longTitle']),
+                sql_fix(shortTitle),
+                sql_fix(longTitle),
                 len(gmatrix.get_sample_list()),
                 self.format,
                 dataSubTypeMap[gmatrix.get_data_subtype()],

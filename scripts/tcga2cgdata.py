@@ -842,7 +842,7 @@ tcgaConfig = {
         ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
-        'probeField': ['Beta_value'],
+        'probeField': ['Beta_value', 'Beta_Value'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },

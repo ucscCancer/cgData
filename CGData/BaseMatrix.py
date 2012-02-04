@@ -49,6 +49,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
             for line in handle:
                 t.append(line.replace("\n", "").split("\t"))
             txtMatrix = numpy.array(t)
+            del t
             if self.element_type == float:
                 txtMatrix[ txtMatrix=="NA" ] = 'nan'
                 txtMatrix[ txtMatrix=="null" ] = 'nan'
@@ -258,4 +259,20 @@ class BaseMatrix(CGData.CGDataMatrixObject):
                     self.row_hash[probe] = [self.null_type] * (len(self.sample_list))
                 self.row_hash[probe][self.sample_list[sample]] = \
                 matrix.row_hash[probe][matrix.sample_list[sample]]
+
+    def write_gct(self, handle, missing=''):
+        write = csv.writer(handle, delimiter="\t", lineterminator='\n')
+        cols = self.get_col_list()
+        write.writerow(["#1.2"])
+        write.writerow([len(self.get_row_list()), len(self.get_col_list())])
+        write.writerow(["NAME", "Description"] + cols)
+        for row in self.get_row_list():
+            out = [row, row]
+            for col in cols:
+                val = self.get_val(row_name=row, col_name=col)
+                if val is None:
+                    val = missing
+                out.append(val)
+            write.writerow(out)
+
 
