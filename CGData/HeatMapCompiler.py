@@ -74,6 +74,8 @@ def col_fix( name ):
 def sql_fix( name ):
     return name.replace("\\", "\\\\").replace("'", "\\'")
 
+def tableName_fix(name):
+    return name.replace(".", "_").replace("-", "_")
 
 class CGIDTable(object):
     
@@ -285,7 +287,7 @@ class TrackClinical:
         
         features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
 
-        table_name = matrix.get_name()
+        table_name = tableName_fix(matrix.get_name())
         clinical_table = 'clinical_' + table_name
         yield "DROP TABLE IF EXISTS %s;\n" % ( clinical_table )
         yield "DELETE codes FROM codes, colDb WHERE codes.feature = colDb.id AND colDb.clinicalTable = '%s';\n" % clinical_table
@@ -442,7 +444,7 @@ class TrackGenomic:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
         
-        table_base = self.get_name()
+        table_base = tableName_fix(self.get_name())
         CGData.log("Writing Track %s" % (table_base))
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
