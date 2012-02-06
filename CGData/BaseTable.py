@@ -57,44 +57,49 @@ class BaseTable(CGObjectBase):
         read = csv.reader(handle, delimiter="\t")
 
         storeMap = getattr(self, self.firstKey + "_map")
-        
+        comment = None
+        if 'comment' in self['cgformat']:
+            comment = self['cgformat']['comment']
         for row in read:
             r = self.__row_class__()
-            for i, col in enumerate(cols):
-                isOptional = False
-                if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'optional' in self['cgformat']['columnDef'][col]:
-                    isOptional = self['cgformat']['columnDef'][col]['optional']
-                if len(row) > i:
-                    setattr(r, col, colType[col](row[i]))
-                else:
-                    if isOptional:
-                        setattr(r, col, None)
+            if comment is None or not row[0].startswith(comment):
+                for i, col in enumerate(cols):
+                    isOptional = False
+                    if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'optional' in self['cgformat']['columnDef'][col]:
+                        isOptional = self['cgformat']['columnDef'][col]['optional']
+                    if len(row) > i:
+                        setattr(r, col, colType[col](row[i]))
                     else:
-                        raise InvalidFormat("missing colum " + col)
-                        
-            if not self.groupKey:
-                if self.secondKey is not None:
-                    key1 = getattr(r, self.firstKey )                    
-                    key2 = getattr(r, self.secondKey )
-                    if key1 not in storeMap:
-                        storeMap[key1] = {}
-                    storeMap[key1][key2] = r
+                        if isOptional:
+                            setattr(r, col, None)
+                        else:
+                            print row
+                            raise InvalidFormat("missing colum " + col)
+                            
+                if not self.groupKey:
+                    if self.secondKey is not None:
+                        key1 = getattr(r, self.firstKey )                    
+                        key2 = getattr(r, self.secondKey )
+                        if key1 not in storeMap:
+                            storeMap[key1] = {}
+                        storeMap[key1][key2] = r
+                    else:
+                        storeMap[ getattr(r, self.firstKey ) ] = r
                 else:
-                    storeMap[ getattr(r, self.firstKey ) ] = r
-            else:
-                key1 = getattr(r, self.firstKey )
-                if self.secondKey is not None:
-                    key2 = getattr(r, self.secondKey )
-                    if key1 not in storeMap:
-                        storeMap[key1] = {}
-                    if key2 not in storeMap[key1]:
-                        storeMap[key1][key2] = []
-                    storeMap[key1][key2].append(r)
-                else:
-                    if key1 not in storeMap:
-                        storeMap[key1] = []
-                    storeMap[key1].append(r)
-    
+                    key1 = getattr(r, self.firstKey )
+                    if self.secondKey is not None:
+                        key2 = getattr(r, self.secondKey )
+                        if key1 not in storeMap:
+                            storeMap[key1] = {}
+                        if key2 not in storeMap[key1]:
+                            storeMap[key1][key2] = []
+                        storeMap[key1][key2].append(r)
+                    else:
+                        if key1 not in storeMap:
+                            storeMap[key1] = []
+                        storeMap[key1].append(r)
+        self.loaded = True
+        
     def __getattr__(self, item):
         if not self.loaded:
             self.load()
