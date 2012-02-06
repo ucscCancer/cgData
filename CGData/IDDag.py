@@ -47,9 +47,28 @@ class IDDag(CGData.BaseTable.BaseTable):
             if cid == parent:
                 return True
         return False
-            
+    
+    def get_children(self, node):
+        if self.graph is None:
+            self._build_graph()
+        if node in self.graph:
+            return self.graph[node]
+        return []
+    
+    def get_parents(self, node):
+        if self.graph is None:
+            self._build_graph()
+        if node in self.rev_graph:
+            return self.rev_graph[node]
+        return []
         
-
+    def in_graph(self, name):
+        if self.graph is None:
+            self._build_graph()
+        
+        if name in self.graph or name in self.rev_graph:
+            return True
+        return False
 
 
 class IDReducer(object):

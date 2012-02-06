@@ -96,6 +96,7 @@ class BaseMatrix(CGData.CGDataMatrixObject):
             self.col_map = {}
             for col in pos_hash:
                 self.col_map[col] = pos_hash[col]
+        self.loaded = True
 
     def write(self, handle, missing='NA'):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

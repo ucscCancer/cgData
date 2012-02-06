@@ -148,7 +148,7 @@ class BrowserCompiler(object):
             tg = TrackGenomic()
             tg.merge( 
                 genomicMatrix=gmatrix, 
-                idMap=self.set_hash['idDAG'][idName], 
+                idDAG=self.set_hash['idDAG'][idName], 
                 clinicalMatrix=self.set_hash['clinicalMatrix'][idmap['clinicalMatrix'][0]]
             )
             
@@ -403,7 +403,7 @@ class TrackGenomic:
     typeSet = {
         'clinicalMatrix' : True,
         'genomicMatrix' : True,
-        'sampleMap' : True,
+        'idDAG' : True,
         'probeMap' : True,
         'aliasMap' : True
     }
@@ -443,7 +443,7 @@ class TrackGenomic:
         if pmap is None:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
-        
+        iddag = self.members['idDAG']
         table_base = tableName_fix(self.get_name())
         CGData.log("Writing Track %s" % (table_base))
         
@@ -491,7 +491,8 @@ CREATE TABLE sample_%s (
 
         for sample in sortedSamples(gmatrix.get_sample_list()):
             yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
-
+            if not iddag.in_graph(sample):
+                CGData.error("idDAG missing %s" % (sample))
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
         yield """
@@ -542,7 +543,8 @@ CREATE TABLE genomic_%s_alias (
         yield "create table genomic_%s like genomic_%s_tmp;\n" % (table_base, table_base)
         yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;\n" % (table_base, table_base)
         yield "drop table genomic_%s_tmp;\n" % table_base
-        CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
+        if missingProbeCount > 0:
+            CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
 
     def unload(self):
         for t in self.members:
