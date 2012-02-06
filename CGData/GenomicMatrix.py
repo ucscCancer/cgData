@@ -30,19 +30,3 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
     def get_data_subtype(self):
         return self.get('cgdata', {}).get('dataSubType', None)
 
-    def write_gct(self, handle, missing=''):
-        write = csv.writer(handle, delimiter="\t", lineterminator='\n')
-        sampleList = self.get_sample_list()
-        sampleList.sort(lambda x, y: self.sampleList[x] - self.sampleList[y])
-        write.writerow(["#1.2"])
-        write.writerow([len(self.probe_hash), len(sampleList)])
-        write.writerow(["NAME", "Description"] + sampleList)
-        for probe in self.probe_hash:
-            out = [probe, probe]
-            for sample in sampleList:
-                val = self.probe_hash[probe][self.sampleList[sample]]
-                if val is None:
-                    val = missing
-                out.append(val)
-            write.writerow(out)
-

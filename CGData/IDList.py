@@ -34,7 +34,7 @@ class WhiteLister(object):
         row_list = matrix.get_row_list()
         out = CGData.GenomicMatrix.GenomicMatrix()
         out.init_blank( cols=idMap.values(), rows=row_list)
-        
+        out.update(matrix)
         for name in idMap:
             for probe in row_list:
                 out.set_val( row_name=probe, col_name=idMap[name], value=matrix.get_val(row_name=probe, col_name=name) )

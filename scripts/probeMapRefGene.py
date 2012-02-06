@@ -27,22 +27,28 @@ import CGData.RefGene
 import json
 
 dataSubTypeMap = {
-    'geneExp' : 'g',
-    'cna' : 'b',
-    'PARADIGM': 'g',
-    'DNAMethylation' : 'b',
-    'PARADIGM.pathlette' : 'g',
-    'RPPA' : 'g',
-    'SNP' : 'b',
-    'siRNAViability' : 'g'
+    'geneExp' : { 'same_strand' : True, 'exons' : True },
+    'cna' : { 'same_strand' : False, 'exons' : False },
+    'PARADIGM':  { 'same_strand' : True, 'exons' : True },
+    'DNAMethylation' :  { 'same_strand' : False, 'exons' : False},
+    'PARADIGM.pathlette' : { 'same_strand' : True, 'exons' : True },
+    'RPPA' : { 'same_strand' : True, 'exons' : True },
+    'SNP' : { 'same_strand' : False, 'exons' : True },
+    'siRNAViability' : { 'same_strand' : True, 'exons' : True }
 }
 
 if __name__ == "__main__":
     usage = "usage: %prog [options] <probeMapFile> <refGeneFile>"
     parser = OptionParser(usage=usage)
-    parser.add_option("-d", "--datasub-type", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
+    parser.add_option("-d", "--dataSubType", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
     parser.add_option("-1", "--cgdata-v1", dest="version1", action="store_true", help="output cgdata v1 probemap", default=False)
+    parser.add_option("-n", "--minCoverage", dest="coverage", type="float", help="Min coverage", default=None)
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
+    parser.add_option("--start_rel_tss", dest="start_rel_tss", type="int", default=None)
+    parser.add_option("--end_rel_tss", dest="end_rel_tss", type="int", default=None)
+    parser.add_option("--start_rel_cdsStart", dest="start_rel_cdsStart", type="int", default=None)
+    parser.add_option("--end_rel_cdsStart", dest="end_rel_cdsStart", type="int", default=None)
+    
     options, args = parser.parse_args()
 
     pm_meta = {}
@@ -64,13 +70,19 @@ if __name__ == "__main__":
     rg.read( handle )
     handle.close()
     
-    mapper = CGData.GeneMap.ProbeMapper(dataSubTypeMap[options.dataSubType])
+    mapper = CGData.GeneMap.ProbeMapper()
+    
+    conf = dataSubTypeMap[ options.dataSubType ]
+    for a in [ 'coverage', 'start_rel_tss', 'end_rel_tss', 'start_rel_cdsStart', 'end_rel_cdsStart' ]:
+        if getattr(options, a) is not None:
+            conf[a] = getattr(options, a)
+    intersector = CGData.GeneMap.Intersector( **conf )
     
     ohandle = open(options.output, "w")    
     for probeName in pm.get_probe_list():
         hits = {}
         probe = pm.get_by_probe(probeName)
-        for hit in mapper.find_overlap(probe, rg):
+        for hit in mapper.find_overlap(probe, rg, intersector.hit):
             hits[hit.name] = True
         
         if options.version1:

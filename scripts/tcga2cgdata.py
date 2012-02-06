@@ -363,7 +363,7 @@ class TarballExtract:
         if "fileExclude" in self.config:
             filterExclude = re.compile(self.config["fileExclude"])
         print "Extract to ", self.workdir
-        os.system("tar xvzf %s -C %s > /dev/null" % (self.path, dir))
+        subprocess.check_call("tar xvzf %s -C %s > /dev/null" % (self.path, dir), shell=True)
         self.inc = 0
         self.scandirs(dir, filterInclude, filterExclude)
         #shutil.rmtree(dir)
@@ -452,12 +452,13 @@ class GeneticDataCompile:
             if curName != key:
                 if curName is not None:
                     out = ["NA"] * len(tEnum)
-                    try:
-                        for target in curData:
+                    for target in curData:
+                        try:
                             out[ tEnum[ tTrans[ target ] ] ] = str( curData[ target ] )
-                        matrixFile.write( "%s\t%s\n" % ( curName, "\t".join( out ) ) )  
-                    except KeyError:
-                        self.addError( "TargetInfo Not Found: %s" % (target))
+                        except KeyError:
+                            self.addError( "TargetInfo Not Found: %s" % (target))
+                    matrixFile.write( "%s\t%s\n" % ( curName, "\t".join( out ) ) )  
+                    
                 curName = key
                 curData = {}
             if "target" in value:
@@ -477,13 +478,15 @@ class GeneticDataCompile:
                 'cgdata' : {
                     'type' : 'genomicMatrix', 
                     'name' : matrixName, 
+                    "version" : self.config['version'],
+					'dataSubType' : self.config[":dataSubType"]
                 },
                 'dataProducer' : 'Remus TCGA Import', 
                 "accessMap" : "public", 
                 "redistribution" : "yes" 
             }
-            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
-            matrixInfo['cgdata']['rowKeySrc'] =    { "type" : "idDAG", "name" : 'tcga' }
+            matrixInfo['cgdata']['rowKeySrc'] = { "type" : "probe", "name" : self.config[":probeMap"] }
+            matrixInfo['cgdata']['columnKeySrc'] = { "type" : "idDAG", "name" :  self.config[":sampleMap"] }
             for key in self.config['meta']:
                 matrixInfo[key] = self.config['meta'][key]
 
@@ -512,7 +515,8 @@ class GeneticDataCompile:
                 'cgdata': {
                     'type' : 'genomicSegment', 
                     'name' : matrixName, 
-                    'columnKeySrc' : {
+                    "version" : self.config['version'],
+                    'rowKeySrc' : {
                         'type' :  'idDAG',
                         'name' : self.config[":sampleMap"]
                     },
@@ -567,9 +571,10 @@ class ClinicalDataCompile:
                 "cgdata" : {
                     "type" : "clinicalMatrix",
                     "name" : outname,
+                    "version" : self.config['version'],
                     "rowKeySrc" : {
                         "type" : "idDAG",
-                        "name" : "tcga"
+                        "name" : self.config[":sampleMap"]
                     }
                 }
             }
@@ -604,6 +609,7 @@ class TCGAExtract:
     
     def run(self):
         dates = []
+        print "TCGA Query for: ", self.options.basename
         q = CustomQuery("Archive[@baseName=%s][@isLatest=1][ArchiveType[@type=Level_%s]]" % (self.options.basename, self.options.level))
         urls = {}
         meta = None
@@ -625,6 +631,7 @@ class TCGAExtract:
                 
             urls[ self.options.mirror + e['deployLocation'] ] = platform
 
+        print "TCGA Query for mage-tab: ", self.options.basename
         q = CustomQuery("Archive[@baseName=%s][@isLatest=1][ArchiveType[@type=mage-tab]]" % (self.options.basename))
         for e in q:
             dates.append( datetime.datetime.strptime( e['addedDate'], "%m-%d-%Y" ) )
@@ -640,7 +647,7 @@ class TCGAExtract:
             return
         dates.sort()
         dates.reverse()
-        nameSuffix = dates[0].strftime( "%Y%m%d" )
+        versionDate = dates[0].strftime( "%Y-%m-%d" )
 
         
         for f in urls:
@@ -661,7 +668,8 @@ class TCGAExtract:
             t.run()
                     
         config['meta'] = meta
-        config['baseName'] = self.options.basename + "_" + nameSuffix
+        config['baseName'] = self.options.basename
+        config['version'] = versionDate
         config['workdir'] = workdir
         config['outdir'] = self.options.outdir
         try:
@@ -696,7 +704,7 @@ tcgaConfig = {
     'AgilentG4502A_07': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -705,7 +713,7 @@ tcgaConfig = {
     'AgilentG4502A_07_1': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -714,7 +722,7 @@ tcgaConfig = {
     'AgilentG4502A_07_2': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -723,7 +731,7 @@ tcgaConfig = {
     'AgilentG4502A_07_3': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['log2 lowess normalized (cy5/cy3) collapsed by gene symbol'],
         'extract' : TCGAGeneticFileScan,
@@ -731,7 +739,7 @@ tcgaConfig = {
     },
     'CGH-1x1M_G4447A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
@@ -740,7 +748,7 @@ tcgaConfig = {
     'Genome_Wide_SNP_6': {
         ':assembly': 'hg18',
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['seg.mean'],
         'extract' : TCGAGeneticFileScan,
@@ -749,7 +757,7 @@ tcgaConfig = {
     'H-miRNA_8x15K': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'agilentHumanMiRNA',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
@@ -758,7 +766,7 @@ tcgaConfig = {
     'H-miRNA_8x15Kv2': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'agilentHumanMiRNA',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['unc_DWD_Batch_adjusted'],
         'extract' : TCGAGeneticFileScan,
@@ -766,7 +774,7 @@ tcgaConfig = {
     },
     'HG-CGH-244A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['Segment_Mean'],
         'extract' : TCGAGeneticFileScan,
@@ -774,7 +782,7 @@ tcgaConfig = {
     },
     'HG-CGH-415K_G4124A': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'chromeField': 'Chromosome',
         'dataType': 'genomicSegment',
         'endField': 'End',
@@ -786,7 +794,7 @@ tcgaConfig = {
     'HT_HG-U133A': {
         ':dataSubType': 'geneExp',
         ':probeMap': 'affyU133a',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['Signal'],
         'extract' : TCGAGeneticFileScan,
@@ -795,7 +803,7 @@ tcgaConfig = {
     'HuEx-1_0-st-v2': {
         ':dataSubType': 'miRNAExp',
         ':probeMap': 'hugo',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'probeField': ['Signal'],
         'fileInclude' :  '^.*gene.txt$|^.*sdrf.txt$',
@@ -804,7 +812,7 @@ tcgaConfig = {
     },
     'Human1MDuo': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['mean'],
         'extract' : TCGAGeneticFileScan,
@@ -812,7 +820,7 @@ tcgaConfig = {
     },
     'HumanHap550': {
         ':dataSubType': 'cna',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicSegment',
         'probeField': ['mean'],  
         'extract' : TCGAGeneticFileScan,
@@ -820,8 +828,8 @@ tcgaConfig = {
     },
     'HumanMethylation27': {
         ':dataSubType': 'DNAMethylation',
-        ':probeMap': 'illuminaHumanMethylation27',
-        ':sampleMap': 'tcga',
+        ':probeMap': 'illuminaMethyl27K_gpl8490',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
         'probeField': ['Beta_Value', 'Beta_value'],
@@ -831,15 +839,15 @@ tcgaConfig = {
     'HumanMethylation450': {
         ':dataSubType': 'DNAMethylation',
         ':probeMap': 'illuminaHumanMethylation450',
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         'dataType': 'genomicMatrix',
         'fileExclude' : '.*.adf.txt',
-        'probeField': ['Beta_value'],
+        'probeField': ['Beta_value', 'Beta_Value'],
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
     },
     'IlluminaHiSeq_RNASeq': {
-        ':sampleMap': 'tcga',
+        ':sampleMap': 'tcga.iddag',
         ':dataSubType': 'geneExp',
         'fileInclude': '^.*annotated.gene.quantification.txt$|^.*sdrf.txt$',
         'probeField': ['RPKM'],
@@ -848,6 +856,7 @@ tcgaConfig = {
         'compile' : GeneticDataCompile
     },
     'bio' : {
+		':sampleMap': 'tcga.iddag',
         'fileInclude': '.*.xml$',
         'extract' : TCGAClinialScan,
         'compile' : ClinicalDataCompile
