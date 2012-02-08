@@ -13,6 +13,7 @@ if __name__ == "__main__":
     
     parser.add_option("-m", "--matrix", dest="matrix", default=None)
     parser.add_option("-c", "--clinical", action="store_true", dest="clinical", default=None)
+    parser.add_option("-i", "--iddag", action="store_true", dest="iddag", default=None)
     
     (options, args) = parser.parse_args()
     
@@ -30,3 +31,7 @@ if __name__ == "__main__":
     if options.clinical is not None:
         out = soft.build_clinical()
         out.store(soft_file + ".clinical_matrix")
+
+    if options.iddag is not None:
+        out = soft.build_iddag()
+        out.store(soft_file + ".iddag")

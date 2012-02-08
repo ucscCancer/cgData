@@ -119,6 +119,60 @@ class BaseTable(CGObjectBase):
     def __get_firstmap__(self):
         return getattr(self, self.firstKey + "_map")
     
+    def init_blank(self):
+        self.free()
+        self['cgdata'] = { 'type' : self['cgformat']['name'] }
+        self.loaded = True
+    
+    def insert(self, name, vals):
+        storeMap = getattr(self, self.firstKey + "_map")
+        cols = self['cgformat']['columnOrder']
+        r = self.__row_class__()
+        for col in cols:
+            isOptional = False
+            if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'optional' in self['cgformat']['columnDef'][col]:
+                isOptional = self['cgformat']['columnDef'][col]['optional']
+            if col in vals:
+                setattr(r, col, vals[col])
+            else:
+                if isOptional:
+                    setattr(r, col, None)
+                else:
+                    print row
+                    raise InvalidFormat("missing colum " + col)                            
+                            
+        if not self.groupKey:
+            if self.secondKey is not None:
+                key1 = getattr(r, self.firstKey )                    
+                key2 = getattr(r, self.secondKey )
+                if key1 not in storeMap:
+                    storeMap[key1] = {}
+                storeMap[key1][key2] = r
+            else:
+                storeMap[ getattr(r, self.firstKey ) ] = r
+        else:
+            key1 = getattr(r, self.firstKey )
+            if self.secondKey is not None:
+                key2 = getattr(r, self.secondKey )
+                if key1 not in storeMap:
+                    storeMap[key1] = {}
+                if key2 not in storeMap[key1]:
+                    storeMap[key1][key2] = []
+                storeMap[key1][key2].append(r)
+            else:
+                if key1 not in storeMap:
+                    storeMap[key1] = []
+                storeMap[key1].append(r)
+    
+    def write(self, handle):
+        writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+        for row in self.row_iter():
+            orow = []
+            for col in self['cgformat']['columnOrder']:
+                orow.append( getattr(row, col) )
+            writer.writerow(orow)
+        
+    
     def row_iter(self):
         if not self.groupKey:
             keyMap = getattr(self, self.firstKey + "_map")

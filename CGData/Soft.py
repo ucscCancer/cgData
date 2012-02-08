@@ -5,6 +5,7 @@ import sqlite3
 
 import CGData.GenomicMatrix
 import CGData.ClinicalMatrix
+import CGData.IDDag
 
 sectionLine = re.compile(r'^\^(\w*) = (\w*)')
 metaLine = re.compile(r'^\!(\S*) = (.*)$')
@@ -237,7 +238,7 @@ class Soft:
         out.init_blank(cols=sec, rows=ids)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".genomic"
         out['cgdata']['rowKeySrc'] = { 'type' : 'probes', 'name' : meta['platform'] }
-        out['cgdata']['columnKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag" }
+        out['cgdata']['columnKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag." + self.get_series_section() }
         
         smeta = self.get_meta( self.get_series_section() )
         out['description'] = "\n".join(smeta['Series_summary'])
@@ -267,9 +268,16 @@ class Soft:
         out = CGData.ClinicalMatrix.ClinicalMatrix()
         out.init_blank(cols=cols, rows=smeta)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".clinical"
-        out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag" }
+        out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag." + self.get_series_section()  }
         for s in smeta:
             for c in smeta[s]:
                 out.set_val(row_name=s, col_name=c, value=smeta[s][c])
         return out
          
+    def build_iddag(self):
+        out = CGData.IDDag.IDDag()
+        out.init_blank()
+        for s in self.get_section_list('SAMPLE'):
+            out.insert(s, {'id' : s} )
+        out['cgdata']['name'] = "geo.iddag." + self.get_series_section()
+        return out
