@@ -10,7 +10,7 @@ import CGData.CGZ
 import CGData.FeatureDescription
 
 
-from CGData import log, error, warn
+from CGData import info, error, warn
 import re
 
 CREATE_COL_DB = """
@@ -122,6 +122,7 @@ class BrowserCompiler(object):
 
         
         for gmatrix_name in self.set_hash[ 'genomicMatrix' ]:
+            info("GenomicMatrix: " + gmatrix_name) 
             gmatrix = self.set_hash['genomicMatrix'][gmatrix_name]
             
             #query to fine all id spaces that link to current genomic matrix
@@ -130,7 +131,7 @@ class BrowserCompiler(object):
                 error("IDDag not found")
                 continue
             idName = idList[0].dst_name
-            log( "Using idDag: " + idName)
+            info( "Using idDag: " + idName)
             if 'idDAG' not in self.set_hash or idName not in self.set_hash['idDAG']:
                 error("idDAG for %s not found\n" % (idName))
                 continue
@@ -172,7 +173,6 @@ class BrowserCompiler(object):
                 aliasMap = self.set_hash['aliasMap'][aliasMapName]                
             )
             
-            print "Generate", tg.get_type(), tg.get_name()
             shandle = tg.gen_sql(self.id_table)
             if shandle is not None:
                 ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (tg.get_type(), tg.get_name() ) ), "w" )
@@ -251,7 +251,7 @@ class TrackClinical:
         return 'trackClinical'
 
     def gen_sql(self, id_table):
-        CGData.log("ClincalTrack SQL " + self.get_name())
+        CGData.info("ClincalTrack SQL " + self.get_name())
 
         features = {}
         fmap = self.members["featureDescription"].get_feature_map()
@@ -283,7 +283,7 @@ class TrackClinical:
 
     def gen_sql_clinicalMatrix(self, id_table, features=None):
         matrix = self.members["clinicalMatrix"]
-        CGData.log( "Writing Clinical %s SQL" % (matrix.get_name()))
+        CGData.info( "Writing Clinical %s SQL" % (matrix.get_name()))
         
         features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
 
@@ -445,7 +445,7 @@ class TrackGenomic:
             return
         iddag = self.members['idDAG']
         table_base = tableName_fix(self.get_name())
-        CGData.log("Writing Track %s" % (table_base))
+        CGData.info("Writing Track %s" % (table_base))
         
         clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
         
@@ -492,7 +492,7 @@ CREATE TABLE sample_%s (
         for sample in sortedSamples(gmatrix.get_sample_list()):
             yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
             if not iddag.in_graph(sample):
-                CGData.error("idDAG missing %s" % (sample))
+                CGData.error("idDAG missing '%s'" % (sample))
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
         yield """
@@ -544,7 +544,7 @@ CREATE TABLE genomic_%s_alias (
         yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;\n" % (table_base, table_base)
         yield "drop table genomic_%s_tmp;\n" % table_base
         if missingProbeCount > 0:
-            CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
+            CGData.info("%s Missing probes %d" % (table_base, missingProbeCount))
 
     def unload(self):
         for t in self.members:

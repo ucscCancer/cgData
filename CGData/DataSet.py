@@ -114,11 +114,11 @@ class DataSet(DataSetBase):
         
     def scan_dirs(self, dirs):
         for dir in dirs:
-            CGData.log("SCANNING DIR: %s" % (dir))
+            CGData.debug("SCANNING DIR: %s" % (dir))
             for path in glob(os.path.join(dir, "*")):
                 if os.path.isfile(path):
                     if path.endswith(".json"):
-                        CGData.log("Found: " + path )
+                        CGData.debug("Found: " + path )
                         handle = open(path)
                         try:
                             data = json.loads(handle.read())
@@ -161,7 +161,7 @@ class DataSet(DataSetBase):
                 CGData.error("Duplicate %s file %s" % (
                 type, name))
             self[type][name] = CGData.light_load( path, zipFile )
-            CGData.log("FOUND: " + type +
+            CGData.debug("FOUND: " + type +
                 "\t" + name + "\t" + path)
         else:
             CGData.warn("Unknown file type: %s" % (path))
