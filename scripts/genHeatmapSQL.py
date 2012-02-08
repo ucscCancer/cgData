@@ -24,11 +24,9 @@ if __name__ == "__main__":
                 tmp2 = p.split("=")
                 params["filter"][tmp2[0]] = tmp2[1]
         if a == "-v":
-            CGData.LOG_LEVEL = 0
+            CGData.LOG_LEVEL = 1            
         if a == "-b":
             params['binary'] = True
-
-    #orm = CGData.ORM.ORM(args[0])
     
     orm = CGData.DataSet.DataSet()
     orm.scan_dirs( [args[0]])
