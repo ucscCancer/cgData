@@ -31,6 +31,10 @@ class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
     def __init__(self):
         super(ClinicalMatrix, self).__init__()
 
+    def init_blank(self, cols, rows):
+        super(ClinicalMatrix, self).init_blank(cols=cols,rows=rows,skip_numpy=True)
+        self['cgdata'] = { 'cgdata' : { 'type' : 'clinicalMatrix' } }
+
     def __guess_type__(self, values):
         type = 'float'
         for value in values:

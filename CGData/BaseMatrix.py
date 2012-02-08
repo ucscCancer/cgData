@@ -26,12 +26,14 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         self.row_map = {}    
         self.matrix = None
     
-    def init_blank(self, cols, rows):
-        if numpy is not None:
+    def init_blank(self, cols, rows, skip_numpy=False):
+        if numpy is not None and not skip_numpy:
             self.matrix = numpy.matrix( numpy.zeros( (len(rows), len(cols)),  dtype=self.element_type) )
             self.matrix.fill( numpy.nan )
         else:
-            self.matrix = [[null_type]*len(cols)]*len(rows)
+            self.matrix = []
+            for i in range(len(rows)):
+				self.matrix.append([self.null_type]*len(cols))
         for i, c in enumerate(cols):
             self.col_map[c] = i
         for i, r in enumerate(rows):

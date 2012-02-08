@@ -107,8 +107,12 @@ class CGObjectBase(dict):
             path = self.path
         if path is None:
             raise OSError( "Path not defined" ) 
+        meta = {}
+        meta.update(self)
+        if 'cgformat' in meta:
+            del meta['cgformat']
         mHandle = open(path + ".json", "w")
-        mHandle.write(json.dumps(self))
+        mHandle.write(json.dumps(meta))
         mHandle.close()
         if not self.light_mode:
             self.path = path

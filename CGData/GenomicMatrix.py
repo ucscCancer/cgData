@@ -21,6 +21,10 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
     def __init__(self):
         CGData.BaseMatrix.BaseMatrix.__init__(self)
 
+    def init_blank(self, cols, rows):
+        super(GenomicMatrix, self).init_blank(cols=cols,rows=rows)
+        self['cgdata'] = { 'cgdata' : { 'type' : 'genomicMatrix' } }
+
     def get_probe_list(self):
         return self.get_row_list()
 

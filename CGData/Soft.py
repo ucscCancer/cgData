@@ -3,6 +3,9 @@ import sys
 import re
 import sqlite3
 
+import CGData.GenomicMatrix
+import CGData.ClinicalMatrix
+
 sectionLine = re.compile(r'^\^(\w*) = (\w*)')
 metaLine = re.compile(r'^\!(\S*) = (.*)$')
 columnDefLine = re.compile('^\#(.*) = (.*)$')
@@ -51,6 +54,7 @@ class Soft:
         self._cursor = None
         self._conn = None
         self._section_ids = {}
+        self._colmap = {}
 
     def _open(self):
         if self._conn is None:
@@ -161,9 +165,13 @@ class Soft:
                 sys.stdout.write(line)
         self._conn.commit()
     
-    def get_section_list(self, name="%"):
+    def get_series_section(self):
+        o = list( self.get_section_list("SERIES"))
+        return o[0]       
+    
+    def get_section_list(self, type="%"):
         self._open()
-        self._cursor.execute("select name from section where type like ?", [name])
+        self._cursor.execute("select name from section where type like ?", [type])
         for row in self._cursor.fetchall():
             yield row[0]
     
@@ -181,10 +189,87 @@ class Soft:
                 out[col] = out[col][0]
         return out
     
+    def get_col_map(self,section):
+        if section not in self._colmap:
+            sid = self._get_sectionid(section)
+            self._cursor.execute("SELECT name, colname from columns WHERE section = ?", [sid])
+            colmap = {}
+            for name, colname in self._cursor:
+                colmap[name] = colname
+            self._colmap[section] = colmap
+        return self._colmap[section]
+                
+    
     def get_col_list(self,section):
+        return self.get_col_map(section).keys()
+    
+    def get_rows(self,section):
         self._open()
         sid = self._get_sectionid(section)
-        self._cursor.execute("SELECT name from columns WHERE section = ?", [sid])
+        colmap = self.get_col_map(section)
+        cols = colmap.keys()
+        cnames = []
+        for c in cols:
+            cnames.append(colmap[c])
+        self._cursor.execute("SELECT %s from data_%s" % (",".join(cnames), section))
         for row in self._cursor.fetchall():
-            yield row[0]
+            val = {}
+            for i, k in enumerate(cols):
+                val[k] = row[i]
+            yield val
         
+    
+    def build_matrix(self, value_col, id_col="ID_REF"):
+        self._open()        
+        sec = []
+        ids = {}
+        meta = None
+        for s in self.get_section_list():
+            cols = self.get_col_list(s)
+            if id_col in cols and value_col in cols:
+                sec.append(s)
+                if meta is None:
+                    smeta = self.get_meta(s)
+                    meta = { 'platform' : smeta['Sample_platform_id'] }
+                for row in self.get_rows(s):
+                    ids[ row[id_col] ] = True
+        out = CGData.GenomicMatrix.GenomicMatrix()
+        out.init_blank(cols=sec, rows=ids)
+        out['cgdata']['name'] = "geo." + self.get_series_section() + ".genomic"
+        out['cgdata']['rowKeySrc'] = { 'type' : 'probes', 'name' : meta['platform'] }
+        out['cgdata']['columnKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag" }
+        
+        smeta = self.get_meta( self.get_series_section() )
+        out['description'] = "\n".join(smeta['Series_summary'])
+        out['longTitle'] = smeta['Series_title']
+        
+        for s in sec:
+            for row in self.get_rows(s):
+                out.set_val( col_name=s, row_name=row[id_col], value=row[value_col] )
+        return out
+    
+    def build_clinical(self):
+        
+        smeta = {}
+        for s in self.get_section_list():
+            meta = self.get_meta(s)
+            for k in meta:
+                if k.startswith("Sample_characteristics_ch1"):
+                    vals = {}
+                    for v in meta[k]:
+                        tmp = v.split(":")
+                        vals[tmp[0].strip()] = tmp[1].strip()
+                    smeta[s] = vals
+        cols = {}
+        for s in smeta:
+            for c in smeta[s]:
+                cols[c] = True
+        out = CGData.ClinicalMatrix.ClinicalMatrix()
+        out.init_blank(cols=cols, rows=smeta)
+        out['cgdata']['name'] = "geo." + self.get_series_section() + ".clinical"
+        out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag" }
+        for s in smeta:
+            for c in smeta[s]:
+                out.set_val(row_name=s, col_name=c, value=smeta[s][c])
+        return out
+         
