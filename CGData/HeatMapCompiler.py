@@ -83,6 +83,7 @@ class CGIDTable(object):
         self.id_table = {}
     
     def get( self, itype, iname ):
+        #print "table", itype, iname
         if itype not in self.id_table:
             self.id_table[ itype ] = {}
         if iname not in self.id_table[ itype ]:
@@ -169,7 +170,7 @@ class BrowserCompiler(object):
                 error("ProbeMap not found: " + probeName )
                 aliasMap = None
                 for q in self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" ):
-                    for q2 in self.set_hash.query( src_type="aliasMap", src_name=q.src_name ):
+                    for q2 in self.set_hash.query( src_type="aliasMap", src_name=q.src_name, predicate="aliasKeySrc", dst_name="hugo" ):
                         aliasMap = self.set_hash[ "aliasMap" ][ q2.src_name ]
                 if aliasMap is not None:
                     if 'refGene' in self.set_hash and 'refGene_hg18' in self.set_hash["refGene"]:
@@ -201,6 +202,14 @@ class BrowserCompiler(object):
             cmatrix = self.set_hash['clinicalMatrix'][cmatrix_name]
             tc = TrackClinical()
             tc.merge( clinicalMatrix=cmatrix )
+            
+            idList = self.set_hash.query(src_type="clinicalMatrix", src_name=cmatrix_name, predicate="rowKeySrc", dst_type='idDAG')
+            if len(idList) == 0:
+                error("IDDag not found")
+                continue
+            idName = idList[0].dst_name
+            info( "Using idDag: " + idName)
+            tc.merge(idDAG=self.set_hash['idDAG'][idName])
             
             if 'columnKeySrc' in cmatrix.get_link_map():
                 featureDescList = self.set_hash.query( 
@@ -249,7 +258,8 @@ class TrackClinical:
 
     typeSet = { 
         'clinicalMatrix' : True, 
-        'featureDescription' : True
+        'featureDescription' : True,
+        'idDAG' : True
     } 
 
     def __init__(self):
@@ -278,10 +288,13 @@ class TrackClinical:
                 for val in fmap[feat][ent]:
                     features[feat][ent].append( val.value )
 
-        matrix = self.members["clinicalMatrix"]
+        omatrix = self.members["clinicalMatrix"]
+        iddag = self.members['idDAG']
+        matrix = omatrix.expand(iddag)
+
         # e.g. { 'HER2+': 'category', ...}
         explicit_types = dict((f, features[f]['valueType'][0]) for f in features if 'valueType' in features[f])
-        self.feature_type_setup(explicit_types)
+        self.feature_type_setup(matrix, explicit_types)
         for a in features:
             if "stateOrder" in features[a]:
                 read = csv.reader( [features[a]["stateOrder"][0]], skipinitialspace=True)
@@ -293,12 +306,11 @@ class TrackClinical:
                     else:
                         self.enum_map[a][e] = len(enums) + i
                         i += 1
-        for a in self.gen_sql_clinicalMatrix(id_table, features=features):
+        for a in self.gen_sql_clinicalMatrix(id_table, matrix, features=features):
             yield a
 
 
-    def gen_sql_clinicalMatrix(self, id_table, features=None):
-        matrix = self.members["clinicalMatrix"]
+    def gen_sql_clinicalMatrix(self, id_table, matrix, features=None):
         CGData.info( "Writing Clinical %s SQL" % (matrix.get_name()))
         
         features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
@@ -356,6 +368,7 @@ class TrackClinical:
             for col,orig in zip(self.col_order, self.orig_order):
                 if col == 'sampleName':
                     val = target
+                    print "target", target
                 else:
                     val = matrix.get_val( row_name=target, col_name=orig )
                 if val is None or val.upper() in NULL_VALUES:
@@ -369,10 +382,7 @@ class TrackClinical:
 
 
 
-    def feature_type_setup(self, types = {}):
-        
-        cmatrix = self.members['clinicalMatrix']
-        cmatrix.load()
+    def feature_type_setup(self, cmatrix, types):        
         self.float_map = {}
         self.enum_map = {}
         self.enum_map['sampleName'] = dict((k,v) for k,v in zip(sortedSamples(cmatrix.get_row_list()), range(0,len(cmatrix.get_row_list()))))
@@ -445,25 +455,18 @@ class TrackGenomic:
         return "'%s'" % (','.join( str(a) for a in row ))
 
     def gen_sql(self, id_table):
-        #scan the children
-        # XXX Handling of sql for children is broken if the child may appear
-        # as part of multiple merge objects, such as TrackGenomic and TrackClinical.
-        # A disgusting workaround for clinicalMatrix is to prevent the TrackGenomic from calling
-        # it for gen_sql.
-        clinical = self.members.pop("clinicalMatrix")
-        
-        self.members["clinicalMatrix"] = clinical
 
+        clinical = self.members["clinicalMatrix"]
+        iddag = self.members["idDAG"]
         gmatrix = self.members[ 'genomicMatrix' ]
         pmap = self.members[ 'probeMap' ] # BUG: hard coded to only producing HG18 tables
         if pmap is None:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
-        iddag = self.members['idDAG']
         table_base = tableName_fix(self.get_name())
         CGData.info("Writing Track %s" % (table_base))
         
-        clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
+        clinical_table_base = tableName_fix(clinical.get_name())
         
         shortTitle = gmatrix.get_name()
         longTitle = gmatrix.get_name()
