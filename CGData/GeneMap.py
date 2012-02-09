@@ -194,9 +194,9 @@ def genomicSegment2Matrix(genomicSegment, refGene, probeMapper):
     and contruct a genomicMatrix
     """
     out = CGData.GenomicMatrix.GenomicMatrix()
-    out.init_blank( rows=refGene.get_gene_list(), cols=genomicSegment.get_id_list() )
-    for id in genomicSegment.get_id_list():
-        for segment in genomicSegment.get_by_id(id):
+    out.init_blank( rows=refGene.get_gene_list(), cols=genomicSegment.get_key_list() )
+    for id in genomicSegment.get_key_list():
+        for segment in genomicSegment.get_by(id):
             for hit in probeMapper.find_overlap( segment, refGene ):
                 out.set_val(row_name=hit.name, col_name=segment.id, value=segment.value )
     return out
@@ -220,9 +220,12 @@ def filter_longest_form(refgene):
 
 
 def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
+    """
+    Given 
+    """
     ng = filter_longest_form(refGene)
     #enumerate the col order of the sample ids
-    idList = genomicSegment.get_id_list()
+    idList = genomicSegment.get_key_list()
     
     geneList = ng.get_gene_list()
     
@@ -232,7 +235,7 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
     #read through the segment one sample id at a time
     for id in idList:   
         segmentMap = {}
-        for segment in genomicSegment.get_by_id(id):
+        for segment in genomicSegment.get_by(id):
             for hit in probeMapper.find_overlap( segment, ng ):
                 span = float(min(segment.chrom_end, hit.chrom_end) - max(segment.chrom_start, hit.chrom_start)) / float(hit.chrom_end - hit.chrom_start)
                 #if hit.name not in segmentMap:
@@ -259,10 +262,15 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
 
 
 def aliasRemap(genomicMatrix, aliasMap):
+    """
+    Given a genomicMatrix and an alias map, create a new genomic matrix 
+    with the probes from the original matrix remapped to the connected aliases
+    from the map
+    """
     
     am = {}
-    for probe in aliasMap.get_probe_list():
-        for alias in aliasMap.get_by_probe(probe):
+    for probe in aliasMap.get_key_list():
+        for alias in aliasMap.get_by(probe):
             if alias not in am:
                 am[alias.alias] = {}
             am[alias.alias][probe] = True
@@ -280,4 +288,31 @@ def aliasRemap(genomicMatrix, aliasMap):
                 out.set_val(col_name=sample, row_name=a, value=sum(o) / float(len(o)))
     
     return out
+    
+def refGeneLink2ProbeMap(aliasMap, refGene):
+    """
+    given an alias map, and a refGene produce a probeMap by connecting 
+    alias symbols. Returns the coordinates of the longest form
+    """
+    out = CGData.ProbeMap.ProbeMap()
+    out.init_blank()
+    
+    for probe in aliasMap.get_key_list():
+        for link in aliasMap.get_by(probe):
+            probe = link.probe
+            geneName = link.alias
+            sGene = None
+            try:
+                for gene in refGene.get_gene(geneName):
+                    if sGene is None or gene.chrom_end - gene.chrom_start > sGene.chrom_end - sGene.chrom_start:
+                        sGene = gene
+            except KeyError:
+                pass
+        if sGene is not None:
+            out.insert(probe, { 'probe' : probe, 'chrom' : sGene.chrom, 'strand' : sGene.strand, 'chrom_start' : sGene.chrom_start, 'chrom_end' : sGene.chrom_end })
+    return out
+
+
+    
+    
     

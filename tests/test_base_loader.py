@@ -8,13 +8,13 @@ import CGData
 class TestCase(unittest.TestCase):
     def test_load(self):
         m = CGData.load("data_basic2/probeMap_test")
-        probes = list( m.get_probe_list() )
+        probes = list( m.get_key_list() )
         assert probes[0] == "probe1"
 
     def test_segment(self): 
         m = CGData.load("data_segment2/genomicSegment_test")
-        assert len( list( m.get_id_list() ) ) == 1
-        for a in m.get_id_values():
+        assert len( list( m.get_key_list() ) ) == 1
+        for a in m.get_values():
             assert len(list(a)) == 10
             for seg in a:
                 assert type(seg.chrom_start) == int
@@ -22,8 +22,8 @@ class TestCase(unittest.TestCase):
                 assert type(seg.value) == float
 
         count = 0
-        for id in m.get_id_list():   
-            for segment in m.get_by_id(id):
+        for id in m.get_key_list():   
+            for segment in m.get_by(id):
                 count += 1
         assert count == 10
 

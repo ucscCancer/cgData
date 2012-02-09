@@ -2,7 +2,7 @@
 from CGData import CGObjectBase
 
 import csv
-
+import types
 
 class TableRow(object):
     def __init__(self):
@@ -99,7 +99,8 @@ class BaseTable(CGObjectBase):
                             storeMap[key1] = []
                         storeMap[key1].append(r)
         self.loaded = True
-        
+    
+    """
     def __getattr__(self, item):
         if not self.loaded:
             self.load()
@@ -115,9 +116,46 @@ class BaseTable(CGObjectBase):
         if item == "has_" + self.firstKey:
             return self.__get_firstmap__().__contains__
         raise AttributeError(item)
+    """
+        
+    def get_key_list(self):
+        """
+        List keys
+        """
+        if not self.loaded:
+            self.load()    
+        return self.__get_firstmap__().keys()
     
-    def __get_firstmap__(self):
-        return getattr(self, self.firstKey + "_map")
+    def get_by(self, key):
+        """
+        get by key
+        """
+        if not self.loaded:
+            self.load()    
+        return self.__get_firstmap__().__getitem__(key)
+    
+    def get_values(self):
+        """
+        get values
+        """
+        if not self.loaded:
+            self.load()    
+        return self.__get_firstmap__().values()
+    
+    def get_map(self):
+        """
+        get key map
+        """
+        if not self.loaded:
+            self.load()
+        return self.__get_firstmap__()
+    
+    def has_key(self, key):
+        if not self.loaded:
+            self.load()
+        return self.__get_firstmap__().__contains__(key)
+        def __get_firstmap__(self):
+            return getattr(self, self.firstKey + "_map")
     
     def init_blank(self):
         self.free()
@@ -138,7 +176,6 @@ class BaseTable(CGObjectBase):
                 if isOptional:
                     setattr(r, col, None)
                 else:
-                    print row
                     raise InvalidFormat("missing colum " + col)                            
                             
         if not self.groupKey:
@@ -184,3 +221,5 @@ class BaseTable(CGObjectBase):
                 for elem in keyMap[rowKey]:
                     yield elem
         
+    def __get_firstmap__(self):
+        return getattr(self, self.firstKey + "_map")

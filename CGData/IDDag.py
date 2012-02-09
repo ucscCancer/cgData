@@ -27,10 +27,10 @@ class IDDag(CGData.BaseTable.BaseTable):
     def _build_graph(self):
         self.graph = {}    
         self.rev_graph = {}    
-        for pid in self.get_id_list():
+        for pid in self.get_key_list():
             if pid not in self.graph:
                 self.graph[pid] = {}
-            p = self.get_by_id(pid)
+            p = self.get_by(pid)
             for cid in p:
                 self.graph[pid][cid.child] = True
                 if cid.child not in self.rev_graph:
@@ -110,8 +110,8 @@ class IDReducer(object):
     """
     def __init__(self, idDag):
         self.revGraph = {}
-        for pid in idDag.get_id_list():
-            p = idDag.get_by_id(pid)
+        for pid in idDag.get_key_list():
+            p = idDag.get_by(pid)
             for cid in p:
                 if cid.child not in self.revGraph:
                     self.revGraph[cid.child] = {}

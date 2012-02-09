@@ -15,8 +15,8 @@ class AliasMap(CGData.BaseTable.BaseTable):
             "links" : {
                 "assembly" : {},
                 "probe" : {},
-                "annotation" : {}     
-                
+                "annotation" : {},
+                "aliasKeySrc" : {}                
             }
         }
         
