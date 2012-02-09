@@ -254,7 +254,7 @@ class TrackClinical:
         CGData.info("ClincalTrack SQL " + self.get_name())
 
         features = {}
-        fmap = self.members["featureDescription"].get_feature_map()
+        fmap = self.members["featureDescription"].get_map()
         for feat in fmap:
             features[feat] = {}
             for ent in fmap[feat]:
@@ -454,7 +454,7 @@ class TrackGenomic:
         if 'shortTitle' in gmatrix:
             shortTitle = gmatrix['shortTitle']
         if 'longTitle' in gmatrix:
-            shortTitle = gmatrix['longTitle']
+            longTitle = gmatrix['longTitle']
             
         
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
@@ -502,7 +502,7 @@ CREATE TABLE genomic_%s_alias (
 ) engine 'MyISAM';
 """ % ( table_base )
         
-        for aliasList in self.members['aliasMap'].get_probe_values():
+        for aliasList in self.members['aliasMap'].get_values():
             for alias in aliasList:
                 yield "insert into genomic_%s_alias( name, alias ) values( '%s', '%s' );\n" % (table_base, sql_fix(alias.probe), sql_fix(alias.alias))
 
@@ -529,7 +529,7 @@ CREATE TABLE genomic_%s_alias (
             #pset = pmap.get_by_probe( probe_name )
             probe = None
             try:
-                probe = pmap.get_by_probe( probe_name )
+                probe = pmap.get_by( probe_name )
             except KeyError:
                 pass
             if probe is not None:

@@ -27,7 +27,7 @@ class WhiteLister(object):
         
         idMap = {}
         for name in matrix.get_col_list():
-            for pname in self.idlist.get_id_list():
+            for pname in self.idlist.get_key_list():
                 if pname==name or self.iddag.is_descendant(pname, name):
                     idMap[name] = pname
         

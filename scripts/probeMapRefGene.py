@@ -79,9 +79,9 @@ if __name__ == "__main__":
     intersector = CGData.GeneMap.Intersector( **conf )
     
     ohandle = open(options.output, "w")    
-    for probeName in pm.get_probe_list():
+    for probeName in pm.get_key_list():
         hits = {}
-        probe = pm.get_by_probe(probeName)
+        probe = pm.get_by(probeName)
         for hit in mapper.find_overlap(probe, rg, intersector.hit):
             hits[hit.name] = True
         

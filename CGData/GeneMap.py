@@ -194,9 +194,9 @@ def genomicSegment2Matrix(genomicSegment, refGene, probeMapper):
     and contruct a genomicMatrix
     """
     out = CGData.GenomicMatrix.GenomicMatrix()
-    out.init_blank( rows=refGene.get_gene_list(), cols=genomicSegment.get_id_list() )
-    for id in genomicSegment.get_id_list():
-        for segment in genomicSegment.get_by_id(id):
+    out.init_blank( rows=refGene.get_gene_list(), cols=genomicSegment.get_key_list() )
+    for id in genomicSegment.get_key_list():
+        for segment in genomicSegment.get_by(id):
             for hit in probeMapper.find_overlap( segment, refGene ):
                 out.set_val(row_name=hit.name, col_name=segment.id, value=segment.value )
     return out
@@ -222,7 +222,7 @@ def filter_longest_form(refgene):
 def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
     ng = filter_longest_form(refGene)
     #enumerate the col order of the sample ids
-    idList = genomicSegment.get_id_list()
+    idList = genomicSegment.get_key_list()
     
     geneList = ng.get_gene_list()
     
@@ -232,7 +232,7 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
     #read through the segment one sample id at a time
     for id in idList:   
         segmentMap = {}
-        for segment in genomicSegment.get_by_id(id):
+        for segment in genomicSegment.get_by(id):
             for hit in probeMapper.find_overlap( segment, ng ):
                 span = float(min(segment.chrom_end, hit.chrom_end) - max(segment.chrom_start, hit.chrom_start)) / float(hit.chrom_end - hit.chrom_start)
                 #if hit.name not in segmentMap:
@@ -261,8 +261,8 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
 def aliasRemap(genomicMatrix, aliasMap):
     
     am = {}
-    for probe in aliasMap.get_probe_list():
-        for alias in aliasMap.get_by_probe(probe):
+    for probe in aliasMap.get_key_list():
+        for alias in aliasMap.get_by(probe):
             if alias not in am:
                 am[alias.alias] = {}
             am[alias.alias][probe] = True
