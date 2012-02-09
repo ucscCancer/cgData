@@ -98,16 +98,26 @@ class RefGene(CGData.CGObjectBase):
         
 
     def get_chrom_list(self):
+        if not self.loaded:
+            self.load()
         return self.chrom_map.keys()
 
     def has_chrom(self, chrom):
+        if not self.loaded:
+            self.load()
         return chrom in self.chrom_map
 
     def get_chrom(self, chrom):
+        if not self.loaded:
+            self.load()
         return self.chrom_map[chrom]
     
     def get_gene_list(self):
+        if not self.loaded:
+            self.load()
         return self.hugo_map.keys()
     
     def get_gene(self, gene):
+        if not self.loaded:
+            self.load()
         return self.hugo_map[gene]

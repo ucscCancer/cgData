@@ -8,7 +8,7 @@ from copy import copy
 import CGData
 import CGData.CGZ
 import CGData.FeatureDescription
-
+import CGData.GeneMap
 
 from CGData import info, error, warn
 import re
@@ -155,30 +155,46 @@ class BrowserCompiler(object):
             
             #query to find the probe key space that matches the current probemap
             probeList = self.set_hash.query( src_type="genomicMatrix", src_name=gmatrix_name, dst_type="probe" )
+            if len(probeList) == 0:
+                error("Matrix has no probe entry")
+                continue
             probeName = probeList[0].dst_name
             
             #find probeMap that connects to probe
+            probeMap = None
+            aliasMap = None
+
             probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeMap" )
             if len(probeMapList) == 0:
                 error("ProbeMap not found: " + probeName )
-                continue
-            probeMapName = probeMapList[0].src_name
-            #find aliasMap that connects to probe
-            aliasMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" )
-            aliasMapName = aliasMapList[0].src_name
-            
-            
-            tg.merge(
-                probeMap = self.set_hash['probeMap'][probeMapName],
-                aliasMap = self.set_hash['aliasMap'][aliasMapName]                
-            )
-            
-            shandle = tg.gen_sql(self.id_table)
-            if shandle is not None:
-                ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (tg.get_type(), tg.get_name() ) ), "w" )
-                for line in shandle:
-                    ohandle.write( line )
-                ohandle.close()
+                aliasMap = None
+                for q in self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" ):
+                    for q2 in self.set_hash.query( src_type="aliasMap", src_name=q.src_name ):
+                        aliasMap = self.set_hash[ "aliasMap" ][ q2.src_name ]
+                if aliasMap is not None:
+                    if 'refGene' in self.set_hash and 'refGene_hg18' in self.set_hash["refGene"]:
+                        info("Using HUGO alias map")
+                        ref = self.set_hash["refGene"]['refGene_hg18']
+                        probeMap = CGData.GeneMap.refGeneLink2ProbeMap( aliasMap, ref )
+            else:
+                probeMapName = probeMapList[0].src_name                
+                #find aliasMap that connects to probe
+                aliasMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" )
+                aliasMapName = aliasMapList[0].src_name            
+                probeMap = self.set_hash['probeMap'][probeMapName]
+                aliasMap = self.set_hash['aliasMap'][aliasMapName]       
+                
+            if probeMap is not None and aliasMap is not None:
+                tg.merge(
+                    probeMap = probeMap,
+                    aliasMap = aliasMap                
+                )                
+                shandle = tg.gen_sql(self.id_table)
+                if shandle is not None:
+                    ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (tg.get_type(), tg.get_name() ) ), "w" )
+                    for line in shandle:
+                        ohandle.write( line )
+                    ohandle.close()
                 
         
         for cmatrix_name in self.set_hash[ 'clinicalMatrix' ]:

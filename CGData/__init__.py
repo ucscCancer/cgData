@@ -172,7 +172,11 @@ class CGObjectBase(dict):
             if "links" in self["cgformat"]:
                 for field in self['cgformat']['links']:
                     if field in self['cgdata']:
-                        out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
+                        if isinstance(self['cgdata'][field], str) or isinstance(self['cgdata'][field], unicode) :
+                            out[field] = { 'type' : field, 'name' : self['cgdata'][field] }
+                        else:
+                            out[field] = { 'type' : self['cgdata'][field]['type'], 'name' : self['cgdata'][field]['name'] }
+                            
         for e in ['columnKeySrc', 'rowKeySrc' ]:
             if e in self['cgdata']:
                 if e not in out:

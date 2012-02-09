@@ -176,7 +176,6 @@ class BaseTable(CGObjectBase):
                 if isOptional:
                     setattr(r, col, None)
                 else:
-                    print row
                     raise InvalidFormat("missing colum " + col)                            
                             
         if not self.groupKey:

@@ -220,6 +220,9 @@ def filter_longest_form(refgene):
 
 
 def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
+    """
+    Given 
+    """
     ng = filter_longest_form(refGene)
     #enumerate the col order of the sample ids
     idList = genomicSegment.get_key_list()
@@ -259,6 +262,11 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
 
 
 def aliasRemap(genomicMatrix, aliasMap):
+    """
+    Given a genomicMatrix and an alias map, create a new genomic matrix 
+    with the probes from the original matrix remapped to the connected aliases
+    from the map
+    """
     
     am = {}
     for probe in aliasMap.get_key_list():
@@ -280,4 +288,31 @@ def aliasRemap(genomicMatrix, aliasMap):
                 out.set_val(col_name=sample, row_name=a, value=sum(o) / float(len(o)))
     
     return out
+    
+def refGeneLink2ProbeMap(aliasMap, refGene):
+    """
+    given an alias map, and a refGene produce a probeMap by connecting 
+    alias symbols. Returns the coordinates of the longest form
+    """
+    out = CGData.ProbeMap.ProbeMap()
+    out.init_blank()
+    
+    for probe in aliasMap.get_key_list():
+        for link in aliasMap.get_by(probe):
+            probe = link.probe
+            geneName = link.alias
+            sGene = None
+            try:
+                for gene in refGene.get_gene(geneName):
+                    if sGene is None or gene.chrom_end - gene.chrom_start > sGene.chrom_end - sGene.chrom_start:
+                        sGene = gene
+            except KeyError:
+                pass
+        if sGene is not None:
+            out.insert(probe, { 'probe' : probe, 'chrom' : sGene.chrom, 'strand' : sGene.strand, 'chrom_start' : sGene.chrom_start, 'chrom_end' : sGene.chrom_end })
+    return out
+
+
+    
+    
     
