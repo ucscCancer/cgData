@@ -23,7 +23,8 @@ class GenomicMatrix(CGData.BaseMatrix.BaseMatrix):
 
     def init_blank(self, cols, rows):
         super(GenomicMatrix, self).init_blank(cols=cols,rows=rows)
-        self['cgdata'] = { 'type' : 'genomicMatrix' }
+        if 'cgdata' not in self:
+            self['cgdata'] = { 'type' : 'genomicMatrix' }
 
     def get_probe_list(self):
         return self.get_row_list()

@@ -4,6 +4,7 @@ import csv
 import sys
 import re
 
+import CGData.ProbeMap
 import CGData.GenomicMatrix
 
 class ProbeMapper(object):
