@@ -6,6 +6,7 @@ import sqlite3
 import CGData.GenomicMatrix
 import CGData.ClinicalMatrix
 import CGData.IDDag
+import CGData.AliasMap
 
 sectionLine = re.compile(r'^\^(\w*) = (\w*)')
 metaLine = re.compile(r'^\!(\S*) = (.*)$')
@@ -191,6 +192,7 @@ class Soft:
         return out
     
     def get_col_map(self,section):
+        self._open()
         if section not in self._colmap:
             sid = self._get_sectionid(section)
             self._cursor.execute("SELECT name, colname from columns WHERE section = ?", [sid])
@@ -237,8 +239,8 @@ class Soft:
         out = CGData.GenomicMatrix.GenomicMatrix()
         out.init_blank(cols=sec, rows=ids)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".genomic"
-        out['cgdata']['rowKeySrc'] = { 'type' : 'probes', 'name' : meta['platform'] }
-        out['cgdata']['columnKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag." + self.get_series_section() }
+        out['cgdata']['rowKeySrc'] = { 'type' : 'probe', 'name' : "geo." + meta['platform'] }
+        out['cgdata']['columnKeySrc'] = { 'type' : 'idDAG', 'name' : "geo." + self.get_series_section() + ".iddag" }
         
         smeta = self.get_meta( self.get_series_section() )
         out['description'] = "\n".join(smeta['Series_summary'])
@@ -268,7 +270,7 @@ class Soft:
         out = CGData.ClinicalMatrix.ClinicalMatrix()
         out.init_blank(cols=cols, rows=smeta)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".clinical"
-        out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo.iddag." + self.get_series_section()  }
+        out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo." + self.get_series_section() + ".iddag" }
         for s in smeta:
             for c in smeta[s]:
                 out.set_val(row_name=s, col_name=c, value=smeta[s][c])
@@ -279,5 +281,21 @@ class Soft:
         out.init_blank()
         for s in self.get_section_list('SAMPLE'):
             out.insert(s, {'id' : s} )
-        out['cgdata']['name'] = "geo.iddag." + self.get_series_section()
+        out['cgdata']['name'] = "geo." + self.get_series_section() + ".iddag"
         return out
+
+
+    def build_aliasmap(self, platform, aliasCol, idCol="ID"):
+        out = CGData.AliasMap.AliasMap()
+        out.init_blank()
+        for row in self.get_rows(platform):
+            if row[aliasCol]:
+                for alias in row[aliasCol].split("///"):
+                    t = alias.strip()
+                    if len(t):
+                        out.insert(row[idCol], {'probe' : row[idCol], 'alias' : t } )
+        out['cgdata']['name'] = "geo." + self.get_series_section() + ".aliasmap"
+        out['cgdata']['rowKeySrc']   = {'type' : 'probe', 'name' : "geo." + platform }
+        out['cgdata']['aliasKeySrc'] = {'type' : 'refGene', 'name' : 'hugo' }
+        return out
+
