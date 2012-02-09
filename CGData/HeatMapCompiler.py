@@ -368,7 +368,6 @@ class TrackClinical:
             for col,orig in zip(self.col_order, self.orig_order):
                 if col == 'sampleName':
                     val = target
-                    print "target", target
                 else:
                     val = matrix.get_val( row_name=target, col_name=orig )
                 if val is None or val.upper() in NULL_VALUES:
