@@ -9,6 +9,10 @@ except ImportError:
     numpy = None
 
 class BaseMatrix(CGData.CGDataMatrixObject):
+    """
+    Core matrix class. Implements data matrix using numpy or native python objects
+    depending up avaliblity and user request
+    """
     corner_name = "#"
     element_type = str
     null_type = None
@@ -27,6 +31,11 @@ class BaseMatrix(CGData.CGDataMatrixObject):
         self.matrix = None
     
     def init_blank(self, cols, rows, skip_numpy=False):
+        """
+        Initlize matrix with NA (or nan) values using row/column names
+        provided by user. User can also force usage of native python objects
+        (which is useful for string based matrices, and numpy matrices fix cel string length)
+        """
         if numpy is not None and not skip_numpy:
             self.matrix = numpy.matrix( numpy.zeros( (len(rows), len(cols)),  dtype=self.element_type) )
             self.matrix.fill( numpy.nan )
@@ -204,64 +213,21 @@ class BaseMatrix(CGData.CGDataMatrixObject):
             return self.matrix[:,self.col_map[col_name]].reshape(-1).tolist()[0]
     
     def get_val(self, col_name, row_name):
+        """
+        Get cell value based on row and column names
+        """
         if isinstance(self.matrix, list):
             return self.matrix[self.row_map[row_name]][self.col_map[col_name]]
         return self.matrix[self.row_map[row_name],self.col_map[col_name]]
     
     def set_val(self, col_name, row_name, value):
+        """
+        Set cell value based on row and column names
+        """
         if isinstance(self.matrix, list):
             self.matrix[self.row_map[row_name]][self.col_map[col_name]] = value
         else:
             self.matrix[self.row_map[row_name],self.col_map[col_name]] = value
-
-    def col_rename(self, old_col, new_col):
-        """
-        Rename a column
-        """
-        if old_col in self.col_list:
-            self.row_list[new_col] = self.row_list[old_col]
-            del self.sample_list[old_col]
-
-    def row_rename(self, old_row, new_row):
-        """
-        Rename a column
-        """
-        self.row_hash[new_row] = self.row_hash[old_row]
-        del self.row_hash[old_row]
-    
-    def del_row(self, row):
-        """
-        Delete a row from the matrix
-        """
-        del self.row_hash[row]
-        
-    def del_col(self, col):
-        """
-        Delete a column from the matrix
-        """
-        i = self.col_list[col]
-        del self.col_list[col]
-        for a in self.col_list:
-            if self.col_list[a] > i:
-                self.col_list[a] -= 1
-        for row in self.row_hash:
-            del self.row_hash[row][i]
-    
-    
-    def join(self, matrix):
-        """
-        Insert values from matrix into the current matrix
-        """
-        for sample in matrix.sample_list:
-            if not sample in self.sample_list:
-                self.sample_list[sample] = len(self.sample_list)
-                for probe in self.row_hash:
-                    self.row_hash[probe].append(self.null_type)
-            for probe in matrix.row_hash:
-                if not probe in self.row_hash:
-                    self.row_hash[probe] = [self.null_type] * (len(self.sample_list))
-                self.row_hash[probe][self.sample_list[sample]] = \
-                matrix.row_hash[probe][matrix.sample_list[sample]]
 
     def write_gct(self, handle, missing=''):
         write = csv.writer(handle, delimiter="\t", lineterminator='\n')

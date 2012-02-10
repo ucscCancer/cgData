@@ -66,11 +66,10 @@ class CGObjectBase(dict):
             self['cgformat'] = self.__format__
         super(CGObjectBase,self).__init__()
 
-    # XXX There are no less than three different code paths for
-    # loading the json data, that get hit at different points during
-    # the compile. This is really messed up. There's this routine, plus
-    # the load and light_load methods, below.
     def load(self, path=None, **kw):
+        """
+        Load a data object in from path
+        """
         if path is None and self.path is not None:
             path = self.path
         if path is None:
@@ -103,6 +102,10 @@ class CGObjectBase(dict):
         self.loaded = False
     
     def store(self, path=None):
+        """
+        Store an object onto the path provided.
+        Will write a path and a path.json file.
+        """
         if path is None and self.path is not None:
             path = self.path
         if path is None:
@@ -161,12 +164,21 @@ class CGObjectBase(dict):
         raise UnimplementedException()
 
     def get_name(self):
+        """
+        Get object name
+        """
         return self.get( 'cgdata', {} ).get( 'name', None )
     
     def get_type(self):
+        """
+        Get object type
+        """
         return self.get('cgdata', {}).get('type', None)
     
     def get_link_map(self):
+        """
+        Get a dict that represents the declared file relationships from the meta-info
+        """
         out = {}
         if "cgformat" in self:
             if "links" in self["cgformat"]:
