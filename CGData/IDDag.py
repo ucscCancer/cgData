@@ -47,6 +47,22 @@ class IDDag(CGData.BaseTable.BaseTable):
             if cid == parent:
                 return True
         return False
+
+    def _desc_crawl(self, parent):
+        out = {}
+        if parent in self.graph:
+            for node in self.graph[parent]:
+                if node is not None and len(node):
+                    out[node] = True
+                    for c in self._desc_crawl(node):
+                        out[c] = True
+        return out.keys()
+
+    
+    def get_descendants(self, parent):
+        if self.graph is None:
+            self._build_graph()
+        return self._desc_crawl(parent)
     
     def get_children(self, node):
         if self.graph is None:
