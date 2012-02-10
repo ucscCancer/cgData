@@ -151,6 +151,9 @@ class BaseTable(CGObjectBase):
         return self.__get_firstmap__()
     
     def has_key(self, key):
+        """
+        Does the table have a key
+        """
         if not self.loaded:
             self.load()
         return self.__get_firstmap__().__contains__(key)
