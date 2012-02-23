@@ -30,33 +30,24 @@ typedef map<string,set<int> > breakmap;
 typedef vector<vector<float> > genemap;
 
 
-segmap * newSegment() {
+segmap * new_segment() {
 	return new segmap();
 }
 
-set<string> * newTargetSet() {
+set<string> * new_target_set() {
 	return new set<string>();
 }
 
-void addSegmentLine(segmap * seg, set<string> *targetSet, char *line) {
-	if ( line == NULL )
-		return;
-		
-	//cerr << "adding line: " << line << "\n";
-	
+void add_segment(segmap * seg, set<string> *targetSet, char *sample, char *chrom, int chrom_start, int chrom_end, float value) {
 	string tmp;
 	segment a;
 	
-	stringstream sin( line );
-	sin >> a.target;
-	sin >> a.chrome;
-	sin >> tmp;
-	a.start = atoi( tmp.c_str() );
-	sin >> tmp;
-	a.end = atoi( tmp.c_str() );
-	sin >> tmp;
-	a.value = atof( tmp.c_str() );
-	
+	a.target = strdup(sample);
+	a.chrome = strdup(chrom);
+	a.start = chrom_start;
+	a.end = chrom_end;
+	a.value = value;
+		
 	if ( a.target.size() > 0 ) {
 		if ( a.chrome.compare("X") == 0 )
 			a.chrome = "23";
@@ -67,7 +58,7 @@ void addSegmentLine(segmap * seg, set<string> *targetSet, char *line) {
 			a.chrome = "chrX";
 		else if ( a.chrome.compare("24") == 0 )
 			a.chrome = "chrY";
-		else
+		else if ( a.chrome.find("chr") != 0 )
 			a.chrome = string("chr") + a.chrome;
 		
 		if(seg->find(a.target) == seg->end()) {
@@ -85,7 +76,7 @@ void addSegmentLine(segmap * seg, set<string> *targetSet, char *line) {
 
 
 
-void printMatrix(segmap *data, set<string> *targetSet, void (*print)(const char *)) {
+void print_matrix(segmap *data, set<string> *targetSet, void (*print)(const char *)) {
 	
 	//create a break map
 	breakmap breaks;

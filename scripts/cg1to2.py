@@ -82,7 +82,8 @@ class CG1to2:
 		for row in reader:
 			owriter.writerow( [row[0]] + row[2:] )
 			if len(row[1]):
-				awriter.writerow( row[0:2] )
+				for c in row[1].split(','):
+					awriter.writerow( [row[0],c] )
 
 		handle.close()
 		ohandle.close()

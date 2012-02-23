@@ -153,6 +153,8 @@ class TCGAGeneticFileScan:
                                 if colNum.has_key( "Derived Array Data File" ):
                                     self.emit( row[ colNum[ "Derived Array Data File" ] ].split('.')[0], row[ colNum[ "Extract Name" ] ], "targets" )
                                     self.emit( row[ colNum[ "Derived Array Data File" ] ], row[ colNum[ "Extract Name" ] ], "targets" )
+                                elif colNum.has_key("Derived Array Data Matrix File" ):
+                                    self.emit( row[ colNum[ "Derived Array Data Matrix File" ] ], row[ colNum[ "Extract Name" ] ], "targets" )    
                                 elif colNum.has_key( "Derived Data File"):
                                     self.emit( row[ colNum[ "Derived Data File" ] ].split('.')[0], row[ colNum[ "Extract Name" ] ], "targets" )  
                                     self.emit( row[ colNum[ "Derived Data File" ] ], row[ colNum[ "Extract Name" ] ], "targets" )    
@@ -172,7 +174,7 @@ class TCGAGeneticFileScan:
             for line in iHandle:
                 if colName is None:
                     colName = line.rstrip().split("\t")                     
-                    if colName[0] == "Hybridization REF":
+                    if colName[0] == "Hybridization REF" or colName[0] == "Sample REF":
                         mode=2
                     elif colName[0] == "Chromosome" or colName[0] == "chromosome":
                         mode=1
@@ -592,7 +594,7 @@ class ClinicalDataCompile:
                         cols[colEnum[col]] = matrix[key][col]['value']
                 handle.write("%s\t%s\n" % (key, "\t".join(cols)))
             handle.close()
-            self.emitFile( os.path.join(self.config['outdir'], self.config["baseName"]  + "_" + outname), fileInfo, "%s/%s_file"  % (self.config['workdir'], matrixName) )        
+            self.emitFile(os.path.join(self.config['outdir'], outname), fileInfo, "%s/%s_file"  % (self.config['workdir'], matrixName)) 
 
     def emitFile(self, name, meta, file):
         mHandle = open(name + ".json", "w")
@@ -680,7 +682,7 @@ class TCGAExtract:
         comp = config['compile'](workdir, config)
         comp.run()
         
-        shutil.rmtree(workdir)
+        #shutil.rmtree(workdir)
 
            
 
@@ -851,9 +853,17 @@ tcgaConfig = {
         ':dataSubType': 'geneExp',
         'fileInclude': '^.*annotated.gene.quantification.txt$|^.*sdrf.txt$',
         'probeField': ['RPKM'],
-        ':probeMap': 'hugo',
+        ':probeMap': 'hugo.unc',
         'extract' : TCGAGeneticFileScan,
         'compile' : GeneticDataCompile
+    },
+    'MDA_RPPA_Core' : {
+        ':sampleMap': 'tcga.iddag',
+        ":probeMap": "md_anderson_antibodies", 
+        ":dataSubType": "RPPA",
+        'probeField' : [ 'Protein Expression' ],
+        'extract' : TCGAGeneticFileScan,
+        'compile' : GeneticDataCompile        
     },
     'bio' : {
 		':sampleMap': 'tcga.iddag',

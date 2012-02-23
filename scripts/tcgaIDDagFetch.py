@@ -39,8 +39,10 @@ def write_tcgaIDDag(dst):
 
     out = open( dst, "w")
     for e in data:
+        vialID = e["Sample ID"] + e["Vial ID"]
         out.write( "%s\t%s\n" % (e["Participant ID"],e["Sample ID"]))
-        out.write( "%s\t%s\n" % (e["Sample ID"], e["Analyte ID"]))
+        out.write( "%s\t%s\n" % (e["Sample ID"], vialID))
+        out.write( "%s\t%s\n" % (vialID, e["Analyte ID"]))
         out.write( "%s\t%s\n" % (e["Analyte ID"], e["Aliquot ID"]))
     out.close()
 

@@ -217,6 +217,7 @@ def filter_longest_form(refgene):
                 length = newLength
                 longest = elem
         ng.add(longest)
+    ng.loaded = True
     return ng
 
 
