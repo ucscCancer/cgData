@@ -11,16 +11,11 @@ import numpy
 
 if __name__ == "__main__":
 
-    handle = open( sys.argv[1] )
     sg = CGData.GenomicSegment.GenomicSegment()
-    sg.read( handle )
-    sg.loaded = True
-    handle.close()
+    sg.load( sys.argv[1]  )
 
-    handle = open( sys.argv[2] )
     rg = CGData.RefGene.RefGene()
-    rg.read( handle )
-    handle.close()
+    rg.load( sys.argv[2] )
 
     pm = CGData.GeneMap.ProbeMapper('b')
 

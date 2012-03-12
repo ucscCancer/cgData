@@ -231,9 +231,9 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
     
     geneList = ng.get_gene_list()
     
-    out = CGData.GenomicMatrix.GenomicMatrix()
-    out.init_blank( rows=geneList, cols=idList )
-    
+    tmp = CGData.GenomicMatrix.GenomicMatrix()
+    tmp.init_blank( rows=geneList, cols=idList )
+    geneHits = {}
     #read through the segment one sample id at a time
     for id in idList:   
         segmentMap = {}
@@ -252,13 +252,20 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
                     ]
         
         for gene in segmentMap:
+            geneHits[gene] = True
             mapInfo = segmentMap[gene]
             coverage = sum( i[0] for i in mapInfo )
             assert coverage <= 1.0
             value = sum( i[0]*i[1] for i in mapInfo )
             #print coverage, value, value/coverage, segmentMap[gene]
-            out.set_val(row_name=gene, col_name=id, value=value/coverage)
-
+            tmp.set_val(row_name=gene, col_name=id, value=value/coverage)
+    
+    #now remove the blanks
+    out = CGData.GenomicMatrix.GenomicMatrix()
+    out.init_blank( rows=geneHits, cols=idList )
+    for gene in geneHits:
+        for sample in idList:
+            out.set_val( row_name=gene, col_name=sample, value=tmp.get_val(row_name=gene, col_name=sample))
     return out
 
 
