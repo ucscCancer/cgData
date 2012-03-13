@@ -22,7 +22,7 @@ class TestCase(unittest.TestCase):
         pm = CGData.GeneMap.ProbeMapper('b')
 
         out = CGData.GeneMap.genomicSegment2MatrixNorm(sg,rg,pm)
-        assert out.get_shape() == (21,1)
+        assert out.get_shape() == (10,1)
 
     def test_aliasmap(self):
         mt = CGData.load("data_mapgenes2/test.genomicMatrix")

@@ -52,7 +52,7 @@ class IDDag(CGData.BaseTable.BaseTable):
         out = {}
         if parent in self.graph:
             for node in self.graph[parent]:
-                if node is not None and len(node):
+                if node is not None and len(node) and node != parent:
                     out[node] = True
                     for c in self._desc_crawl(node):
                         out[c] = True

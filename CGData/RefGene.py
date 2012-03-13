@@ -87,6 +87,7 @@ class RefGene(CGData.CGObjectBase):
         for chrom in self.chrom_map:
             self.chrom_map[chrom].sort(
             lambda x, y: x.chrom_start - y.chrom_start)
+        self.loaded = True
 
     def add(self, gene):
         if gene.chrom not in self.chrom_map:
