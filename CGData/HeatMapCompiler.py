@@ -165,9 +165,9 @@ class BrowserCompiler(object):
             probeMap = None
             aliasMap = None
 
-            probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeMap" )
+            probeMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="probeLoc" )
             if len(probeMapList) == 0:
-                error("ProbeMap not found: " + probeName )
+                error("ProbeLoc not found: " + probeName )
                 aliasMap = None
                 for q in self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" ):
                     for q2 in self.set_hash.query( src_type="aliasMap", src_name=q.src_name, predicate="aliasKeySrc", dst_name="hugo" ):
@@ -176,18 +176,18 @@ class BrowserCompiler(object):
                     if 'refGene' in self.set_hash and 'refGene_hg18' in self.set_hash["refGene"]:
                         info("Using HUGO alias map")
                         ref = self.set_hash["refGene"]['refGene_hg18']
-                        probeMap = CGData.GeneMap.refGeneLink2ProbeMap( aliasMap, ref )
+                        probeMap = CGData.GeneMap.refGeneLink2ProbeLoc( aliasMap, ref )
             else:
                 probeMapName = probeMapList[0].src_name                
                 #find aliasMap that connects to probe
                 aliasMapList = self.set_hash.query( dst_type="probe", dst_name=probeName, src_type="aliasMap" )
                 aliasMapName = aliasMapList[0].src_name            
-                probeMap = self.set_hash['probeMap'][probeMapName]
+                probeMap = self.set_hash['probeLoc'][probeMapName]
                 aliasMap = self.set_hash['aliasMap'][aliasMapName]       
                 
             if probeMap is not None and aliasMap is not None:
                 tg.merge(
-                    probeMap = probeMap,
+                    probeLoc = probeMap,
                     aliasMap = aliasMap                
                 )                
                 shandle = tg.gen_sql(self.id_table)
@@ -429,7 +429,7 @@ class TrackGenomic:
         'clinicalMatrix' : True,
         'genomicMatrix' : True,
         'idDAG' : True,
-        'probeMap' : True,
+        'probeLoc' : True,
         'aliasMap' : True
     }
 
@@ -458,9 +458,9 @@ class TrackGenomic:
         clinical = self.members["clinicalMatrix"]
         iddag = self.members["idDAG"]
         gmatrix = self.members[ 'genomicMatrix' ]
-        pmap = self.members[ 'probeMap' ] # BUG: hard coded to only producing HG18 tables
+        pmap = self.members[ 'probeLoc' ] # BUG: hard coded to only producing HG18 tables
         if pmap is None:
-            CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
+            CGData.error("Missing HG18 %s" % ( self.members[ 'probeLoc'].get_name() ))
             return
         table_base = tableName_fix(self.get_name())
         CGData.info("Writing Track %s" % (table_base))

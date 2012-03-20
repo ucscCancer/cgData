@@ -61,6 +61,7 @@ class CG1to2:
 			meta['cgdata'] = { 'rowKeySrc' : { 'type' :'probe', 'name' :meta['name'] } }
 			
 		meta = self.meta_adjust(meta) 
+		meta['cgdata']['type'] = 'probeLoc'
 		handle = open( self.getdst(path), "w" )
 		handle.write( json.dumps(meta))
 		handle.close()

@@ -21,7 +21,7 @@ import csv
 import os
 from optparse import OptionParser
 
-import CGData.ProbeMap
+import CGData.ProbeLoc
 import CGData.GeneMap
 import CGData.RefGene
 import json
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     pm_meta = {}
     handle = open( args[0] )
-    pm = CGData.ProbeMap.ProbeMap()
+    pm = CGData.ProbeLoc.ProbeLoc()
     pm.read( handle )
     pm.loaded = True
     handle.close()

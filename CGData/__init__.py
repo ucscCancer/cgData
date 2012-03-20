@@ -21,6 +21,7 @@ OBJECT_MAP = {
     'genomicSegment': ('CGData.GenomicSegment', 'GenomicSegment'),
     'genomicMatrix': ('CGData.GenomicMatrix', 'GenomicMatrix'),
     'probeMap': ('CGData.ProbeMap', 'ProbeMap'),
+    'probeLoc': ('CGData.ProbeLoc', 'ProbeLoc'),
     'aliasMap' : ('CGData.AliasMap', 'AliasMap'),
     'idDAG': ('CGData.IDDag', 'IDDag'),
     'clinicalMatrix': ('CGData.ClinicalMatrix', 'ClinicalMatrix'),

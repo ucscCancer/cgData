@@ -2,13 +2,12 @@
 import CGData.BaseTable
 
 
-class ProbeMap(CGData.BaseTable.BaseTable):
+class ProbeLoc(CGData.BaseTable.BaseTable):
     __format__ =  {
-            "name" : "probeMap",
+            "name" : "probeLoc",
             "form" : "table",
             "columnOrder" : [
                 "probe",
-                "aliases",
                 "chrom",
                 "chrom_start",
                 "chrom_end",

@@ -6,6 +6,7 @@ import sqlite3
 import CGData.GenomicMatrix
 import CGData.ClinicalMatrix
 import CGData.IDDag
+import CGData.ProbeMap
 import CGData.AliasMap
 
 sectionLine = re.compile(r'^\^(\w*) = (\w*)')
@@ -299,3 +300,25 @@ class Soft:
         out['cgdata']['aliasKeySrc'] = {'type' : 'refGene', 'name' : 'hugo' }
         return out
 
+    def build_probemap(self, platform, aliasCol, geneLocCol, idCol="ID"):
+        out = CGData.ProbeMap.ProbeMap()
+        out.init_blank()
+        for row in self.get_rows(platform):
+            reChrome = re.compile(r'chr(.+):(\d+)\-(\d+)')
+            if row[geneLocCol] is not None:
+                res = reChrome.search(row[geneLocCol])
+                if res:
+                    chrom = "chr" + res.group(1)
+                    chrom_start = int(res.group(2))
+                    chrom_end = int(res.group(3))
+                
+                    out.insert( row[idCol], 
+                        {"probe" : row[idCol], 
+                        "aliases" : row[aliasCol], 
+                        'chrom' : chrom, 
+                        'strand' : '.',
+                        'chrom_start' : chrom_start, 
+                        'chrom_end' : chrom_end} 
+                    )
+        out['cgdata']['name'] = "geo." + platform + ".probemap"
+        return out

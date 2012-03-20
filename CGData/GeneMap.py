@@ -298,12 +298,12 @@ def aliasRemap(genomicMatrix, aliasMap):
     
     return out
     
-def refGeneLink2ProbeMap(aliasMap, refGene):
+def refGeneLink2ProbeLoc(aliasMap, refGene):
     """
     given an alias map, and a refGene produce a probeMap by connecting 
     alias symbols. Returns the coordinates of the longest form
     """
-    out = CGData.ProbeMap.ProbeMap()
+    out = CGData.ProbeLoc.ProbeLoc()
     out.init_blank()
     
     for probe in aliasMap.get_key_list():
