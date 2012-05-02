@@ -70,6 +70,33 @@ class ClinicalMatrix(CGData.BaseMatrix.BaseMatrix):
                     out.set_val(col_name=col, row_name=row, value=self.get_val(col_name=col, row_name=rows[row]))
         return out
     
+    def merge(self, other):
+        rows = {}
+        #get the rows that part of the original matrix
+        for r in self.get_row_list():
+            rows[r] = None
+        if other is not None:
+            for r in other.get_row_list():
+                rows[r] = None
+        cols = {}
+        #get the cols that part of the original matrix
+        for r in self.get_col_list():
+            cols[r] = None
+        if other is not None:
+            for r in other.get_col_list():
+                cols[r] = None
+        out = ClinicalMatrix()
+        out.update(self)
+        out.init_blank(cols=cols, rows=rows)
+        for row in self.get_row_list():
+            for col in self.get_col_list():
+                out.set_val(col_name=col, row_name=row, value=self.get_val(col_name=col, row_name=row))
+        if other is not None:
+            for row in other.get_row_list():
+                for col in other.get_col_list():
+                    out.set_val(col_name=col, row_name=row, value=other.get_val(col_name=col, row_name=row))
+        return out
+    
     def transform(self, feat):
         featmap = feat.get_feature_map()
         col_types = []
