@@ -125,9 +125,13 @@ class TestCase(CGDataTestCase):
 
         other = json.loads(rows[0][21])
         expected = { 'url': 'http://url.com"\'`\\', 'article_title': 'test1 article title"\'`\\', 'citation': 'track cite"\'`\\', 'author_list': 'author1,author2"\'`\\',
-                'wrangler': 'wrangler"\'`\\', 'wrangling_procedure': 'wrangling procedure"\'`\\', 'description': 'track description"\'`\\'}
+                'wrangler': 'wrangler"\'`\\', 'wrangling_procedure': 'wrangling procedure"\'`\\', 'description': 'track description"\'`\\',
+                "security": "public", "redistribution": False, "colNormalization": False
+        }
         self.assertEqual(other, expected)
 
+        
+        
 def main():
     sys.argv = sys.argv[:1]
     unittest.main()

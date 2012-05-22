@@ -86,6 +86,13 @@ class TrackGenomic(CGData.CGMergeObject):
             other['author_list'] = gmatrix['dataProducer']
         if 'articleTitle' in gmatrix:
             other['article_title'] = gmatrix['articleTitle']
+        if 'version' in gmatrix:
+            other['version'] = gmatrix['version']
+        if 'owner' in gmatrix:
+            other['owner'] = gmatrix['owner']
+        other['colNormalization'] = gmatrix.get('colNormalization', False)
+        other['redistribution'] = gmatrix.get('redistribution', False)
+        other['security'] = gmatrix.get('security', "public")
 
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \

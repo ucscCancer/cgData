@@ -128,8 +128,11 @@ class TestCase(CGDataTestCase):
         self.assertEqual(rows[0][21], 1.25)                     # gain
 
         other = json.loads(rows[0][22])
-        expected = { 'url': 'http://url.com', 'article_title': 'test1 article title', 'citation': 'track cite', 'author_list': 'author1,author2',
-                'wrangler': 'wrangler', 'wrangling_procedure': 'wrangling procedure', 'description': 'track description'}
+        expected = {"article_title": "test1 article title", "wrangler": "wrangler", 
+        "description": "track description", "url": "http://url.com", "citation": "track cite", 
+        "author_list": "author1,author2", "wrangling_procedure": "wrangling procedure", 
+        "security": "public", "redistribution": False, "colNormalization": False}
+        
         self.assertEqual(other, expected)
 
 def main():
