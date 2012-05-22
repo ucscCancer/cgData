@@ -211,10 +211,16 @@ class BrowserCompiler(object):
                     sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
                     shandle = sql_func(self.id_table)
                     if shandle is not None:
-                        ohandle = open( os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) ), "w" )
-                        for line in shandle:
-                            ohandle.write( line )
-                        ohandle.close()
+                        opath = os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) )
+                        ohandle = open( opath, "w" )
+                        try:
+                            for line in shandle:
+                                ohandle.write( line )
+                            ohandle.close()
+                        except Exception:
+                            ohandle.close()
+                            os.unlink(opath)
+                            error("Track %s failed" % (rname))
                     #tell the object to unload data, so we don't continually allocate over the compile
                     self.compile_matrix[ rtype ][ rname ].unload()
     
