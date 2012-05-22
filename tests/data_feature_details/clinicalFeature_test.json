@@ -1,4 +1,5 @@
 {
 "name": "test",
-"type": "clinicalFeature"
+"type": "clinicalFeature",
+"version" : "2011-05-22"
 }

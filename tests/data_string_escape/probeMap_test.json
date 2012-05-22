@@ -1,1 +1,1 @@
-{ ":assembly": "hg18", "group": "test", "name": "test", "title": "test probeMap", "author": "", "note": "a note", "date": "7/27/2011", "dbXRef": "ucscGenomeBrowser_hg18", "type": "probeMap" }
+{ ":assembly": "hg18", "group": "test", "name": "test", "title": "test probeMap", "author": "", "note": "a note", "date": "7/27/2011", "dbXRef": "ucscGenomeBrowser_hg18", "type": "probeMap", "version" : "2011-05-22" }

@@ -1,6 +1,7 @@
 
 import CGData
 import binascii
+import datetime
 import struct
 from CGData.SQLUtil import *
 import json
@@ -86,13 +87,21 @@ class TrackGenomic(CGData.CGMergeObject):
             other['author_list'] = gmatrix['dataProducer']
         if 'articleTitle' in gmatrix:
             other['article_title'] = gmatrix['articleTitle']
-        if 'version' in gmatrix:
-            other['version'] = gmatrix['version']
+        
+        other['version'] = gmatrix.get('version', "")
+        datetime.datetime.strptime(other['version'], "%Y-%m-%d") #if the version isn't properly formatted, though exception
+        
         if 'owner' in gmatrix:
             other['owner'] = gmatrix['owner']
         other['colNormalization'] = gmatrix.get('colNormalization', False)
+        if not isinstance(other['colNormalization'], bool):
+            other['colNormalization']  = False
         other['redistribution'] = gmatrix.get('redistribution', False)
+        if not isinstance(other['redistribution'], bool):
+            other['redistribution']  = False
         other['security'] = gmatrix.get('security', "public")
+        if other['security'] not in [ "public", "private" ]:
+            other['security'] = "public"
 
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \
@@ -129,7 +138,7 @@ CREATE TABLE sample_%s (
 
         from CGData.ClinicalMatrix import sortedSamples
         for sample in sortedSamples(gmatrix.get_sample_list()):
-	    yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
+            yield "INSERT INTO sample_%s VALUES( %d, '%s' );\n" % ( table_base, id_table.get( clinical_table_base + ':sample_id', sample), sql_fix(sample) )
 
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
