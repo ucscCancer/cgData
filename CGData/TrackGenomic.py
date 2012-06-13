@@ -99,9 +99,9 @@ class TrackGenomic(CGData.CGMergeObject):
         other['redistribution'] = gmatrix.get('redistribution', False)
         if not isinstance(other['redistribution'], bool):
             other['redistribution']  = False
-        other['security'] = gmatrix.get('security', "public")
-        if other['security'] not in [ "public", "private" ]:
-            other['security'] = "public"
+        security = gmatrix.get('security', "public")
+        if security not in [ "public", "private" ]:
+            security = "public"
 
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
         yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \
@@ -114,7 +114,7 @@ class TrackGenomic(CGData.CGMergeObject):
                 self.format,
                 dataSubTypeMap[gmatrix[':dataSubType']] if gmatrix[':dataSubType'] in dataSubTypeMap else gmatrix[':dataSubType'],
                 'localDb',
-                'public',
+                security,
                 float(gmatrix.get('priority', 1.0)),
                 float(gmatrix.get('gain', 1.0)),
                 sql_fix(gmatrix.get('groupTitle', 'Misc.')),

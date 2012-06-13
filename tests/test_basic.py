@@ -131,7 +131,7 @@ class TestCase(CGDataTestCase):
         expected = {"article_title": "test1 article title", "wrangler": "wrangler", 
         "description": "track description", "url": "http://url.com", "citation": "track cite", 
         "author_list": "author1,author2", "wrangling_procedure": "wrangling procedure", 
-        "security": "public", "colNormalization": False, "version" : "2011-05-22", "redistribution" : True}
+        "colNormalization": False, "version" : "2011-05-22", "redistribution" : True}
         
         self.assertEqual(other, expected)
 
