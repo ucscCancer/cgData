@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 
-This script take a cgData2 probeMap file, and maps it aginst a refGene
+This script take a cgData2 probeLoc file, and maps it aginst a refGene
 file, producing an aliasMap file
 
 Usage: probeMapRefGene.py [options] probeMapFile refGeneFile
@@ -38,12 +38,14 @@ dataSubTypeMap = {
 }
 
 if __name__ == "__main__":
-    usage = "usage: %prog [options] <probeMapFile> <refGeneFile>"
+    usage = "usage: %prog [options] <probeLocFile> <refGeneFile>"
     parser = OptionParser(usage=usage)
     parser.add_option("-d", "--dataSubType", dest="dataSubType", help="DatasubType : (%s)" % (", ".join(dataSubTypeMap.keys())) , default="geneExp")
-    parser.add_option("-1", "--cgdata-v1", dest="version1", action="store_true", help="output cgdata v1 probemap", default=False)
+    parser.add_option("-p", "--probeMap", dest="probeMap", action="store_true", help="output cgdata probeMap file", default=False)
     parser.add_option("-n", "--minCoverage", dest="coverage", type="float", help="Min coverage", default=None)
     parser.add_option("-o", "--output", dest="output", help="Output File", default="out")
+    parser.add_option("--stdout", dest="stdout", action="store_true", help="Output to STDOUT", default=False)
+    
     parser.add_option("--start_rel_tss", dest="start_rel_tss", type="int", default=None)
     parser.add_option("--end_rel_tss", dest="end_rel_tss", type="int", default=None)
     parser.add_option("--start_rel_cdsStart", dest="start_rel_cdsStart", type="int", default=None)
@@ -78,26 +80,30 @@ if __name__ == "__main__":
             conf[a] = getattr(options, a)
     intersector = CGData.GeneMap.Intersector( **conf )
     
-    ohandle = open(options.output, "w")    
+    if options.stdout:
+        ohandle = sys.stdout
+    else:
+        ohandle = open(options.output, "w")    
     for probeName in pm.get_key_list():
         hits = {}
         probe = pm.get_by(probeName)
         for hit in mapper.find_overlap(probe, rg, intersector.hit):
             hits[hit.name] = True
         
-        if options.version1:
-            ohandle.write( "%s\t%s\t%s\t%s\t%s\n" % (probeName, ",".join(hits.keys()), probe.chrom_start, probe.chrom_end, probe.strand) )
+        if options.probeMap:
+            ohandle.write( "%s\t%s\t%s\t%s\t%s\t%s\n" % (probeName, ",".join(hits.keys()), probe.chrom, probe.chrom_start, probe.chrom_end, probe.strand) )
         else:
             for hit in hits:
                 ohandle.write("%s\t%s\n" % (probeName, hit))
     
-    ohandle.close()
-    ohandle = open(options.output + ".json", "w")
-    
-    if options.version1:
-        ohandle.write( json.dumps( {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} ) )
-    else:
-        ohandle.write( json.dumps( { "cgdata" : {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} } ) )        
-    ohandle.close()
-    
+    if not options.stdout:
+        ohandle.close()
+        ohandle = open(options.output + ".json", "w")
+        
+        if options.probeMap:
+            ohandle.write( json.dumps( {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} ) )
+        else:
+            ohandle.write( json.dumps( { "cgdata" : {"type" : "probeMap", "name" : pm_meta['cgdata']['name']} } ) )        
+        ohandle.close()
+        
     

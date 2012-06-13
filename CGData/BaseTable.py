@@ -60,7 +60,9 @@ class BaseTable(CGObjectBase):
         comment = None
         if 'comment' in self['cgformat']:
             comment = self['cgformat']['comment']
+        linenum = 0
         for row in read:
+            linenum += 1
             r = self.__row_class__()
             if comment is None or not row[0].startswith(comment):
                 for i, col in enumerate(cols):
@@ -68,7 +70,10 @@ class BaseTable(CGObjectBase):
                     if 'columnDef' in self['cgformat'] and col in self['cgformat']['columnDef'] and 'optional' in self['cgformat']['columnDef'][col]:
                         isOptional = self['cgformat']['columnDef'][col]['optional']
                     if len(row) > i:
-                        setattr(r, col, colType[col](row[i]))
+                        try:
+                            setattr(r, col, colType[col](row[i]))
+                        except ValueError:
+                            raise ValueError( "col invalid type %s on line %d" % (row[i], linenum))
                     else:
                         if isOptional:
                             setattr(r, col, None)
