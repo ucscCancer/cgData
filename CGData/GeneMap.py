@@ -258,7 +258,8 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
             assert coverage <= 1.0
             value = sum( i[0]*i[1] for i in mapInfo )
             #print coverage, value, value/coverage, segmentMap[gene]
-            tmp.set_val(row_name=gene, col_name=id, value=value/coverage)
+            if coverage > 0.0:
+                tmp.set_val(row_name=gene, col_name=id, value=value/coverage)
     
     #now remove the blanks
     out = CGData.GenomicMatrix.GenomicMatrix()

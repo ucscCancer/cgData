@@ -50,7 +50,11 @@ class CG1to2:
 		return meta
 
 	def getdst(self,path):
-		return os.path.abspath(path).replace(os.path.abspath(self.src), os.path.abspath(self.dst))
+		if os.path.isdir( self.src ):
+			src = os.path.abspath(self.src)
+		else:
+			src = os.path.dirname(os.path.abspath(self.src))			
+		return os.path.abspath(path).replace(src, os.path.abspath(self.dst))
 
 	def probeMap(self, path):		
 		meta = self.getmeta(path)
@@ -67,6 +71,7 @@ class CG1to2:
 		handle.close()
 		
 		apath = path.replace(".json", ".aliasmap.json")
+		meta['cgdata']['name'] = meta['cgdata']['name'] + ".aliasmap"
 		meta['cgdata']['type'] = 'aliasMap'
 		handle = open( self.getdst(apath), "w" )
 		handle.write( json.dumps(meta))
@@ -167,7 +172,7 @@ class CG1to2:
 		if meta is None:
 			meta = self.getmeta(path)
 			meta = self.meta_adjust(meta)
-
+		print "out", self.getdst(path)
 		handle = open( self.getdst(path), "w")
 		handle.write( json.dumps(meta) )
 		handle.close()

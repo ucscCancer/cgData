@@ -113,6 +113,8 @@ class DataSet(DataSetBase):
                     
         
     def scan_dirs(self, dirs):
+        if isinstance(dirs, str):
+            dirs = [dirs]
         for dir in dirs:
             CGData.debug("SCANNING DIR: %s" % (dir))
             for path in glob(os.path.join(dir, "*")):
@@ -139,6 +141,7 @@ class DataSet(DataSetBase):
                             for zPath in cgzList[type]:
                                 self.addFile(type, cgzList[type][zPath], zPath, path)
                 if os.path.isdir(path):
+                    #print path
                     self.scan_dirs([path])
 
         if "filter" in self.params:

@@ -1,7 +1,7 @@
 
 import CGData.BaseTable
-
-
+import CGData.GenomicMatrix
+import CGData.ClinicalMatrix
 
 class IDDag(CGData.BaseTable.BaseTable):
     __format__ = {
@@ -165,3 +165,49 @@ class IDReducer(object):
                 v = sum(tmp) / float(len(tmp))
                 out.set_val(row_name=row, col_name=col, value=v)
         return out
+
+class IDExpander(object):
+
+    def __init__(self, idDag):
+        self.expGraph = {}
+        for pid in idDag.get_key_list():
+            p = idDag.get_by(pid)
+            if pid not in self.expGraph:
+                self.expGraph[pid] = []
+            for cid in p:
+                self.expGraph[pid].append(cid.child)
+    
+    def expand_id(self, id):
+        out = {id:True}
+        added = True
+        while added:
+            added = False
+            pn = None
+            for i in out.keys():
+                if i in self.expGraph:
+                    for c in self.expGraph[i]:
+                        if c not in out:
+                            out[c] = True
+                            added = True
+        return out.keys()
+    
+    def expand_matrix(self, matrix):
+        nrows = {}
+        for row in matrix.get_row_list():
+            if row in self.expGraph:
+                for e_val in self.expand_id(row):
+                    if e_val not in nrows:
+                        nrows[e_val] = []
+                    nrows[e_val].append(row)
+        out = CGData.ClinicalMatrix.ClinicalMatrix()
+        out.init_blank( rows=sorted(nrows.keys()), cols=matrix.get_col_list() )
+        out.update(matrix)
+        
+        for row in nrows.keys():
+            for pid in nrows[row]:
+                for col in matrix.get_col_list():
+                    out.set_val( row_name=row, col_name=col, value=matrix.get_val(row_name=pid, col_name=col))
+        
+        #print nrows
+        return out
+    
