@@ -221,7 +221,7 @@ def filter_longest_form(refgene):
     return ng
 
 
-def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
+def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper, assertCoverage=True):
     """
     Given 
     """
@@ -255,10 +255,12 @@ def genomicSegment2MatrixNorm(genomicSegment, refGene, probeMapper):
             geneHits[gene] = True
             mapInfo = segmentMap[gene]
             coverage = sum( i[0] for i in mapInfo )
-            assert coverage <= 1.0
+            if assertCoverage:
+                assert coverage <= 1.0
             value = sum( i[0]*i[1] for i in mapInfo )
             #print coverage, value, value/coverage, segmentMap[gene]
-            tmp.set_val(row_name=gene, col_name=id, value=value/coverage)
+            if coverage > 0.0:
+                tmp.set_val(row_name=gene, col_name=id, value=value/coverage)
     
     #now remove the blanks
     out = CGData.GenomicMatrix.GenomicMatrix()

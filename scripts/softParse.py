@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser.add_option("--iddag", action="store_true", dest="iddag", default=None)
     parser.add_option("--aliasmap", dest="aliasmap", default=None)
     parser.add_option("--probemap", dest="probemap", default=None)
-    
+    parser.add_option("--cols", dest="col_query", default=None)
     parser.add_option("--head", dest="head", default=None)
     
     (options, args) = parser.parse_args()
@@ -44,7 +44,7 @@ if __name__ == "__main__":
             print row
             
     if options.matrix is not None:
-        out = soft.build_matrix(options.matrix, 'ID_REF')
+        out = soft.build_matrix(options.matrix, id_col='ID_REF')
         out.store(soft_file + ".matrix")
 
     if options.clinical is not None:
@@ -63,4 +63,5 @@ if __name__ == "__main__":
         out = soft.build_probemap(options.probemap, "GENE_SYMBOL", "CHROMOSOMAL_LOCATION", idCol="SPOT_ID")
         out.store(soft_file + ".probemap")
 
-    
+    if options.col_query is not None:
+		print soft.get_col_list(options.col_query)

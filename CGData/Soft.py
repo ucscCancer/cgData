@@ -230,6 +230,7 @@ class Soft:
         meta = None
         for s in self.get_section_list():
             cols = self.get_col_list(s)
+            print s
             if id_col in cols and value_col in cols:
                 sec.append(s)
                 if meta is None:
@@ -237,6 +238,7 @@ class Soft:
                     meta = { 'platform' : smeta['Sample_platform_id'] }
                 for row in self.get_rows(s):
                     ids[ row[id_col] ] = True
+        print meta
         out = CGData.GenomicMatrix.GenomicMatrix()
         out.init_blank(cols=sec, rows=ids)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".genomic"
@@ -256,6 +258,7 @@ class Soft:
         
         smeta = {}
         for s in self.get_section_list():
+            smeta[s] = {}
             meta = self.get_meta(s)
             for k in meta:
                 if k.startswith("Sample_characteristics_ch1"):
@@ -263,18 +266,42 @@ class Soft:
                     for v in meta[k]:
                         tmp = v.split(":")
                         vals[tmp[0].strip()] = tmp[1].strip()
-                    smeta[s] = vals
+                    for t in vals:
+                        smeta[s][t] = vals[t]
+                elif k.startswith("Sample_"):
+                    t = re.sub(r'^Sample_', '', re.sub(r'_ch1$','', k) )
+                    if not isinstance(meta[k], list):
+                        smeta[s][t] = meta[k].encode('ascii', 'ignore')
+                    
         cols = {}
         for s in smeta:
             for c in smeta[s]:
                 cols[c] = True
+        #find features that are constant across all samples and remove them
+        rmList = []
+        for c in cols:
+            val = None
+            found = False
+            for s in smeta:
+                if c in smeta[s]:
+                    if val is None:
+                        val = smeta[s][c]
+                    else:
+                        if val != smeta[s][c]:
+                            found = True
+            if not found:
+                rmList.append(c)
+        for c in rmList:
+            del cols[c]
+                        
         out = CGData.ClinicalMatrix.ClinicalMatrix()
         out.init_blank(cols=cols, rows=smeta)
         out['cgdata']['name'] = "geo." + self.get_series_section() + ".clinical"
         out['cgdata']['rowKeySrc'] = { 'type' : 'idDAG', 'name' : "geo." + self.get_series_section() + ".iddag" }
         for s in smeta:
-            for c in smeta[s]:
-                out.set_val(row_name=s, col_name=c, value=smeta[s][c])
+            for c in cols:
+                if c in smeta[s]:
+                    out.set_val(row_name=s, col_name=c, value=smeta[s][c])
         return out
          
     def build_iddag(self):
