@@ -310,7 +310,7 @@ def load(path, zip=None):
     # Throw away empty values
     meta = dict((k, v) for k, v in meta.iteritems() if v != None)
 
-    if meta['cgdata']['type'] in OBJECT_MAP:
+    if 'cgdata' in meta and meta['cgdata']['type'] in OBJECT_MAP:
         out = cg_new(meta['cgdata']['type'])
         out.update( meta )
         out.path = data_path
