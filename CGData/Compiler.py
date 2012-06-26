@@ -1,6 +1,7 @@
 
 import sys
 import os
+import traceback
 from glob import glob
 import json
 from copy import copy
@@ -221,6 +222,7 @@ class BrowserCompiler(object):
                             ohandle.close()
                             os.unlink(opath)
                             error("Track %s failed" % (rname))
+                            traceback.print_exc(file=sys.stdout)
                     #tell the object to unload data, so we don't continually allocate over the compile
                     self.compile_matrix[ rtype ][ rname ].unload()
     

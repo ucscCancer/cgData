@@ -74,10 +74,10 @@ class TrackGenomic(CGData.CGMergeObject):
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
         
-        table_base = self.get_name()
+        table_base = self.get_name().replace(".", "_")
         CGData.log("Writing Track %s" % (table_base))
         
-        clinical_table_base =  self.members[ "clinicalMatrix" ].get_name()
+        clinical_table_base =  self.members[ "clinicalMatrix" ].get_name().replace(".", "_")
 
         other = {}
         for attr in ['wrangler', 'wrangling_procedure', 'url', 'citation', 'description']:

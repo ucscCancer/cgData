@@ -125,7 +125,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
 
         features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
 
-        table_name = self['name']
+        table_name = self['name'].replace(".","_")
         clinical_table = 'clinical_' + table_name
 
         yield "DROP TABLE IF EXISTS %s;\n" % ( clinical_table )
