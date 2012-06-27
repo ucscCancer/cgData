@@ -161,11 +161,11 @@ class Intersector:
                 cstart = min(wEnd, wStart)
                 cend = max(wEnd, wStart)
                 if cend >= start and cstart <= end:
-                    cov = min(gene.chrom_end,end) - max(gene.chrom_start, start)
+                    cov = min(gene.chrom_end+1,end+1) - max(gene.chrom_start, start)
                     if self.coverage is None and cov > 0:
                         return True
                     else:
-                        if float(cov) / float(end - start) > 0.75:
+                        if float(cov) / float(end - start+1) > 0.75:
                             return True
     
         return False
