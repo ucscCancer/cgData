@@ -20,6 +20,27 @@ EXTENSIONS = [
               )
 ]
 
+SCRIPTS = [
+    'scripts/bed2probeMap.py',
+    'scripts/bedMap.py',
+    'scripts/compileCancerData.py',
+    'scripts/compileCancerORM.py',
+    'scripts/compileScan.py',
+    'scripts/dataNetwork.py',
+    'scripts/editMetainfo.py',
+    'scripts/extractClinical.py',
+    'scripts/extractClinicalFeatures.py',
+    'scripts/extractGenomic.py',
+    'scripts/extractProbes.py',
+    'scripts/extractSamples.py',
+    'scripts/getMatrixList.py',
+    'scripts/getRefGene_hg18.sh',
+    'scripts/setupRepo.py',
+    'scripts/tcga2cgdata.py',
+    'scripts/tcgaAliquotFetch.py',
+    'scripts/tcgaAliquotSampleMap.sh',
+]
+
 __version__="undefined"
 
 class test_cgData(Command):
@@ -53,6 +74,7 @@ setup(
             "test" : test_cgData
     },
     packages=PACKAGES,
-    ext_modules=EXTENSIONS
+    ext_modules=EXTENSIONS,
+    scripts=SCRIPTS
 )
 
