@@ -214,15 +214,11 @@ class BrowserCompiler(object):
                     if shandle is not None:
                         opath = os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) )
                         ohandle = open( opath, "w" )
-                        try:
-                            for line in shandle:
-                                ohandle.write( line )
-                            ohandle.close()
-                        except Exception:
-                            ohandle.close()
-                            os.unlink(opath)
-                            error("Track %s failed" % (rname))
-                            traceback.print_exc(file=sys.stdout)
+
+                        for line in shandle:
+                            ohandle.write( line )
+                        ohandle.close()
+
                     #tell the object to unload data, so we don't continually allocate over the compile
                     self.compile_matrix[ rtype ][ rname ].unload()
     
