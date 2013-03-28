@@ -69,12 +69,12 @@ class BrowserCompiler(object):
                 lmap = sobj.get_link_map()
                 is_ready = True
                 for ltype in lmap:
-                    if not omatrix.has_key( ltype ):
+                    if not omatrix.has_key( ltype ) and ltype!="integrationId":
                         warn( "%s missing data type %s" % (sname, ltype) )
                         is_ready = False
                     else:
                         for lname in lmap[ ltype ]:
-                            if not omatrix[ltype].has_key( lname ):
+                            if ltype!="integrationId" and not omatrix[ltype].has_key( lname ):
                                 warn( "%s %s missing data %s %s" % ( stype, sname, ltype, lname ) )
                                 is_ready = False
                 if not sobj.is_link_ready():
