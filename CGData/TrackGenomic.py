@@ -130,11 +130,11 @@ class TrackGenomic(CGData.CGMergeObject):
         # write out the sample table
         yield "drop table if exists sample_%s;" % ( table_base )
         yield """
-CREATE TABLE sample_%s (
-    id           int,
-    sampleName   varchar(255)
-) engine 'MyISAM';
-""" % ( table_base )
+        CREATE TABLE sample_%s (
+        id           int,
+        sampleName   varchar(255)
+        ) engine 'MyISAM';
+        """ % ( table_base )
 
         from CGData.ClinicalMatrix import sortedSamples
         for sample in sortedSamples(gmatrix.get_sample_list()):
@@ -143,11 +143,11 @@ CREATE TABLE sample_%s (
         
         yield "drop table if exists genomic_%s_alias;" % ( table_base )
         yield """
-CREATE TABLE genomic_%s_alias (
-    name        varchar(255),
-    alias         varchar(255)
-) engine 'MyISAM';
-""" % ( table_base )
+        CREATE TABLE genomic_%s_alias (
+        name        varchar(255),
+        alias         varchar(255)
+        ) engine 'MyISAM';
+        """ % ( table_base )
 
         for probe in pmap.get_probes():
             for alias in probe.aliases:
