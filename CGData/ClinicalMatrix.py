@@ -21,7 +21,7 @@ CREATE TABLE `%s` (
 ) engine 'MyISAM';
 """
 
-NULL_VALUES = ['NULL', 'NONE', 'NA', '']
+NULL_VALUES = ['NULL', "Null", 'NA', '']
 
 def sortedSamples(samples):
     import os, re
