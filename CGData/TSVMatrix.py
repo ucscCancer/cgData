@@ -107,6 +107,8 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         """
         Returns names of rows
         """
+        if self.row_hash is None:
+            self.load()
         return self.row_hash.keys()
     
     def get_row_vals(self, row_name):
