@@ -1,7 +1,7 @@
 
 import CGData
 import binascii
-import datetime
+import datetime,string
 import struct
 from CGData.SQLUtil import *
 import json
@@ -34,6 +34,18 @@ dataSubTypeMap = {
     'geneExp': 'expression',
     }
 
+def makeDate(isoFormatDate):
+    data = string.split(isoFormatDate,"-")
+    if len(data)!=3:
+        return None
+    for i in range (0,len(data)):
+        try:
+            int(data[i])
+        except TypeError:
+            return None
+    y,m,d = data
+    DATE = datetime.date(int(y), int(m), int(d))
+    return DATE
 
 class TrackGenomic(CGData.CGMergeObject):
 
@@ -87,10 +99,20 @@ class TrackGenomic(CGData.CGMergeObject):
             other['author_list'] = gmatrix['dataProducer']
         if 'articleTitle' in gmatrix:
             other['article_title'] = gmatrix['articleTitle']
-        
-        other['version'] = gmatrix.get('version', "")
+
+        ##TO DO, the version info should be the lastest of genomic and clinical, currently only check genomic
+        cVersion= self.members[ 'clinicalMatrix' ].get('version',"")
+        gVersion= self.members[ 'genomicMatrix' ].get('version',"")
+        dG= makeDate(gVersion)
+        dC= makeDate(cVersion)
+        if dC == None:
+            other['version'] = gVersion
+        elif dG<dC:
+            other['version'] = cVersion
+        else:
+            other['version'] = gVersion
         datetime.datetime.strptime(other['version'], "%Y-%m-%d") #if the version isn't properly formatted, though exception
-        
+
         if 'owner' in gmatrix:
             other['owner'] = gmatrix['owner']
         other['colNormalization'] = gmatrix.get('colNormalization', False)
