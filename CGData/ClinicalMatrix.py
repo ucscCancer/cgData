@@ -123,7 +123,7 @@ class ClinicalMatrix(CGData.TSVMatrix.TSVMatrix):
             self.feature_type_setup()
             features = {}
 
-        features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [1] }
+        features['sampleName'] = { 'shortTitle': ['Sample name'], 'longTitle': ['Sample name'], 'visibility': ['on'], 'priority': [100.0] }
 
         table_name = self['name'].replace(".","_")
         clinical_table = 'clinical_' + table_name
