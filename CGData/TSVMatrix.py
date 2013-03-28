@@ -80,7 +80,12 @@ class TSVMatrix(CGData.CGDataMatrixObject):
         """
         Alias to get_cols, returns names of columns
         """
-        return self.get_cols()
+        handle=open(self.path)
+        for row in csv.reader(handle, delimiter="\t"):
+            if len(row) == 0: # tolerate empty rows
+                continue
+            handle.close()
+            return row[1:]
     
     def get_row_names(self):
         """

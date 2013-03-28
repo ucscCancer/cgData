@@ -32,7 +32,7 @@ class GenomicMatrix(CGData.TSVMatrix.TSVMatrix):
         return self.get_rows()
 
     def get_sample_list(self):
-        return self.get_cols()
+        return self.get_col_names()
 
     def add(self, sample, probe, value):
         """This is just an overload of the TSVMatrix 
