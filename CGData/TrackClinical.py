@@ -33,6 +33,10 @@ class TrackClinical(CGData.CGMergeObject):
 
                 enums = [x for x in csv.reader(features[a]["stateOrder"], skipinitialspace=True)][0]
                 i = 0
+                #do not drop states in stateOrder
+                for e in enums:
+                    matrix.enum_map[a][e] = enums.index(e)
+
                 for e in matrix.enum_map[a]:
                     if e in enums:
                         matrix.enum_map[a][e] = enums.index(e)
