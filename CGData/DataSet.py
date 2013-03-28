@@ -14,7 +14,12 @@ class DataSet(dict):
     def scan_dirs(self, dirs):
         for dir in dirs:
             CGData.log("SCANNING DIR: %s" % (dir))
-            for path in glob(os.path.join(dir, "*")):
+            if os.path.isdir(dir):
+                filePath= os.path.join(dir, "*")
+            else:
+                filePath = dir
+
+            for path in glob(filePath):
                 if os.path.isfile(path):
                     if path.endswith(".json"):
                         handle = open(path)
