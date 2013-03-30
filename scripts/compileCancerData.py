@@ -15,7 +15,7 @@ reJson = re.compile( r'.json$' )
 
 if __name__ == "__main__":
     opts, args = gnu_getopt( sys.argv[1:]
-                         ,"bp:f:vt:hd:", ["no-g","no-gc","help"] )
+                         ,"bp:f:vt:hd:", ["no-g","no-gc","save-ds","help"] )
 
     params = {}
     params['binary'] = False
@@ -31,6 +31,7 @@ if __name__ == "__main__":
             print "options:"
             print "        --no-g (skip genomic matrix)"
             print "        --no-gc (skip genomic and clinical matrix)"
+            print "        --save-ds (save downsample table in raDb)"
             sys.exit()
 
     for a,o in opts:
@@ -47,6 +48,8 @@ if __name__ == "__main__":
             CGData.LOG_LEVEL = 0
         if a == "-b":
             params['binary'] = True
+        if a =="--save-ds":
+            copts['save-ds'] = True
         if a =="--no-g":
             copts['no-genomic-matrix'] = True
         if a =="--no-gc":

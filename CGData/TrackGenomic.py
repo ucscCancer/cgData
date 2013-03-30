@@ -85,6 +85,8 @@ class TrackGenomic(CGData.CGMergeObject):
         if pmap is None:
             CGData.error("Missing HG18 %s" % ( self.members[ 'probeMap'].get_name() ))
             return
+
+        savedownsample = 'save-ds' in opts and opts['save-ds']
         
         table_base = self.get_name().replace(".", "_")
         CGData.log("Writing Track %s" % (table_base))
@@ -125,9 +127,13 @@ class TrackGenomic(CGData.CGMergeObject):
         if security not in [ "public", "private" ]:
             security = "public"
 
+        if savedownsample:
+            yield "SET @ds=(SELECT downSampleTable FROM raDb WHERE name = '%s');\n" % ("genomic_" + table_base)
         yield "DELETE from raDb where name = '%s';\n" % ("genomic_" + table_base)
-        yield "INSERT into raDb( name, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \
-            ( "genomic_" + table_base, "sample_" + table_base,
+        yield "INSERT into raDb( name, downSampleTable, sampleTable, clinicalTable, columnTable, aliasTable, shortLabel, longLabel, expCount, dataType, platform, profile, security, priority, gain, groupName, wrangler, url, article_title, citation, author_list, wrangling_procedure, other) VALUES ( '%s', %s, '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', %f, %f, '%s', %s, %s, %s, %s, %s, %s, '%s');\n" % \
+            ( "genomic_" + table_base,
+                "@ds" if savedownsample else "NULL",
+                "sample_" + table_base,
                 "clinical_" + clinical_table_base, "colDb",
                 "genomic_" + table_base + "_alias",
                 sql_fix(gmatrix['shortTitle']),
