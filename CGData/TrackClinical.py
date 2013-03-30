@@ -18,7 +18,7 @@ class TrackClinical(CGData.CGMergeObject):
     def get_name( self ):
         return "%s" % ( self.members[ "clinicalMatrix" ].get_name() )
     
-    def gen_sql_heatmap(self, id_table):
+    def gen_sql_heatmap(self, id_table, opts):
         CGData.log("ClincalTrack SQL " + self.get_name())
 
         features = self.members["clinicalFeature"].features

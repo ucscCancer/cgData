@@ -69,7 +69,7 @@ class TrackGenomic(CGData.CGMergeObject):
     def scores(self, row):
         return "'%s'" % (','.join( str(a) for a in row ))
 
-    def gen_sql_heatmap(self, id_table):
+    def gen_sql_heatmap(self, id_table, opts):
         #scan the children
         # XXX Handling of sql for children is broken if the child may appear
         # as part of multiple merge objects, such as TrackGenomic and TrackClinical.
@@ -148,6 +148,9 @@ class TrackGenomic(CGData.CGMergeObject):
                 "'%s'"%sql_fix(gmatrix['wrangling_procedure']) if 'wrangling_procedure' in gmatrix else '\N',
                 sql_fix(json.dumps(other)),
                 )
+
+        if 'no-genomic-matrix' in opts and opts['no-genomic-matrix']:
+            return
         
         # write out the sample table
         yield "drop table if exists sample_%s;" % ( table_base )

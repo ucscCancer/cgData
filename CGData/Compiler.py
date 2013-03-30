@@ -199,7 +199,7 @@ class BrowserCompiler(object):
     def __getitem__(self, item):
         return self.compile_matrix[item]
 
-    def gen_sql(self, mode="heatmap"):
+    def gen_sql(self, mode="heatmap", opts={}):
         if "compiler.mode" in self.params and self.params[ "compiler.mode" ] == "scan":
             return
         log( "Writing SQL " + mode  )     
@@ -209,8 +209,10 @@ class BrowserCompiler(object):
         for rtype in self.compile_matrix:
             for rname in self.compile_matrix[ rtype ]:
                 if hasattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode):
+                    if not rtype in opts['types']:
+                        continue
                     sql_func = getattr(self.compile_matrix[ rtype ][ rname ], "gen_sql_" + mode)
-                    shandle = sql_func(self.id_table)
+                    shandle = sql_func(self.id_table, opts)
                     if shandle is not None:
                         opath = os.path.join( self.out_dir, "%s.%s.sql" % (rtype, rname ) )
                         ohandle = open( opath, "w" )
@@ -221,6 +223,3 @@ class BrowserCompiler(object):
 
                     #tell the object to unload data, so we don't continually allocate over the compile
                     self.compile_matrix[ rtype ][ rname ].unload()
-    
-    
-
