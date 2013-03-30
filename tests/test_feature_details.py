@@ -58,7 +58,7 @@ class TestCase(CGDataTestCase):
         self.assertEqual(rows[2][2], 'Sample name')     # long
         self.assertEqual(rows[2][3], 'sampleName')      # field
         self.assertEqual(rows[2][4], 'clinical_test')   # table
-        self.assertEqual(rows[2][5], 1)                 # priority
+        self.assertEqual(rows[2][5], 100)               # priority
         self.assertEqual(rows[2][6], 'coded')           # filterType
         self.assertEqual(rows[2][7], 'on')              # visibility
         self.assertEqual(rows[2][8], None)              # groupName
