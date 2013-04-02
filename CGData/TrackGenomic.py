@@ -5,10 +5,12 @@ import datetime,string
 import struct
 from CGData.SQLUtil import *
 import json
+from RangeFinder import Binner
 
 CREATE_BED = """
 CREATE TABLE %s (
     id int unsigned not null primary key auto_increment,
+    bin int(11) NOT NULL,
     chrom varchar(255) not null,
     chromStart int unsigned not null,
     chromEnd int unsigned not null,
@@ -25,7 +27,7 @@ CREATE TABLE %s (
     expIds longblob not null,
     expScores longblob not null,
     INDEX(name(16)),
-    INDEX(chrom(5),id)
+    INDEX(chrom(7),bin)
 ) engine 'MyISAM';
 """
 
@@ -208,14 +210,14 @@ class TrackGenomic(CGData.CGMergeObject):
             pset = pmap.lookup( probe_name )
             if pset is not None:
                 for probe in pset:
-                    istr = "insert into %s(chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
-                            ( "genomic_%s_tmp" % (table_base), probe.chrom, probe.chrom_start-1, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
+                    istr = "insert into %s(bin, chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) values ( %d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', %s );\n" % \
+                            ( "genomic_%s_tmp" % (table_base), Binner.calcBin(probe.chrom_start, probe.chrom_end), probe.chrom, probe.chrom_start-1, probe.chrom_end, probe.strand, sql_fix(probe_name), len(sample_ids), exp_ids, self.scores(row) )
                     yield istr
             else:
                 missingProbeCount += 1
         yield "# sort file by chrom position\n"
         yield "create table genomic_%s like genomic_%s_tmp;\n" % (table_base, table_base)
-        yield "insert into genomic_%s select * from genomic_%s_tmp order by chrom, chromStart;\n" % (table_base, table_base)
+        yield "insert into genomic_%s(bin, chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores) select bin, chrom, chromStart, chromEnd, strand,  name, expCount, expIds, expScores from genomic_%s_tmp order by chrom, chromStart;\n" % (table_base, table_base)
         yield "drop table genomic_%s_tmp;\n" % table_base
         CGData.log("%s Missing probes %d" % (table_base, missingProbeCount))
 
